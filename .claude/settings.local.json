@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m markitdown \"/Users/jaimegomez/Downloads/Ajustes \\(1\\).pptx\")",
+      "Bash(python3 -m markitdown \"/Users/jaimegomez/Downloads/Ajustes \\(1\\).pptx\")",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -c \"from markitdown import MarkItDown; md = MarkItDown\\(\\); result = md.convert\\('/Users/jaimegomez/Downloads/Ajustes \\(1\\).pptx'\\); print\\(result.text_content\\)\")",
+      "Bash(brew list:*)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/**)",
+      "Bash(python3 -c ':*)",
+      "Bash(npx tsc:*)",
+      "Bash(cp \"/Users/jaimegomez/Downloads/Ajustes.pptx\" /tmp/pptx_extract/ajustes2.pptx)",
+      "Read(//private/tmp/pptx_extract/**)",
+      "Bash(unzip -o ajustes2.pptx -d ajustes2_xml)",
+      "Bash(npm run:*)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp"
+    ]
+  }
+}
