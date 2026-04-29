@@ -43,10 +43,16 @@ __turbopack_context__.s([
     ()=>mockEvents,
     "mockNotifications",
     ()=>mockNotifications,
+    "mockSolutionProviders",
+    ()=>mockSolutionProviders,
     "mockUser",
     ()=>mockUser,
     "mockUsers",
-    ()=>mockUsers
+    ()=>mockUsers,
+    "solutionCategoryIcons",
+    ()=>solutionCategoryIcons,
+    "solutionCategoryLabels",
+    ()=>solutionCategoryLabels
 ]);
 const mockUser = {
     id: "u2",
@@ -954,6 +960,262 @@ const categoryIcons = {
     inclusion: "🤝",
     equidad_genero: "⚖️"
 };
+const solutionCategoryLabels = {
+    eficiencia_hidrica: "Eficiencia hídrica",
+    eficiencia_energetica: "Eficiencia energética",
+    gestion_residuos: "Gestión de residuos",
+    educacion_ambiental: "Educación ambiental",
+    impacto_social: "Impacto social",
+    movilidad_sostenible: "Movilidad sostenible"
+};
+const solutionCategoryIcons = {
+    eficiencia_hidrica: "💧",
+    eficiencia_energetica: "⚡",
+    gestion_residuos: "♻️",
+    educacion_ambiental: "🌿",
+    impacto_social: "🤝",
+    movilidad_sostenible: "🚲"
+};
+const mockSolutionProviders = [
+    {
+        id: "sp1",
+        name: "AquaTech Solutions",
+        initials: "AT",
+        color: "#0EA5E9",
+        category: "eficiencia_hidrica",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Especialistas en sistemas de captura y reutilización de agua pluvial para estadios y recintos deportivos. Reducimos hasta un 60% el consumo hídrico.",
+        services: [
+            "Auditoría hídrica",
+            "Sistemas de captación",
+            "Monitoreo IoT",
+            "Certificación hídrica"
+        ],
+        projectsCount: 50,
+        associatedBrand: "Claro",
+        associatedClub: "Universidad de Chile",
+        stars: 5,
+        verified: true,
+        featured: true,
+        tags: [
+            "IoT",
+            "Estadios",
+            "Certificación"
+        ]
+    },
+    {
+        id: "sp2",
+        name: "GreenEnergy Sport",
+        initials: "GE",
+        color: "#10B981",
+        category: "eficiencia_energetica",
+        country: "Argentina",
+        flag: "🇦🇷",
+        description: "Instalación de paneles solares y sistemas de iluminación LED de alta eficiencia para instalaciones deportivas. Partner oficial de la ANFP.",
+        services: [
+            "Paneles solares",
+            "LED deportivo",
+            "Auditoría energética",
+            "Compensación CO₂"
+        ],
+        projectsCount: 45,
+        associatedBrand: "ESPN",
+        associatedClub: "Boca Juniors",
+        stars: 4,
+        verified: true,
+        featured: true,
+        tags: [
+            "Solar",
+            "LED",
+            "ANFP"
+        ]
+    },
+    {
+        id: "sp3",
+        name: "Ciclo Verde",
+        initials: "CV",
+        color: "#F59E0B",
+        category: "gestion_residuos",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Gestión integral de residuos en eventos deportivos masivos. Implementamos estaciones de clasificación, compostaje y economía circular en estadios.",
+        services: [
+            "Plan de residuos cero",
+            "Estaciones de reciclaje",
+            "Compostaje orgánico",
+            "Reporte de impacto"
+        ],
+        projectsCount: 40,
+        associatedBrand: "VTR",
+        associatedClub: "Colo-Colo",
+        stars: 4,
+        verified: true,
+        tags: [
+            "Eventos",
+            "Reciclaje",
+            "Economía circular"
+        ]
+    },
+    {
+        id: "sp4",
+        name: "EduSport Sostenible",
+        initials: "ES",
+        color: "#8B5CF6",
+        category: "educacion_ambiental",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Programas educativos sobre sostenibilidad y medioambiente dirigidos a clubes, federaciones y comunidades deportivas de toda Latinoamérica.",
+        services: [
+            "Talleres formativos",
+            "Curriculum ESG para clubes",
+            "Campañas de sensibilización",
+            "Certificados de formación"
+        ],
+        projectsCount: 30,
+        associatedBrand: "Itaú",
+        associatedClub: "La Serena",
+        stars: 4,
+        verified: true,
+        featured: true,
+        tags: [
+            "Formación",
+            "LATAM",
+            "Certificados"
+        ]
+    },
+    {
+        id: "sp5",
+        name: "MoviSport",
+        initials: "MS",
+        color: "#06B6D4",
+        category: "movilidad_sostenible",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Implementamos planes de movilidad sostenible para recintos deportivos: bicicleteros, zonas de carga eléctrica y convenios con apps de transporte compartido.",
+        services: [
+            "Bicicleteros seguros",
+            "Carga vehículos eléctricos",
+            "Parkings inteligentes",
+            "Plan de movilidad"
+        ],
+        projectsCount: 25,
+        associatedBrand: "Pemex",
+        associatedClub: "Atlético Nacional",
+        stars: 4,
+        verified: true,
+        tags: [
+            "Bicicleta",
+            "Eléctrico",
+            "Smart parking"
+        ]
+    },
+    {
+        id: "sp6",
+        name: "ImpactoClub",
+        initials: "IC",
+        color: "#EC4899",
+        category: "impacto_social",
+        country: "México",
+        flag: "🇲🇽",
+        description: "Diseñamos programas de inclusión, diversidad y equidad de género para organizaciones deportivas, con métricas de impacto social certificadas.",
+        services: [
+            "Diagnóstico DEI",
+            "Programas de inclusión",
+            "Métricas de impacto",
+            "Reportes sociales"
+        ],
+        projectsCount: 23,
+        associatedBrand: "Águila",
+        associatedClub: "América de Cali",
+        stars: 4,
+        verified: true,
+        tags: [
+            "DEI",
+            "Inclusión",
+            "Métricas"
+        ]
+    },
+    {
+        id: "sp7",
+        name: "HidroSport CL",
+        initials: "HS",
+        color: "#0284C7",
+        category: "eficiencia_hidrica",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Sistemas de riego inteligente y mantenimiento de canchas con mínimo consumo de agua. Especialistas en campos de fútbol y tenis.",
+        services: [
+            "Riego inteligente",
+            "Sensores de humedad",
+            "Mantenimiento césped",
+            "Reciclaje de agua"
+        ],
+        projectsCount: 18,
+        associatedBrand: "Claro",
+        associatedClub: "Huachipato",
+        stars: 3,
+        verified: true,
+        tags: [
+            "Riego",
+            "Fútbol",
+            "Tenis"
+        ]
+    },
+    {
+        id: "sp8",
+        name: "SolarStadium",
+        initials: "SS",
+        color: "#F97316",
+        category: "eficiencia_energetica",
+        country: "España",
+        flag: "🇪🇸",
+        description: "Referentes europeos en energía renovable para estadios y pabellones deportivos. Proyectos en más de 40 recintos en Europa y Latinoamérica.",
+        services: [
+            "Plantas solares",
+            "Baterías de almacenamiento",
+            "Power Purchase Agreement",
+            "Carbon neutral"
+        ],
+        projectsCount: 15,
+        associatedBrand: "ESPN",
+        associatedClub: "Barcelona SC",
+        stars: 5,
+        verified: true,
+        featured: true,
+        tags: [
+            "Europa",
+            "Carbon neutral",
+            "PPA"
+        ]
+    },
+    {
+        id: "sp9",
+        name: "ResidúOK",
+        initials: "RO",
+        color: "#84CC16",
+        category: "gestion_residuos",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "App y servicio de logística para la correcta disposición de residuos generados en torneos y eventos deportivos de cualquier escala.",
+        services: [
+            "App de trazabilidad",
+            "Retiro programado",
+            "Informe de disposición",
+            "Certificados legales"
+        ],
+        projectsCount: 12,
+        associatedBrand: "VTR",
+        associatedClub: "O'Higgins",
+        stars: 3,
+        verified: true,
+        tags: [
+            "App",
+            "Logística",
+            "Certificados"
+        ]
+    }
+];
 }),
 "[project]/src/app/login/page.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";

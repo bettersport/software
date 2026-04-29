@@ -639,7 +639,7 @@ export default function HomePage() {
             {/* Card container */}
             <div className="relative h-[560px] rounded-3xl overflow-hidden shadow-[0_0_80px_rgba(16,185,129,0.15)]">
               {/* Slides */}
-              <AnimatePresence mode="crossfade">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={slideIndex}
                   initial={{ opacity: 0, scale: 1.08 }}

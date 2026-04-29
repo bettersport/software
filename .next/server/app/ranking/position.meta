@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/ranking/layout,_N_T_/ranking/position/layout,_N_T_/ranking/position/page,_N_T_/ranking/position"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/ranking/position/__PAGE__",
+    "/ranking/position",
+    "/ranking",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -70,9 +70,9 @@ export default function RankingPositionPage() {
               <Tooltip
                 contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", fontSize: 12 }}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(v: any, name: string) => {
+                formatter={(v: any, name: string | undefined) => {
                   const labels: Record<string, string> = { posicion: "Mi posición", benchmarkCategoria: "Benchmark categoría", benchmarkLatam: "Benchmark LATAM" };
-                  return [`#${v ?? ""}`, labels[name] ?? name];
+                  return [`#${v ?? ""}`, (name ? labels[name] : undefined) ?? name];
                 }}
               />
               <Legend

@@ -95,10 +95,16 @@ __turbopack_context__.s([
     ()=>mockEvents,
     "mockNotifications",
     ()=>mockNotifications,
+    "mockSolutionProviders",
+    ()=>mockSolutionProviders,
     "mockUser",
     ()=>mockUser,
     "mockUsers",
-    ()=>mockUsers
+    ()=>mockUsers,
+    "solutionCategoryIcons",
+    ()=>solutionCategoryIcons,
+    "solutionCategoryLabels",
+    ()=>solutionCategoryLabels
 ]);
 const mockUser = {
     id: "u2",
@@ -1006,6 +1012,262 @@ const categoryIcons = {
     inclusion: "🤝",
     equidad_genero: "⚖️"
 };
+const solutionCategoryLabels = {
+    eficiencia_hidrica: "Eficiencia hídrica",
+    eficiencia_energetica: "Eficiencia energética",
+    gestion_residuos: "Gestión de residuos",
+    educacion_ambiental: "Educación ambiental",
+    impacto_social: "Impacto social",
+    movilidad_sostenible: "Movilidad sostenible"
+};
+const solutionCategoryIcons = {
+    eficiencia_hidrica: "💧",
+    eficiencia_energetica: "⚡",
+    gestion_residuos: "♻️",
+    educacion_ambiental: "🌿",
+    impacto_social: "🤝",
+    movilidad_sostenible: "🚲"
+};
+const mockSolutionProviders = [
+    {
+        id: "sp1",
+        name: "AquaTech Solutions",
+        initials: "AT",
+        color: "#0EA5E9",
+        category: "eficiencia_hidrica",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Especialistas en sistemas de captura y reutilización de agua pluvial para estadios y recintos deportivos. Reducimos hasta un 60% el consumo hídrico.",
+        services: [
+            "Auditoría hídrica",
+            "Sistemas de captación",
+            "Monitoreo IoT",
+            "Certificación hídrica"
+        ],
+        projectsCount: 50,
+        associatedBrand: "Claro",
+        associatedClub: "Universidad de Chile",
+        stars: 5,
+        verified: true,
+        featured: true,
+        tags: [
+            "IoT",
+            "Estadios",
+            "Certificación"
+        ]
+    },
+    {
+        id: "sp2",
+        name: "GreenEnergy Sport",
+        initials: "GE",
+        color: "#10B981",
+        category: "eficiencia_energetica",
+        country: "Argentina",
+        flag: "🇦🇷",
+        description: "Instalación de paneles solares y sistemas de iluminación LED de alta eficiencia para instalaciones deportivas. Partner oficial de la ANFP.",
+        services: [
+            "Paneles solares",
+            "LED deportivo",
+            "Auditoría energética",
+            "Compensación CO₂"
+        ],
+        projectsCount: 45,
+        associatedBrand: "ESPN",
+        associatedClub: "Boca Juniors",
+        stars: 4,
+        verified: true,
+        featured: true,
+        tags: [
+            "Solar",
+            "LED",
+            "ANFP"
+        ]
+    },
+    {
+        id: "sp3",
+        name: "Ciclo Verde",
+        initials: "CV",
+        color: "#F59E0B",
+        category: "gestion_residuos",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Gestión integral de residuos en eventos deportivos masivos. Implementamos estaciones de clasificación, compostaje y economía circular en estadios.",
+        services: [
+            "Plan de residuos cero",
+            "Estaciones de reciclaje",
+            "Compostaje orgánico",
+            "Reporte de impacto"
+        ],
+        projectsCount: 40,
+        associatedBrand: "VTR",
+        associatedClub: "Colo-Colo",
+        stars: 4,
+        verified: true,
+        tags: [
+            "Eventos",
+            "Reciclaje",
+            "Economía circular"
+        ]
+    },
+    {
+        id: "sp4",
+        name: "EduSport Sostenible",
+        initials: "ES",
+        color: "#8B5CF6",
+        category: "educacion_ambiental",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Programas educativos sobre sostenibilidad y medioambiente dirigidos a clubes, federaciones y comunidades deportivas de toda Latinoamérica.",
+        services: [
+            "Talleres formativos",
+            "Curriculum ESG para clubes",
+            "Campañas de sensibilización",
+            "Certificados de formación"
+        ],
+        projectsCount: 30,
+        associatedBrand: "Itaú",
+        associatedClub: "La Serena",
+        stars: 4,
+        verified: true,
+        featured: true,
+        tags: [
+            "Formación",
+            "LATAM",
+            "Certificados"
+        ]
+    },
+    {
+        id: "sp5",
+        name: "MoviSport",
+        initials: "MS",
+        color: "#06B6D4",
+        category: "movilidad_sostenible",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Implementamos planes de movilidad sostenible para recintos deportivos: bicicleteros, zonas de carga eléctrica y convenios con apps de transporte compartido.",
+        services: [
+            "Bicicleteros seguros",
+            "Carga vehículos eléctricos",
+            "Parkings inteligentes",
+            "Plan de movilidad"
+        ],
+        projectsCount: 25,
+        associatedBrand: "Pemex",
+        associatedClub: "Atlético Nacional",
+        stars: 4,
+        verified: true,
+        tags: [
+            "Bicicleta",
+            "Eléctrico",
+            "Smart parking"
+        ]
+    },
+    {
+        id: "sp6",
+        name: "ImpactoClub",
+        initials: "IC",
+        color: "#EC4899",
+        category: "impacto_social",
+        country: "México",
+        flag: "🇲🇽",
+        description: "Diseñamos programas de inclusión, diversidad y equidad de género para organizaciones deportivas, con métricas de impacto social certificadas.",
+        services: [
+            "Diagnóstico DEI",
+            "Programas de inclusión",
+            "Métricas de impacto",
+            "Reportes sociales"
+        ],
+        projectsCount: 23,
+        associatedBrand: "Águila",
+        associatedClub: "América de Cali",
+        stars: 4,
+        verified: true,
+        tags: [
+            "DEI",
+            "Inclusión",
+            "Métricas"
+        ]
+    },
+    {
+        id: "sp7",
+        name: "HidroSport CL",
+        initials: "HS",
+        color: "#0284C7",
+        category: "eficiencia_hidrica",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "Sistemas de riego inteligente y mantenimiento de canchas con mínimo consumo de agua. Especialistas en campos de fútbol y tenis.",
+        services: [
+            "Riego inteligente",
+            "Sensores de humedad",
+            "Mantenimiento césped",
+            "Reciclaje de agua"
+        ],
+        projectsCount: 18,
+        associatedBrand: "Claro",
+        associatedClub: "Huachipato",
+        stars: 3,
+        verified: true,
+        tags: [
+            "Riego",
+            "Fútbol",
+            "Tenis"
+        ]
+    },
+    {
+        id: "sp8",
+        name: "SolarStadium",
+        initials: "SS",
+        color: "#F97316",
+        category: "eficiencia_energetica",
+        country: "España",
+        flag: "🇪🇸",
+        description: "Referentes europeos en energía renovable para estadios y pabellones deportivos. Proyectos en más de 40 recintos en Europa y Latinoamérica.",
+        services: [
+            "Plantas solares",
+            "Baterías de almacenamiento",
+            "Power Purchase Agreement",
+            "Carbon neutral"
+        ],
+        projectsCount: 15,
+        associatedBrand: "ESPN",
+        associatedClub: "Barcelona SC",
+        stars: 5,
+        verified: true,
+        featured: true,
+        tags: [
+            "Europa",
+            "Carbon neutral",
+            "PPA"
+        ]
+    },
+    {
+        id: "sp9",
+        name: "ResidúOK",
+        initials: "RO",
+        color: "#84CC16",
+        category: "gestion_residuos",
+        country: "Chile",
+        flag: "🇨🇱",
+        description: "App y servicio de logística para la correcta disposición de residuos generados en torneos y eventos deportivos de cualquier escala.",
+        services: [
+            "App de trazabilidad",
+            "Retiro programado",
+            "Informe de disposición",
+            "Certificados legales"
+        ],
+        projectsCount: 12,
+        associatedBrand: "VTR",
+        associatedClub: "O'Higgins",
+        stars: 3,
+        verified: true,
+        tags: [
+            "App",
+            "Logística",
+            "Certificados"
+        ]
+    }
+];
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -1067,7 +1329,7 @@ function UserProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/src/lib/userContext.tsx",
-        lineNumber: 44,
+        lineNumber: 58,
         columnNumber: 5
     }, this);
 }
@@ -1116,6 +1378,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$tag$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Tag$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/tag.js [app-client] (ecmascript) <export default as Tag>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clipboard$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ClipboardCheck$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/clipboard-check.js [app-client] (ecmascript) <export default as ClipboardCheck>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$eye$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Eye$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/eye.js [app-client] (ecmascript) <export default as Eye>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$wrench$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Wrench$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/wrench.js [app-client] (ecmascript) <export default as Wrench>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/utils.ts [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$userContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/userContext.tsx [app-client] (ecmascript)");
 ;
@@ -1143,7 +1406,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 47,
+            lineNumber: 48,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: allRoles
@@ -1154,20 +1417,31 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 52,
+            lineNumber: 53,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: allRoles,
         children: [
             {
-                label: "Ranking clubes",
+                label: "Clubes",
                 href: "/ranking",
                 icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trophy$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Trophy$3e$__["Trophy"], {
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 55,
-                    columnNumber: 58
+                    lineNumber: 56,
+                    columnNumber: 50
+                }, ("TURBOPACK compile-time value", void 0))
+            },
+            {
+                label: "Soluciones",
+                href: "/solutions",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$wrench$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Wrench$3e$__["Wrench"], {
+                    size: 15
+                }, void 0, false, {
+                    fileName: "[project]/src/components/layout/Sidebar.tsx",
+                    lineNumber: 57,
+                    columnNumber: 56
                 }, ("TURBOPACK compile-time value", void 0))
             },
             {
@@ -1177,7 +1451,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 56,
+                    lineNumber: 58,
                     columnNumber: 64
                 }, ("TURBOPACK compile-time value", void 0)),
                 roles: [
@@ -1189,12 +1463,12 @@ const navItems = [
         ]
     },
     {
-        label: "Marketplace",
+        label: "Proyectos de alto impacto",
         icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shopping$2d$bag$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ShoppingBag$3e$__["ShoppingBag"], {
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 61,
+            lineNumber: 63,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1205,14 +1479,14 @@ const navItems = [
         ],
         children: [
             {
-                label: "Explorar eventos",
+                label: "Proyectos sostenibles",
                 href: "/marketplace",
                 icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shopping$2d$bag$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ShoppingBag$3e$__["ShoppingBag"], {
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 64,
-                    columnNumber: 64
+                    lineNumber: 66,
+                    columnNumber: 69
                 }, ("TURBOPACK compile-time value", void 0))
             },
             {
@@ -1222,8 +1496,24 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 65,
+                    lineNumber: 67,
                     columnNumber: 69
+                }, ("TURBOPACK compile-time value", void 0)),
+                roles: [
+                    "club",
+                    "admin",
+                    "manager"
+                ]
+            },
+            {
+                label: "Proyectos realizados",
+                href: "/marketplace/completed",
+                icon: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clipboard$2d$check$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ClipboardCheck$3e$__["ClipboardCheck"], {
+                    size: 15
+                }, void 0, false, {
+                    fileName: "[project]/src/components/layout/Sidebar.tsx",
+                    lineNumber: 68,
+                    columnNumber: 78
                 }, ("TURBOPACK compile-time value", void 0)),
                 roles: [
                     "club",
@@ -1239,7 +1529,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 70,
+            lineNumber: 73,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1254,7 +1544,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 73,
+                    lineNumber: 76,
                     columnNumber: 65
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1265,7 +1555,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 74,
+                    lineNumber: 77,
                     columnNumber: 73
                 }, ("TURBOPACK compile-time value", void 0))
             }
@@ -1277,7 +1567,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 79,
+            lineNumber: 82,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1293,7 +1583,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 82,
+                    lineNumber: 85,
                     columnNumber: 62
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1304,7 +1594,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 83,
+                    lineNumber: 86,
                     columnNumber: 63
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1315,7 +1605,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 84,
+                    lineNumber: 87,
                     columnNumber: 68
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1326,7 +1616,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 85,
+                    lineNumber: 88,
                     columnNumber: 58
                 }, ("TURBOPACK compile-time value", void 0))
             }
@@ -1338,7 +1628,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 90,
+            lineNumber: 93,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1353,7 +1643,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 93,
+                    lineNumber: 96,
                     columnNumber: 60
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1364,7 +1654,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 94,
+                    lineNumber: 97,
                     columnNumber: 60
                 }, ("TURBOPACK compile-time value", void 0))
             }
@@ -1377,7 +1667,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 100,
+            lineNumber: 103,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1392,7 +1682,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 105,
+            lineNumber: 108,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1406,7 +1696,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 108,
+                    lineNumber: 111,
                     columnNumber: 64
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1417,7 +1707,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 109,
+                    lineNumber: 112,
                     columnNumber: 63
                 }, ("TURBOPACK compile-time value", void 0))
             }
@@ -1429,7 +1719,7 @@ const navItems = [
             size: 18
         }, void 0, false, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 114,
+            lineNumber: 117,
             columnNumber: 11
         }, ("TURBOPACK compile-time value", void 0)),
         roles: [
@@ -1443,7 +1733,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 117,
+                    lineNumber: 120,
                     columnNumber: 60
                 }, ("TURBOPACK compile-time value", void 0))
             },
@@ -1454,7 +1744,7 @@ const navItems = [
                     size: 15
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 118,
+                    lineNumber: 121,
                     columnNumber: 63
                 }, ("TURBOPACK compile-time value", void 0))
             }
@@ -1534,12 +1824,12 @@ function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClos
                             color: "#fff"
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 184,
+                            lineNumber: 187,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 183,
+                        lineNumber: 186,
                         columnNumber: 11
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
                         initial: {
@@ -1557,12 +1847,12 @@ function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClos
                             className: "h-8 w-auto object-contain"
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 193,
+                            lineNumber: 196,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 187,
+                        lineNumber: 190,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1575,24 +1865,24 @@ function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClos
                             size: 15
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 201,
+                            lineNumber: 204,
                             columnNumber: 24
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Menu$3e$__["Menu"], {
                             size: 15
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 201,
+                            lineNumber: 204,
                             columnNumber: 53
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 196,
+                        lineNumber: 199,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/layout/Sidebar.tsx",
-                lineNumber: 181,
+                lineNumber: 184,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("nav", {
@@ -1605,12 +1895,12 @@ function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClos
                         onToggle: ()=>toggleMenu(item.label)
                     }, item.label, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 208,
+                        lineNumber: 211,
                         columnNumber: 11
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/Sidebar.tsx",
-                lineNumber: 206,
+                lineNumber: 209,
                 columnNumber: 7
             }, this),
             !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1627,7 +1917,7 @@ function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClos
                         children: "Partners"
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 222,
+                        lineNumber: 225,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1642,24 +1932,24 @@ function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClos
                                 children: p.initials
                             }, p.name, false, {
                                 fileName: "[project]/src/components/layout/Sidebar.tsx",
-                                lineNumber: 225,
+                                lineNumber: 228,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 223,
+                        lineNumber: 226,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/layout/Sidebar.tsx",
-                lineNumber: 221,
+                lineNumber: 224,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/layout/Sidebar.tsx",
-        lineNumber: 168,
+        lineNumber: 171,
         columnNumber: 5
     }, this);
 }
@@ -1688,20 +1978,20 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
                                     children: item.icon
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                                    lineNumber: 265,
+                                    lineNumber: 268,
                                     columnNumber: 13
                                 }, this),
                                 !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                     children: item.label
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                                    lineNumber: 266,
+                                    lineNumber: 269,
                                     columnNumber: 28
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 264,
+                            lineNumber: 267,
                             columnNumber: 11
                         }, this),
                         !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$down$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDown$3e$__["ChevronDown"], {
@@ -1709,13 +1999,13 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
                             className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("transition-transform duration-200", isOpen && "rotate-180")
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 269,
+                            lineNumber: 272,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 257,
+                    lineNumber: 260,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -1747,41 +2037,41 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
                                             children: child.icon
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                                            lineNumber: 295,
+                                            lineNumber: 298,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             children: child.label
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                                            lineNumber: 296,
+                                            lineNumber: 299,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, child.label, true, {
                                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                                    lineNumber: 287,
+                                    lineNumber: 290,
                                     columnNumber: 19
                                 }, this))
                         }, void 0, false, {
                             fileName: "[project]/src/components/layout/Sidebar.tsx",
-                            lineNumber: 285,
+                            lineNumber: 288,
                             columnNumber: 15
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/components/layout/Sidebar.tsx",
-                        lineNumber: 278,
+                        lineNumber: 281,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/layout/Sidebar.tsx",
-                    lineNumber: 276,
+                    lineNumber: 279,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/layout/Sidebar.tsx",
-            lineNumber: 256,
+            lineNumber: 259,
             columnNumber: 7
         }, this);
     }
@@ -1794,20 +2084,20 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
                 children: item.icon
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/Sidebar.tsx",
-                lineNumber: 316,
+                lineNumber: 319,
                 columnNumber: 7
             }, this),
             !collapsed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                 children: item.label
             }, void 0, false, {
                 fileName: "[project]/src/components/layout/Sidebar.tsx",
-                lineNumber: 317,
+                lineNumber: 320,
                 columnNumber: 22
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/layout/Sidebar.tsx",
-        lineNumber: 308,
+        lineNumber: 311,
         columnNumber: 5
     }, this);
 }

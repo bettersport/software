@@ -14,7 +14,10 @@
       "Read(//private/tmp/pptx_extract/**)",
       "Bash(unzip -o ajustes2.pptx -d ajustes2_xml)",
       "Bash(npm run:*)",
-      "mcp__Claude_in_Chrome__tabs_context_mcp"
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Read(//Users/jaimegomez/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/912a3bc2-193b-4d40-8b26-1b487706170f/c21f9956-bb80-4d1f-9f0e-a3335f72c689/skills/pptx/**)",
+      "Bash(python3 -m markitdown \"/Users/jaimegomez/Downloads/Ajustes 2.pptx\")",
+      "Bash(python3 -c \"from markitdown import MarkItDown; md = MarkItDown\\(\\); result = md.convert\\('/Users/jaimegomez/Downloads/Ajustes 2.pptx'\\); print\\(result.text_content\\)\")"
     ]
   }
 }
