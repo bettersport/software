@@ -25,6 +25,7 @@ import {
   Tag,
   ClipboardCheck,
   Eye,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -52,17 +53,19 @@ const navItems: NavItem[] = [
     icon: <Trophy size={18} />,
     roles: allRoles,
     children: [
-      { label: "Ranking clubes", href: "/ranking", icon: <Trophy size={15} /> },
+      { label: "Clubes", href: "/ranking", icon: <Trophy size={15} /> },
+      { label: "Soluciones", href: "/solutions", icon: <Wrench size={15} /> },
       { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin", "manager"] },
     ],
   },
   {
-    label: "Marketplace",
+    label: "Proyectos de alto impacto",
     icon: <ShoppingBag size={18} />,
     roles: ["admin", "club", "brand", "manager"],
     children: [
-      { label: "Explorar eventos", href: "/marketplace", icon: <ShoppingBag size={15} /> },
+      { label: "Proyectos sostenibles", href: "/marketplace", icon: <ShoppingBag size={15} /> },
       { label: "Mis eventos", href: "/marketplace/my-events", icon: <FileText size={15} />, roles: ["club", "admin", "manager"] },
+      { label: "Proyectos realizados", href: "/marketplace/completed", icon: <ClipboardCheck size={15} />, roles: ["club", "admin", "manager"] },
     ],
   },
   {

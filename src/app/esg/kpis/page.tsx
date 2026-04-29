@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, Minus, Plus, Target } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Minus, Plus, Target, Send, X, Building2, CheckCheck, Bell } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -36,10 +36,33 @@ const radarData = [
   { dimension: "Innovación", score: 75 },
 ];
 
+const sponsors = [
+  { id: "s1", name: "Coca-Cola Chile", initials: "CC", color: "#EF4444", email: "sponsor@coca-cola.cl" },
+  { id: "s2", name: "Banco Santander", initials: "BS", color: "#EC4899", email: "esg@santander.cl" },
+  { id: "s3", name: "Entel", initials: "EN", color: "#3B82F6", email: "sostenibilidad@entel.cl" },
+  { id: "s4", name: "Falabella", initials: "FA", color: "#10B981", email: "esg@falabella.com" },
+];
+
 export default function KPIsPage() {
   const [kpis, setKpis] = useState(kpiData);
   const [showForm, setShowForm] = useState(false);
   const [newKpi, setNewKpi] = useState({ name: "", category: "Ambiental", current: "", target: "", unit: "" });
+  const [showSponsorModal, setShowSponsorModal] = useState(false);
+  const [selectedSponsors, setSelectedSponsors] = useState<string[]>(["s1", "s2", "s3", "s4"]);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const toggleSponsor = (id: string) =>
+    setSelectedSponsors((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
+
+  const sendToSponsors = async () => {
+    setSending(true);
+    await new Promise((r) => setTimeout(r, 1600));
+    setSending(false);
+    setSent(true);
+    toast.success(`Notificación enviada a ${selectedSponsors.length} sponsor${selectedSponsors.length > 1 ? "s" : ""}`);
+    setTimeout(() => { setSent(false); setShowSponsorModal(false); }, 1200);
+  };
 
   const addKpi = () => {
     if (!newKpi.name) return;
@@ -66,9 +89,22 @@ export default function KPIsPage() {
         title="KPIs e Indicadores ESG"
         subtitle="Monitorea el desempeño de tus indicadores de sostenibilidad"
         action={
-          <button onClick={() => setShowForm(!showForm)} className="btn-primary">
-            <Plus size={16} /> Nuevo KPI
-          </button>
+          <div className="flex items-center gap-3">
+            <motion.button
+              onClick={() => setShowSponsorModal(true)}
+              whileHover={{ scale: 1.04, backgroundColor: "rgba(59,130,246,0.18)", boxShadow: "0 0 18px rgba(59,130,246,0.3)" }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border cursor-pointer"
+              style={{ backgroundColor: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.35)", color: "#3B82F6" }}
+            >
+              <Bell size={15} />
+              Actualizar Sponsor
+            </motion.button>
+            <button onClick={() => setShowForm(!showForm)} className="btn-primary">
+              <Plus size={16} /> Nuevo KPI
+            </button>
+          </div>
         }
       />
 
@@ -135,6 +171,128 @@ export default function KPIsPage() {
             <button onClick={() => setShowForm(false)} className="btn-secondary">Cancelar</button>
             <button onClick={addKpi} className="btn-primary">Agregar KPI</button>
           </div>
+        </motion.div>
+      )}
+
+      {/* Sponsor Notification Modal */}
+      {showSponsorModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+          onClick={(e) => e.target === e.currentTarget && setShowSponsorModal(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(59,130,246,0.1)" }}>
+                  <Building2 size={18} className="text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Actualizar Sponsors ESG</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Notifica a tus marcas con el reporte actualizado</p>
+                </div>
+              </div>
+              <button onClick={() => setShowSponsorModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors">
+                <X size={16} className="text-slate-400" />
+              </button>
+            </div>
+
+            {/* ESG summary preview */}
+            <div className="p-6 space-y-5">
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Resumen a enviar</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Ambiental", score: 85, color: "#10B981" },
+                    { label: "Social", score: 84, color: "#06B6D4" },
+                    { label: "Gobernanza", score: 83, color: "#8B5CF6" },
+                  ].map((d) => (
+                    <div key={d.label} className="rounded-xl p-3 text-center" style={{ backgroundColor: d.color + "10", border: `1px solid ${d.color}25` }}>
+                      <span className="text-xl font-black" style={{ color: d.color }}>{d.score}</span>
+                      <p className="text-xs text-slate-500 mt-0.5">{d.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sponsor selection */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sponsors a notificar</p>
+                  <button
+                    onClick={() => setSelectedSponsors(selectedSponsors.length === sponsors.length ? [] : sponsors.map((s) => s.id))}
+                    className="text-xs text-blue-500 font-medium hover:underline"
+                  >
+                    {selectedSponsors.length === sponsors.length ? "Deseleccionar todos" : "Seleccionar todos"}
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {sponsors.map((sp) => {
+                    const active = selectedSponsors.includes(sp.id);
+                    return (
+                      <button
+                        key={sp.id}
+                        onClick={() => toggleSponsor(sp.id)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all duration-150"
+                        style={active
+                          ? { backgroundColor: sp.color + "0d", border: `1.5px solid ${sp.color}30` }
+                          : { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0" }
+                        }
+                      >
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                          style={{ backgroundColor: sp.color }}
+                        >
+                          {sp.initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-800">{sp.name}</p>
+                          <p className="text-xs text-slate-400 truncate">{sp.email}</p>
+                        </div>
+                        <div
+                          className="w-5 h-5 rounded-full flex items-center justify-center transition-all flex-shrink-0"
+                          style={active
+                            ? { backgroundColor: sp.color, border: `2px solid ${sp.color}` }
+                            : { border: "2px solid #cbd5e1", backgroundColor: "transparent" }
+                          }
+                        >
+                          {active && <CheckCheck size={10} className="text-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal footer */}
+            <div className="flex items-center justify-between p-6 pt-0">
+              <p className="text-xs text-slate-400">
+                {selectedSponsors.length} sponsor{selectedSponsors.length !== 1 ? "s" : ""} seleccionado{selectedSponsors.length !== 1 ? "s" : ""}
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setShowSponsorModal(false)} className="btn-secondary text-sm">Cancelar</button>
+                <button
+                  onClick={sendToSponsors}
+                  disabled={selectedSponsors.length === 0 || sending || sent}
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50"
+                  style={{ backgroundColor: sent ? "#10B981" : "#3B82F6" }}
+                >
+                  {sent ? <CheckCheck size={15} /> : <Send size={15} />}
+                  {sending ? "Enviando..." : sent ? "Enviado" : "Enviar notificación"}
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       )}
 

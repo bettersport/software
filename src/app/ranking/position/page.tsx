@@ -5,17 +5,17 @@ import { Medal, TrendingUp, TrendingDown, Target, Award, ChevronUp, ChevronDown 
 import { mockClubs } from "@/lib/data";
 import { ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, ReferenceLine } from "recharts";
 
 const evolutionData = [
-  { mes: "Ago", posicion: 8, score: 72 },
-  { mes: "Sep", posicion: 7, score: 74 },
-  { mes: "Oct", posicion: 6, score: 77 },
-  { mes: "Nov", posicion: 5, score: 79 },
-  { mes: "Dic", posicion: 5, score: 81 },
-  { mes: "Ene", posicion: 4, score: 84 },
-  { mes: "Feb", posicion: 4, score: 86 },
-  { mes: "Mar", posicion: 4, score: 85.3 },
+  { mes: "Ago", posicion: 8, score: 72,  benchmarkCategoria: 3, benchmarkLatam: 1 },
+  { mes: "Sep", posicion: 7, score: 74,  benchmarkCategoria: 3, benchmarkLatam: 1 },
+  { mes: "Oct", posicion: 6, score: 77,  benchmarkCategoria: 2, benchmarkLatam: 1 },
+  { mes: "Nov", posicion: 5, score: 79,  benchmarkCategoria: 2, benchmarkLatam: 1 },
+  { mes: "Dic", posicion: 5, score: 81,  benchmarkCategoria: 2, benchmarkLatam: 1 },
+  { mes: "Ene", posicion: 4, score: 84,  benchmarkCategoria: 2, benchmarkLatam: 1 },
+  { mes: "Feb", posicion: 4, score: 86,  benchmarkCategoria: 1, benchmarkLatam: 1 },
+  { mes: "Mar", posicion: 4, score: 85.3, benchmarkCategoria: 1, benchmarkLatam: 1 },
 ];
 
 export default function RankingPositionPage() {
@@ -60,18 +60,48 @@ export default function RankingPositionPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Evolution chart */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-7">
-          <h3 className="font-semibold text-slate-800 text-sm mb-4 flex items-center gap-2"><TrendingUp size={15} className="text-teal-600" /> Evolución de posición</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={evolutionData}>
+          <h3 className="font-semibold text-slate-800 text-sm mb-1 flex items-center gap-2"><TrendingUp size={15} className="text-teal-600" /> Evolución de posición</h3>
+          <p className="text-xs text-slate-400 mb-4">Comparado con benchmark de categoría y LATAM</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={evolutionData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="mes" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis reversed tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[1, 10]} />
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
+              <YAxis reversed tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[1, 10]} tickFormatter={(v) => `#${v}`} />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", fontSize: 12 }}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(v: any) => [`#${v ?? ""}`, "Posición"]} />
-              <Line type="monotone" dataKey="posicion" stroke="#F59E0B" strokeWidth={2.5} dot={{ fill: "#F59E0B", strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
+                formatter={(v: any, name: string) => {
+                  const labels: Record<string, string> = { posicion: "Mi posición", benchmarkCategoria: "Benchmark categoría", benchmarkLatam: "Benchmark LATAM" };
+                  return [`#${v ?? ""}`, labels[name] ?? name];
+                }}
+              />
+              <Legend
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                formatter={(value) => {
+                  const labels: Record<string, string> = { posicion: "Mi posición", benchmarkCategoria: "1º Categoría", benchmarkLatam: "1º LATAM" };
+                  return <span style={{ color: "#64748b" }}>{labels[value] ?? value}</span>;
+                }}
+              />
+              <Line type="monotone" dataKey="posicion" name="posicion" stroke="#F59E0B" strokeWidth={2.5} dot={{ fill: "#F59E0B", strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="benchmarkCategoria" name="benchmarkCategoria" stroke="#10B981" strokeWidth={1.5} strokeDasharray="5 3" dot={false} activeDot={{ r: 4 }} />
+              <Line type="monotone" dataKey="benchmarkLatam" name="benchmarkLatam" stroke="#8B5CF6" strokeWidth={1.5} strokeDasharray="2 2" dot={false} activeDot={{ r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
+
+          {/* Legend pills */}
+          <div className="flex flex-wrap gap-3 mt-3">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="w-5 h-0.5 rounded-full inline-block" style={{ backgroundColor: "#F59E0B" }} /> Mi posición
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="w-5 h-0.5 rounded-full inline-block opacity-80" style={{ background: "repeating-linear-gradient(90deg,#10B981 0,#10B981 5px,transparent 5px,transparent 8px)" }} /> 1º Categoría (Rugby)
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span className="w-5 h-0.5 rounded-full inline-block opacity-80" style={{ background: "repeating-linear-gradient(90deg,#8B5CF6 0,#8B5CF6 2px,transparent 2px,transparent 4px)" }} /> 1º LATAM
+            </div>
+          </div>
         </motion.div>
 
         {/* Nearby clubs */}

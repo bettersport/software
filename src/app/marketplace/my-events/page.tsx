@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Send, Bell } from "lucide-react";
+import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Send, Bell, Upload, ImageIcon } from "lucide-react";
 import { mockEvents } from "@/lib/data";
 import type { ESGCategory } from "@/lib/types";
 import { SectionHeader } from "@/components/ui";
@@ -24,7 +24,41 @@ const statusConfig = {
 
 const SPORTS = ["Fútbol", "Atletismo", "Ciclismo", "Natación", "Tenis", "Rugby", "Básquetbol", "Otro"];
 const ROLES = ["Organizador", "Patrocinador", "Participante", "Voluntario"];
-const emptyForm = { title: "", date: "", location: "", sport: "Fútbol", role: "Organizador" };
+const emptyForm = { title: "", date: "", location: "", sport: "Fútbol", role: "Organizador", sponsorLogo: "", mediaPartnerLogo: "" };
+
+/* ── Logo upload helper ── */
+function LogoUpload({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => onChange(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div>
+      <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">{label}</label>
+      <label className="group relative flex flex-col items-center justify-center h-20 rounded-xl border-2 border-dashed cursor-pointer transition-all hover:border-teal-400 hover:bg-teal-50/40"
+        style={{ borderColor: value ? "#10B981" : "#e2e8f0", backgroundColor: value ? "rgba(16,185,129,0.04)" : "#f8fafc" }}>
+        {value ? (
+          <div className="flex flex-col items-center gap-1.5">
+            <img src={value} alt="logo" className="h-9 w-auto object-contain rounded" />
+            <span className="text-[10px] text-teal-600 font-semibold">Cambiar logo</span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-teal-100 transition-colors">
+              <Upload size={14} className="text-slate-400 group-hover:text-teal-600 transition-colors" />
+            </div>
+            <span className="text-[10px] text-slate-400 text-center leading-tight">Subir logo<br />PNG, JPG, SVG</span>
+          </div>
+        )}
+        <input type="file" accept="image/*" className="sr-only" onChange={handleFile} />
+      </label>
+    </div>
+  );
+}
 
 function Portal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -290,6 +324,20 @@ export default function MyEventsPage() {
                     </select>
                   </div>
                 </div>
+                {/* Logo uploads */}
+                <div className="grid grid-cols-2 gap-3">
+                  <LogoUpload
+                    label="Logo promotor iniciativa"
+                    value={form.sponsorLogo}
+                    onChange={(v) => setForm({ ...form, sponsorLogo: v })}
+                  />
+                  <LogoUpload
+                    label="Logo media partner"
+                    value={form.mediaPartnerLogo}
+                    onChange={(v) => setForm({ ...form, mediaPartnerLogo: v })}
+                  />
+                </div>
+
                 <div className="flex gap-3 pt-2">
                   <button className="btn-primary flex-1" onClick={createEvent}>Crear evento</button>
                   <button className="btn-secondary" onClick={() => setShowNew(false)}>Cancelar</button>

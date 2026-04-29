@@ -25,6 +25,47 @@ const categoryTabs = [
 const sports = ["Todos", "Fútbol", "Rugby", "Pádel", "Natación", "Tenis", "Atletismo"];
 const countries = ["Todos", "Chile", "Argentina", "Colombia", "España", "México"];
 
+/* ── Brand logo helpers ── */
+const mediaPartnerStyles: Record<string, { bg: string; text: string; label: string }> = {
+  CNN:    { bg: "#cc0000", text: "#fff",    label: "CNN" },
+  ESPN:   { bg: "#d00000", text: "#fff",    label: "espn" },
+  BBC:    { bg: "#bb1919", text: "#fff",    label: "BBC" },
+  FOX:    { bg: "#003399", text: "#fff",    label: "FOX" },
+  TyCSports: { bg: "#005bab", text: "#fff", label: "TyC" },
+};
+function MediaPartnerLogo({ name }: { name: string }) {
+  const style = mediaPartnerStyles[name] ?? { bg: "#334155", text: "#fff", label: name.slice(0, 5) };
+  return (
+    <span
+      className="inline-flex items-center justify-center h-5 px-2 rounded text-[10px] font-black tracking-tight"
+      style={{ backgroundColor: style.bg, color: style.text, letterSpacing: name === "ESPN" ? "0.04em" : undefined }}
+    >
+      {style.label}
+    </span>
+  );
+}
+
+const sponsorStyles: Record<string, { bg: string; text: string; border: string }> = {
+  "Federación Rugby Chile": { bg: "#f0f4ff", text: "#3b82f6", border: "#bfdbfe" },
+  "AquaEco":               { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
+  "AQUA4D":                { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
+  "World Padel Tour":      { bg: "#fdf4ff", text: "#9333ea", border: "#e9d5ff" },
+  "Coca-Cola":             { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" },
+  "Santander":             { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" },
+};
+function SponsorLogo({ name }: { name: string }) {
+  const style = sponsorStyles[name] ?? { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" };
+  const short = name.replace("Federación ", "Fed. ").replace("World ", "");
+  return (
+    <span
+      className="inline-flex items-center justify-center h-5 px-2 rounded text-[10px] font-semibold border"
+      style={{ backgroundColor: style.bg, color: style.text, borderColor: style.border }}
+    >
+      {short.slice(0, 12)}
+    </span>
+  );
+}
+
 export default function MarketplacePage() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
@@ -178,26 +219,31 @@ export default function MarketplacePage() {
               <div className="p-5 flex flex-col flex-1">
                 <h3 className="font-bold text-slate-800 text-base mb-2">{event.title}</h3>
 
-                {/* Club + Sponsors */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-xs font-bold text-slate-900">
+                {/* Club + Sponsors — Figma layout */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  {/* Left: creator avatar + name */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                       {event.clubName.charAt(0)}
                     </div>
-                    <span className="text-xs text-slate-500">{event.clubName}</span>
+                    <span className="text-xs font-semibold text-slate-700 truncate">{event.clubName}</span>
                   </div>
-                  {event.sponsoredBy && event.sponsoredBy.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-slate-300">Apoyado por</span>
-                      <div className="flex items-center gap-1">
-                        {event.sponsoredBy.map((s) => (
-                          <div key={s} className="h-5 px-2 rounded text-xs font-bold flex items-center" style={{ backgroundColor: "#f1f5f9", color: "#475569" }}>
-                            {s.slice(0, 8)}
-                          </div>
-                        ))}
+
+                  {/* Right: Apoyado por + Media partner stacked */}
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    {event.sponsoredBy && event.sponsoredBy.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-400">Apoyado por</span>
+                        <SponsorLogo name={event.sponsoredBy[0]} />
                       </div>
-                    </div>
-                  )}
+                    )}
+                    {event.mediaPartner && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-400">Media partner</span>
+                        <MediaPartnerLogo name={event.mediaPartner} />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed flex-1">

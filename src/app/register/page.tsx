@@ -3,13 +3,50 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Leaf, ArrowRight, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, ArrowLeft, CheckCircle, Trophy, Tag, Wrench, Users } from "lucide-react";
 import Link from "next/link";
 
 const roles = [
-  { id: "club", label: "Club Deportivo", icon: "⚽", desc: "Gestiona tu desempeño ESG y busca patrocinadores" },
-  { id: "brand", label: "Marca / Patrocinador", icon: "🏷️", desc: "Encuentra proyectos sostenibles para patrocinar" },
-  { id: "manager", label: "Gestor ESG / Consultor", icon: "📊", desc: "Apoya clubes en su estrategia de sostenibilidad" },
+  {
+    id: "club",
+    label: "Club Deportivo",
+    icon: Trophy,
+    gradient: "from-emerald-500 to-cyan-500",
+    color: "#10B981",
+    bg: "rgba(16,185,129,0.1)",
+    border: "rgba(16,185,129,0.25)",
+    desc: "Gestiona tu desempeño ESG y conecta con patrocinadores sostenibles",
+  },
+  {
+    id: "brand",
+    label: "Marca",
+    icon: Tag,
+    gradient: "from-blue-500 to-violet-500",
+    color: "#3B82F6",
+    bg: "rgba(59,130,246,0.1)",
+    border: "rgba(59,130,246,0.25)",
+    desc: "Patrocina proyectos deportivos sostenibles y mide tu impacto ESG",
+  },
+  {
+    id: "solucion",
+    label: "Solución",
+    icon: Wrench,
+    gradient: "from-violet-500 to-pink-500",
+    color: "#8B5CF6",
+    bg: "rgba(139,92,246,0.1)",
+    border: "rgba(139,92,246,0.25)",
+    desc: "Ofrece servicios y soluciones sostenibles a clubes y organizaciones",
+  },
+  {
+    id: "hincha",
+    label: "Hincha",
+    icon: Users,
+    gradient: "from-amber-500 to-orange-500",
+    color: "#F59E0B",
+    bg: "rgba(245,158,11,0.1)",
+    border: "rgba(245,158,11,0.25)",
+    desc: "Sigue el ranking, explora eventos y apoya el deporte sostenible",
+  },
 ];
 
 const steps = ["Tipo de cuenta", "Información básica", "Configurar acceso"];
@@ -41,14 +78,8 @@ export default function RegisterPage() {
         className="w-full max-w-lg relative z-10"
       >
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}>
-            <Leaf size={20} className="text-slate-900" />
-          </div>
-          <div className="text-xl font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            <span>BETTER</span>
-            <span className="ml-1" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>SPORT</span>
-          </div>
+        <div className="flex items-center justify-center mb-8">
+          <img src="/logo.svg" alt="BetterSport" className="h-9 w-auto object-contain" />
         </div>
 
         {/* Step indicator */}
@@ -79,26 +110,43 @@ export default function RegisterPage() {
               <h2 className="text-xl font-bold text-slate-800 mb-2">¿Qué tipo de cuenta necesitas?</h2>
               <p className="text-slate-400 text-sm mb-6">Selecciona el perfil que mejor describe tu organización</p>
               <div className="space-y-3">
-                {roles.map((role) => (
-                  <button
-                    key={role.id}
-                    onClick={() => setSelectedRole(role.id)}
-                    className="w-full text-left p-4 rounded-xl transition-all"
-                    style={selectedRole === role.id
-                      ? { background: "linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.15))", border: "1px solid rgba(16,185,129,0.4)" }
-                      : { backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }
-                    }
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{role.icon}</span>
-                      <div>
-                        <p className={`font-semibold text-sm ${selectedRole === role.id ? "text-teal-600" : "text-slate-900"}`}>{role.label}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{role.desc}</p>
+                {roles.map((role) => {
+                  const Icon = role.icon;
+                  const active = selectedRole === role.id;
+                  return (
+                    <motion.button
+                      key={role.id}
+                      onClick={() => setSelectedRole(role.id)}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className="w-full text-left p-4 rounded-2xl transition-all duration-200 flex items-center gap-4"
+                      style={active
+                        ? { background: role.bg, border: `1.5px solid ${role.border}` }
+                        : { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0" }
+                      }
+                    >
+                      <div
+                        className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                        style={active
+                          ? { background: `linear-gradient(135deg, ${role.color}, ${role.color}99)`, color: "#fff", boxShadow: `0 0 16px ${role.color}55` }
+                          : { background: "#f1f5f9", color: "#94a3b8" }
+                        }
+                      >
+                        <Icon size={20} />
                       </div>
-                      {selectedRole === role.id && <CheckCircle size={16} className="text-teal-600 ml-auto flex-shrink-0" />}
-                    </div>
-                  </button>
-                ))}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm" style={{ color: active ? role.color : "#0f172a" }}>{role.label}</p>
+                        <p className="text-xs text-slate-400 mt-0.5 leading-snug">{role.desc}</p>
+                      </div>
+                      <div
+                        className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                        style={active ? { borderColor: role.color, background: role.color } : { borderColor: "#cbd5e1", background: "transparent" }}
+                      >
+                        {active && <CheckCircle size={12} className="text-white" />}
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -107,25 +155,35 @@ export default function RegisterPage() {
           {step === 1 && (
             <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}>
               <h2 className="text-xl font-bold text-slate-800 mb-2">Información básica</h2>
-              <p className="text-slate-400 text-sm mb-6">Cuéntanos sobre tu organización</p>
+              <p className="text-slate-400 text-sm mb-6">Cuéntanos sobre ti</p>
               <div className="space-y-4">
-                {[
-                  { label: "Tu nombre", key: "name", placeholder: "Juan García" },
-                  { label: "Nombre de la organización", key: "org", placeholder: "Club Rugby Chile" },
-                  { label: "Correo electrónico", key: "email", placeholder: "tu@organizacion.com", type: "email" },
-                  { label: "Deporte principal", key: "sport", placeholder: "Rugby, Fútbol..." },
-                ].map((f) => (
-                  <div key={f.key}>
-                    <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">{f.label}</label>
+                <div>
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Tu nombre</label>
+                  <input className="input-field" placeholder="Juan García" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                </div>
+                {(selectedRole === "club" || selectedRole === "brand" || selectedRole === "solucion") && (
+                  <div>
+                    <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">
+                      {selectedRole === "club" ? "Nombre del club" : selectedRole === "solucion" ? "Nombre de la empresa" : "Nombre de la marca"}
+                    </label>
                     <input
                       className="input-field"
-                      type={f.type || "text"}
-                      placeholder={f.placeholder}
-                      value={form[f.key as keyof typeof form]}
-                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                      placeholder={selectedRole === "club" ? "Club Deportivo Santiago" : selectedRole === "solucion" ? "GreenTech Solutions" : "Mi Marca"}
+                      value={form.org}
+                      onChange={(e) => setForm({ ...form, org: e.target.value })}
                     />
                   </div>
-                ))}
+                )}
+                <div>
+                  <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Correo electrónico</label>
+                  <input className="input-field" type="email" placeholder="tu@email.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+                {(selectedRole === "club") && (
+                  <div>
+                    <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Deporte principal</label>
+                    <input className="input-field" placeholder="Rugby, Fútbol..." value={form.sport} onChange={(e) => setForm({ ...form, sport: e.target.value })} />
+                  </div>
+                )}
                 <div>
                   <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">País</label>
                   <select className="input-field" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })}>

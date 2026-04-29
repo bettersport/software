@@ -20,8 +20,8 @@ interface GeneratedStrategy {
 const clubQualities = ["Profesional", "Amateur"];
 const regions = ["Chile", "Argentina", "España", "Colombia", "México", "Perú", "Uruguay", "Otro"];
 const challengesByCategory: Record<string, string[]> = {
-  Ambiental: ["Reducir huella de carbono", "Gestión eficiente del agua", "Gestión de residuos", "Movilidad sostenible"],
-  Social: ["Inclusión y diversidad", "Educación ambiental", "Equidad de género"],
+  Ambiental: ["Reducir huella de carbono", "Gestión eficiente del agua", "Gestión de residuos", "Movilidad sostenible", "Gestión energética"],
+  Social: ["Diversidad, Equidad e Inclusión (DEI)", "Educación", "Equidad de género"],
   Gobernanza: ["Gobernanza transparente"],
 };
 const esgCategoryColors: Record<string, string> = {
@@ -46,7 +46,7 @@ const demoStrategy: GeneratedStrategy = {
     { title: "Sistema de captación y reutilización agua lluvia", priority: "media", impact: "Ahorro de 400.000 L/año", category: "Ambiental" },
     { title: "Política de género y equidad en directiva", priority: "alta", impact: "30% participación femenina en cargos", category: "Gobernanza" },
     { title: "Compostaje y reciclaje en canchas y eventos", priority: "media", impact: "Reciclaje del 70% de residuos", category: "Ambiental" },
-    { title: "Programa educación ambiental para categorías menores", priority: "baja", impact: "500 niños capacitados/año", category: "Social" },
+    { title: "Programa de educación para categorías menores", priority: "baja", impact: "500 niños capacitados/año", category: "Social" },
   ],
   roadmap: [
     {
@@ -96,10 +96,10 @@ const categoryColors: Record<string, string> = {
 
 export default function AIStrategyPage() {
   const [step, setStep] = useState<"form" | "generating" | "result">("form");
-  const [selectedChallenges, setSelectedChallenges] = useState<string[]>(["Reducir huella de carbono", "Inclusión y diversidad"]);
+  const [selectedChallenges, setSelectedChallenges] = useState<string[]>(["Reducir huella de carbono", "Diversidad, Equidad e Inclusión (DEI)"]);
   const [challengeDetails, setChallengeDetails] = useState<Record<string, { goal: string; currentSpend: string; budget: string; timeline: string }>>({
     "Reducir huella de carbono": { goal: "", currentSpend: "", budget: "", timeline: "" },
-    "Inclusión y diversidad": { goal: "", currentSpend: "", budget: "", timeline: "" },
+    "Diversidad, Equidad e Inclusión (DEI)": { goal: "", currentSpend: "", budget: "", timeline: "" },
   });
   const [selectedInterests, setSelectedInterests] = useState<string[]>(["Ranking ESG", "Patrocinios"]);
   const [clubQuality, setClubQuality] = useState(clubQualities[0]);

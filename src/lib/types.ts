@@ -1,6 +1,6 @@
 // ===== TYPES =====
 
-export type UserRole = "admin" | "club" | "brand" | "manager" | "auditor";
+export type UserRole = "admin" | "club" | "brand" | "manager" | "auditor" | "solucion" | "hincha";
 
 export interface User {
   id: string;
@@ -124,4 +124,34 @@ export interface Notification {
   message: string;
   time: string;
   read: boolean;
+}
+
+export type SolutionCategory =
+  | "eficiencia_hidrica"
+  | "eficiencia_energetica"
+  | "gestion_residuos"
+  | "educacion_ambiental"
+  | "impacto_social"
+  | "movilidad_sostenible";
+
+export interface SolutionProvider {
+  id: string;
+  name: string;
+  logo?: string;
+  initials: string;
+  color: string;
+  category: SolutionCategory;
+  country: string;
+  flag: string;
+  description: string;
+  services: string[];
+  projectsCount: number;
+  associatedBrand?: string;
+  associatedBrandLogo?: string;
+  associatedClub?: string;
+  associatedClubLogo?: string;
+  stars: number; // 1–5
+  verified: boolean;
+  featured?: boolean;
+  tags?: string[];
 }
