@@ -1,4 +1,4 @@
-import { Club, Event, ESGProject, Document, Notification, User } from "./types";
+import { Club, Event, ESGProject, Document, Notification, User, FanTier, FanAction, FanReward, FanProfile, FanZoneStats } from "./types";
 
 // ===== MOCK USER =====
 export const mockUser: User = {
@@ -43,22 +43,23 @@ export const mockUsers: User[] = [
     country: "Argentina",
   },
   {
-    id: "u4",
-    name: "Laura Sánchez",
-    email: "laura@sportmanager.es",
-    role: "manager",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Laura",
-    club: "Consultora ESG Deportiva",
-    country: "España",
+    id: "u5",
+    name: "Sergio Blanco",
+    email: "sergio@ecosolutions.com",
+    role: "solucion",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sergio",
+    club: "EcoSolutions Sport",
+    country: "Colombia",
   },
   {
-    id: "u5",
-    name: "Diego Fernández",
-    email: "diego@auditoresg.com",
-    role: "auditor",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Diego",
-    club: "Auditor Certificado ESG",
-    country: "México",
+    id: "u7",
+    name: "Martina Herrera",
+    email: "martina@fanzone.com",
+    role: "hincha",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Martina",
+    club: "Rugby Verde",
+    country: "Chile",
+    clubId: "c4",
   },
 ];
 
@@ -935,3 +936,65 @@ export const mockSolutionProviders: SolutionProvider[] = [
     tags: ["App", "Logística", "Certificados"],
   },
 ];
+
+// ===== FAN ZONE =====
+
+export const fanTiers: FanTier[] = [
+  { name: "bronce",  label: "Bronce",  emoji: "🥉", minPoints: 0,    maxPoints: 499,      color: "#CD7F32", glowColor: "rgba(205,127,50,0.25)"  },
+  { name: "plata",   label: "Plata",   emoji: "🥈", minPoints: 500,  maxPoints: 1499,     color: "#94A3B8", glowColor: "rgba(148,163,184,0.25)" },
+  { name: "oro",     label: "Oro",     emoji: "🥇", minPoints: 1500, maxPoints: 3999,     color: "#F59E0B", glowColor: "rgba(245,158,11,0.25)"  },
+  { name: "leyenda", label: "Leyenda", emoji: "🌟", minPoints: 4000, maxPoints: Infinity, color: "#10B981", glowColor: "rgba(16,185,129,0.3)"   },
+];
+
+export const fanActions: FanAction[] = [
+  { id: "a1",  title: "Reciclar en el estadio",       description: "Escanea el QR en los puntos de reciclaje del estadio",  points: 150, category: "fisica",   icon: "♻️", frequency: "Por partido",  completed: false },
+  { id: "a2",  title: "Transporte verde",              description: "Llega al estadio en bici, transporte público o a pie",  points: 80,  category: "fisica",   icon: "🚲", frequency: "Por partido",  completed: true  },
+  { id: "a3",  title: "Reto de reciclaje mensual",     description: "Sube foto de tu acción de reciclaje en casa",          points: 120, category: "fisica",   icon: "📸", frequency: "Mensual",      completed: false },
+  { id: "a4",  title: "Evento sostenible del club",    description: "Asiste a un evento ESG organizado por el club",        points: 200, category: "fisica",   icon: "🌱", frequency: "Por evento",   completed: false },
+  { id: "a5",  title: "Traer tus propios envases",     description: "Usa tu propia botella y envase en la cafetería",       points: 50,  category: "fisica",   icon: "🧴", frequency: "Por partido",  completed: true  },
+  { id: "a6",  title: "Completar perfil ESG",          description: "Rellena todos los campos de tu perfil de fan",         points: 100, category: "digital",  icon: "👤", frequency: "Única vez",    completed: true  },
+  { id: "a7",  title: "Ver reporte ESG del club",      description: "Lee el informe de sostenibilidad del club del mes",    points: 30,  category: "digital",  icon: "📊", frequency: "Mensual",      completed: false },
+  { id: "a8",  title: "Quiz de sostenibilidad",        description: "Responde 5 preguntas sobre ESG y el club",            points: 60,  category: "digital",  icon: "🎯", frequency: "Mensual",      completed: true  },
+  { id: "a9",  title: "Votar en proyecto ESG",         description: "Vota en las iniciativas ESG que propone el club",     points: 40,  category: "digital",  icon: "🗳️", frequency: "Por proyecto", completed: false },
+  { id: "a10", title: "Referir a un fan",              description: "Invita a un amigo con tu link único",                 points: 90,  category: "digital",  icon: "🔗", frequency: "Por referido", completed: false },
+  { id: "a11", title: "Compartir post ESG del club",   description: "Comparte el contenido sostenible del club en redes",  points: 50,  category: "social",   icon: "📱", frequency: "Por post",     completed: true  },
+  { id: "a12", title: "Publicar con hashtag",          description: "Usa #BetterSport en tu historia de partido",         points: 70,  category: "social",   icon: "🏷️", frequency: "Por post",     completed: false },
+  { id: "a13", title: "Story de partido sostenible",   description: "Sube una story mostrando tu acción verde en el partido",points: 60, category: "social",  icon: "📸", frequency: "Por partido",  completed: false },
+];
+
+export const fanRewards: FanReward[] = [
+  { id: "r1", name: "20% descuento en entradas",         description: "Válido para partidos de local en la temporada",      points: 800,  type: "club",    icon: "🎫", available: true  },
+  { id: "r2", name: "Camiseta edición sostenible",        description: "Camiseta exclusiva Fan ESG temporada 2025",          points: 1500, type: "club",    icon: "👕", available: false },
+  { id: "r3", name: "Tour por las instalaciones",         description: "Visita guiada al estadio y centro de entrenamiento", points: 1200, type: "club",    icon: "🏟️", available: true, quota: 10 },
+  { id: "r4", name: "Meet & greet con el plantel",        description: "Sesión de fotos con jugadores del primer equipo",    points: 3500, type: "club",    icon: "⭐", available: true, quota: 5  },
+  { id: "r5", name: "15% en tienda online del sponsor",   description: "Descuento en tienda oficial del patrocinador",       points: 400,  type: "sponsor", icon: "🛍️", available: true  },
+  { id: "r6", name: "Bebida energética gratis",           description: "Una bebida energética canjeable en el estadio",      points: 250,  type: "sponsor", icon: "🥤", available: true  },
+  { id: "r7", name: "Badge · Hincha Verde 2025",          description: "Insignia digital exclusiva de la temporada",         points: 0,    type: "badge",   icon: "🏅", available: true  },
+  { id: "r8", name: "Badge · Embajador Sostenible",       description: "Para fans Leyenda con 10+ acciones completadas",     points: 0,    type: "badge",   icon: "🌟", available: false },
+];
+
+export const mockFans: FanProfile[] = [
+  { id: "f1",       name: "Pablo R.",     clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 4820, tier: "leyenda", actionsCompleted: 34, badgesEarned: 4, rankingPosition: 1,  joinedAt: "2025-01", completedActionIds: ["a2","a5","a6","a8","a11"], claimedRewardIds: ["r7"] },
+  { id: "f2",       name: "Valentina M.", clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 4210, tier: "leyenda", actionsCompleted: 29, badgesEarned: 3, rankingPosition: 2,  joinedAt: "2025-01", completedActionIds: ["a2","a5","a6","a8"],       claimedRewardIds: ["r7"] },
+  { id: "f3",       name: "Matías C.",    clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 3740, tier: "oro",     actionsCompleted: 26, badgesEarned: 2, rankingPosition: 3,  joinedAt: "2025-02", completedActionIds: ["a2","a5","a6"],           claimedRewardIds: [] },
+  { id: "f4",       name: "Isadora B.",   clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 3290, tier: "oro",     actionsCompleted: 22, badgesEarned: 2, rankingPosition: 4,  joinedAt: "2025-02", completedActionIds: ["a6","a8"],               claimedRewardIds: [] },
+  { id: "f5",       name: "Sebastián O.", clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 2870, tier: "oro",     actionsCompleted: 19, badgesEarned: 1, rankingPosition: 5,  joinedAt: "2025-03", completedActionIds: ["a6"],                    claimedRewardIds: [] },
+  { id: "f6",       name: "Constanza V.", clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 1840, tier: "oro",     actionsCompleted: 14, badgesEarned: 1, rankingPosition: 6,  joinedAt: "2025-03", completedActionIds: ["a6","a8"],               claimedRewardIds: [] },
+  { id: "f7",       name: "Diego F.",     clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 1320, tier: "plata",   actionsCompleted: 11, badgesEarned: 1, rankingPosition: 7,  joinedAt: "2025-04", completedActionIds: ["a6"],                    claimedRewardIds: [] },
+  { id: "f8",       name: "Javiera A.",   clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 940,  tier: "plata",   actionsCompleted: 8,  badgesEarned: 0, rankingPosition: 8,  joinedAt: "2025-04", completedActionIds: [],                       claimedRewardIds: [] },
+  { id: "f9",       name: "Nicolás E.",   clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 620,  tier: "plata",   actionsCompleted: 6,  badgesEarned: 0, rankingPosition: 9,  joinedAt: "2025-05", completedActionIds: [],                       claimedRewardIds: [] },
+  { id: "f10",      name: "Andrea P.",    clubId: "c1", clubName: "Colo-Colo",   country: "Chile", flag: "🇨🇱", points: 380,  tier: "bronce",  actionsCompleted: 4,  badgesEarned: 0, rankingPosition: 10, joinedAt: "2025-05", completedActionIds: [],                       claimedRewardIds: [] },
+  { id: "f-hincha", name: "Tú",           clubId: "c4", clubName: "Rugby Verde", country: "Chile", flag: "🇨🇱", points: 1240, tier: "plata",   actionsCompleted: 9,  badgesEarned: 1, rankingPosition: 47, joinedAt: "2025-03", completedActionIds: ["a2","a5","a6","a8","a11"], claimedRewardIds: ["r7"] },
+];
+
+export const fanZoneStats: FanZoneStats = {
+  totalFans: 1284,
+  activeFans: 490,
+  participationRate: 38.2,
+  totalActions: 7412,
+  collectiveScore: 892000,
+  rewardsRedeemed: 342,
+  npsScore: 67,
+  churnRate: 4.2,
+  goldPlusFans: 187,
+};

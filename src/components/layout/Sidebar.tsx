@@ -26,6 +26,9 @@ import {
   ClipboardCheck,
   Eye,
   Wrench,
+  Zap,
+  Star,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -39,14 +42,14 @@ interface NavItem {
   roles?: UserRole[]; // qué roles ven este item (vacío = todos)
 }
 
-const allRoles: UserRole[] = ["admin", "club", "brand", "manager", "auditor"];
+const allRoles: UserRole[] = ["admin", "club", "brand", "solucion"];
 
 const navItems: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
     icon: <LayoutDashboard size={18} />,
-    roles: allRoles,
+    roles: [...allRoles, "hincha"],
   },
   {
     label: "Ranking",
@@ -55,17 +58,16 @@ const navItems: NavItem[] = [
     children: [
       { label: "Clubes", href: "/ranking", icon: <Trophy size={15} /> },
       { label: "Soluciones", href: "/solutions", icon: <Wrench size={15} /> },
-      { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin", "manager"] },
+      { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin"] },
     ],
   },
   {
     label: "Proyectos de alto impacto",
     icon: <ShoppingBag size={18} />,
-    roles: ["admin", "club", "brand", "manager"],
+    roles: ["admin", "club", "brand", "solucion"],
     children: [
       { label: "Proyectos sostenibles", href: "/marketplace", icon: <ShoppingBag size={15} /> },
-      { label: "Mis eventos", href: "/marketplace/my-events", icon: <FileText size={15} />, roles: ["club", "admin", "manager"] },
-      { label: "Proyectos realizados", href: "/marketplace/completed", icon: <ClipboardCheck size={15} />, roles: ["club", "admin", "manager"] },
+      { label: "Mis eventos", href: "/marketplace/my-events", icon: <FileText size={15} />, roles: ["club", "admin"] },
     ],
   },
   {
@@ -73,14 +75,15 @@ const navItems: NavItem[] = [
     icon: <Tag size={18} />,
     roles: ["admin", "brand"],
     children: [
-      { label: "Ranking clubes", href: "/brands/ranking", icon: <Trophy size={15} /> },
+      { label: "Ranking clubes",       href: "/brands/ranking", icon: <Trophy size={15} /> },
       { label: "Proyectos sostenibles", href: "/brands/projects", icon: <Leaf size={15} /> },
+      { label: "Mi configuración",     href: "/brands/config",  icon: <SlidersHorizontal size={15} />, roles: ["brand"] },
     ],
   },
   {
     label: "Gestión ESG",
     icon: <Leaf size={18} />,
-    roles: ["admin", "club", "manager"],
+    roles: ["admin", "club"],
     children: [
       { label: "Mis proyectos", href: "/esg/projects", icon: <Lightbulb size={15} /> },
       { label: "KPIs e indicadores", href: "/esg/kpis", icon: <BarChart3 size={15} /> },
@@ -89,27 +92,35 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    label: "Auditoría",
-    icon: <ClipboardCheck size={18} />,
-    roles: ["admin", "auditor"],
+    label: "Mis Soluciones",
+    icon: <Wrench size={18} />,
+    roles: ["admin", "solucion"],
     children: [
-      { label: "Verificar clubes", href: "/ranking", icon: <Eye size={15} /> },
-      { label: "Documentos", href: "/esg/documents", icon: <FileText size={15} /> },
+      { label: "Catálogo de soluciones", href: "/solutions", icon: <Wrench size={15} /> },
+      { label: "Ver clubes",            href: "/ranking",   icon: <Eye size={15} /> },
     ],
   },
   {
     label: "Motor IA",
     href: "/ai-strategy",
     icon: <Brain size={18} />,
-    roles: ["admin", "club", "manager"],
+    roles: ["admin", "club"],
+  },
+  {
+    label: "Mi Fan Zone",
+    href: "/fanzone",
+    icon: <Star size={18} />,
+    roles: ["hincha"],
   },
   {
     label: "Mi Club",
     icon: <Building2 size={18} />,
     roles: ["club"],
     children: [
-      { label: "Perfil del club", href: "/club/profile", icon: <Users size={15} /> },
-      { label: "Configuración", href: "/club/settings", icon: <Settings size={15} /> },
+      { label: "Perfil del club",      href: "/club/profile",        icon: <Users size={15} /> },
+      { label: "Fan Zone",             href: "/club/fanzone",        icon: <Zap size={15} /> },
+      { label: "Configurar Fan Zone",  href: "/club/fanzone/config", icon: <SlidersHorizontal size={15} /> },
+      { label: "Configuración",        href: "/club/settings",       icon: <Settings size={15} /> },
     ],
   },
   {
@@ -117,8 +128,9 @@ const navItems: NavItem[] = [
     icon: <Shield size={18} />,
     roles: ["admin"],
     children: [
-      { label: "Todos los clubes", href: "/ranking", icon: <Building2 size={15} /> },
-      { label: "Configuración", href: "/club/settings", icon: <Settings size={15} /> },
+      { label: "Todos los clubes",  href: "/ranking",       icon: <Building2 size={15} /> },
+      { label: "Gestión de marcas", href: "/admin/brands",  icon: <Tag size={15} /> },
+      { label: "Configuración",     href: "/club/settings", icon: <Settings size={15} /> },
     ],
   },
 ];

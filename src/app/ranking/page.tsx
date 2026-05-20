@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy, Building2, CalendarDays, Landmark, Info, BarChart3,
   ArrowUpRight, ArrowDownRight, Minus, ShieldCheck, Medal,
-  Leaf, Users, Scale, Eye, X, ChevronDown, ChevronLeft, ChevronRight,
+  Leaf, Users, Scale, Eye, X, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
 } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
 import { mockClubs } from "@/lib/data";
@@ -119,6 +120,7 @@ function FilterSelect({ label, value, options, onChange, icon }: {
 /* ── Main component ── */
 export default function RankingPage() {
   const { activeUser, liveClub } = useUser();
+  const router = useRouter();
   const [entityType, setEntityType] = useState<EntityType>("Clubes");
   const [countryFilter, setCountryFilter] = useState("Todos");
   const [sportFilter, setSportFilter] = useState("Todos");
@@ -597,6 +599,17 @@ export default function RankingPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Admin: full detail link */}
+                {activeUser.role === "admin" && (
+                  <button
+                    onClick={() => router.push(`/admin/clubs/${selectedClub.id}`)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                    style={{ background: "linear-gradient(135deg,#10B981,#059669)" }}
+                  >
+                    <ExternalLink size={14} /> Ver ficha completa del club
+                  </button>
+                )}
               </div>
             </motion.div>
           </motion.div>

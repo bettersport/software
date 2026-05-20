@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ChevronDown, ShieldCheck, Building2, Tag, Briefcase, UserCircle2 } from "lucide-react";
+import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ChevronDown, ShieldCheck, Building2, Tag, Wrench, Star } from "lucide-react";
 import Link from "next/link";
 import { mockUsers } from "@/lib/data";
 import type { User } from "@/lib/types";
@@ -19,8 +19,8 @@ const roleConfig: Record<string, { label: string; color: string; bg: string; ico
   admin:   { label: "Administrador",  color: "#8B5CF6", bg: "rgba(139,92,246,0.12)",  icon: <ShieldCheck size={15} />,  desc: "Acceso total a la plataforma" },
   club:    { label: "Club Deportivo", color: "#10B981", bg: "rgba(16,185,129,0.12)",  icon: <Building2 size={15} />,    desc: "Gestión ESG del club" },
   brand:   { label: "Marca",          color: "#06B6D4", bg: "rgba(6,182,212,0.12)",   icon: <Tag size={15} />,          desc: "Patrocinios y eventos" },
-  manager: { label: "Consultor ESG",  color: "#F59E0B", bg: "rgba(245,158,11,0.12)",  icon: <Briefcase size={15} />,    desc: "Gestiona múltiples clubes" },
-  auditor: { label: "Auditor ESG",    color: "#3B82F6", bg: "rgba(59,130,246,0.12)",  icon: <UserCircle2 size={15} />,  desc: "Revisión y verificación ESG" },
+  solucion: { label: "Proveedor de Soluciones", color: "#F97316", bg: "rgba(249,115,22,0.12)", icon: <Wrench size={15} />, desc: "Ofrece soluciones sostenibles" },
+  hincha:  { label: "Fan / Hincha",    color: "#EC4899", bg: "rgba(236,72,153,0.12)",  icon: <Star size={15} />,         desc: "Zona fan y recompensas" },
 };
 
 export default function LoginPage() {
@@ -41,7 +41,10 @@ export default function LoginPage() {
       localStorage.removeItem("bettersport_user_data");
     }
     await new Promise((r) => setTimeout(r, 1000));
-    router.push("/dashboard");
+    const dest = found?.role === "brand" && !localStorage.getItem("bettersport_brand_config")
+      ? "/onboarding"
+      : "/dashboard";
+    router.push(dest);
   };
 
   const loginAs = async (user: User) => {
@@ -50,7 +53,10 @@ export default function LoginPage() {
     localStorage.setItem("bettersport_user", user.id);
     localStorage.removeItem("bettersport_user_data");
     await new Promise((r) => setTimeout(r, 700));
-    router.push("/dashboard");
+    const dest = user.role === "brand" && !localStorage.getItem("bettersport_brand_config")
+      ? "/onboarding"
+      : "/dashboard";
+    router.push(dest);
   };
 
   return (
@@ -202,7 +208,7 @@ export default function LoginPage() {
               style={{ backgroundColor: "#f1f5f9", border: "1px solid #e2e8f0", color: "#475569" }}
             >
               <span className="flex items-center gap-2">
-                <UserCircle2 size={16} className="text-teal-600" />
+                <ShieldCheck size={16} className="text-teal-600" />
                 Acceso rápido demo — elige un perfil
               </span>
               <motion.div animate={{ rotate: showDemo ? 180 : 0 }} transition={{ duration: 0.2 }}>

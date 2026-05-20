@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   Leaf, Trophy, ShoppingBag, TrendingUp, ArrowUpRight, AlertTriangle,
   CheckCircle, Clock, Zap, BarChart3, Target, Users, Brain,
-  Shield, FileCheck, Building2, DollarSign, Eye, Briefcase, ClipboardCheck,
+  Shield, FileCheck, Building2, DollarSign, Eye, Briefcase, ClipboardCheck, Star, Wrench,
 } from "lucide-react";
 import { StatCard, ProgressBar, SectionHeader } from "@/components/ui";
 import { mockESGProjects, mockClubs, mockEvents, categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
@@ -100,17 +100,15 @@ const quickActionsMap: Record<string, { label: string; icon: React.ReactNode; hr
     { label: "Mis proyectos", icon: <Briefcase size={15} />, href: "/brands/projects", color: "#8B5CF6" },
     { label: "Ranking clubes", icon: <Trophy size={15} />, href: "/brands/ranking", color: "#F59E0B" },
   ],
-  manager: [
-    { label: "Gestión ESG", icon: <Leaf size={15} />, href: "/esg/projects", color: "#10B981" },
+  solucion: [
+    { label: "Catálogo", icon: <Wrench size={15} />, href: "/solutions", color: "#F97316" },
+    { label: "Ver clubes", icon: <Building2 size={15} />, href: "/ranking", color: "#10B981" },
     { label: "Marketplace", icon: <ShoppingBag size={15} />, href: "/marketplace", color: "#06B6D4" },
     { label: "Ranking", icon: <Trophy size={15} />, href: "/ranking", color: "#F59E0B" },
-    { label: "Motor IA", icon: <Brain size={15} />, href: "/ai-strategy", color: "#8B5CF6" },
   ],
-  auditor: [
-    { label: "Verificar clubes", icon: <ClipboardCheck size={15} />, href: "/ranking", color: "#10B981" },
-    { label: "Documentos", icon: <FileCheck size={15} />, href: "/esg/documents", color: "#3B82F6" },
-    { label: "KPIs", icon: <BarChart3 size={15} />, href: "/esg/kpis", color: "#F59E0B" },
-    { label: "Ranking", icon: <Trophy size={15} />, href: "/ranking", color: "#8B5CF6" },
+  hincha: [
+    { label: "Mi Fan Zone", icon: <Star size={15} />, href: "/fanzone", color: "#EC4899" },
+    { label: "Ranking clubes", icon: <Trophy size={15} />, href: "/ranking", color: "#F59E0B" },
   ],
 };
 
@@ -123,11 +121,11 @@ export default function DashboardPage() {
   const quickActions = quickActionsMap[role] || quickActionsMap.club;
 
   const roleSubtitle: Record<string, string> = {
-    admin:   "Panel de administración · Vista global de la plataforma",
-    club:    `${myClub.name} · ${myClub.flag} ${myClub.country}`,
-    brand:   `${activeUser.club} · Panel de marca patrocinadora`,
-    manager: `${activeUser.club} · Gestionando múltiples clubes`,
-    auditor: `${activeUser.club} · Modo auditoría (solo lectura)`,
+    admin:    "Panel de administración · Vista global de la plataforma",
+    club:     `${myClub.name} · ${myClub.flag} ${myClub.country}`,
+    brand:    `${activeUser.club} · Panel de marca patrocinadora`,
+    solucion: `${activeUser.club} · Proveedor de soluciones sostenibles`,
+    hincha:   `Fan de ${activeUser.club} · Zona fan y recompensas`,
   };
 
   const greeting = new Date().getHours() < 13 ? "Buenos días" : new Date().getHours() < 20 ? "Buenas tardes" : "Buenas noches";
@@ -158,20 +156,20 @@ export default function DashboardPage() {
         <StatCard title="Clubes patrocinados" value="5" subtitle="en la red" icon={<Building2 size={20} />} trend={{ value: 2, label: "este trimestre" }} color="orange" delay={0.3} />
       </>
     ),
-    manager: (
+    solucion: (
       <>
-        <StatCard title="Clubes gestionados" value="6" subtitle="bajo consultoría" icon={<Building2 size={20} />} trend={{ value: 1, label: "nuevo" }} color="green" delay={0} />
-        <StatCard title="Prom. ESG clubes" value="79.8" subtitle="/ 100 puntos" icon={<Leaf size={20} />} trend={{ value: 5.4, label: "mejora Q3" }} color="cyan" delay={0.1} />
-        <StatCard title="Proyectos supervisados" value="14" subtitle="en ejecución" icon={<Target size={20} />} trend={{ value: 3, label: "este mes" }} color="orange" delay={0.2} />
-        <StatCard title="Presupuesto total" value="$420K" subtitle="gestionado" icon={<DollarSign size={20} />} trend={{ value: 22, label: "vs Q anterior" }} color="purple" delay={0.3} />
+        <StatCard title="Soluciones activas" value="12" subtitle="en clubes" icon={<Wrench size={20} />} trend={{ value: 4, label: "este mes" }} color="orange" delay={0} />
+        <StatCard title="Clubes cliente" value="18" subtitle="en la red" icon={<Building2 size={20} />} trend={{ value: 3, label: "nuevos Q3" }} color="green" delay={0.1} />
+        <StatCard title="Revenue YTD" value="$82K" subtitle="facturado" icon={<DollarSign size={20} />} trend={{ value: 27, label: "vs año anterior" }} color="cyan" delay={0.2} />
+        <StatCard title="Valoración" value="4.8★" subtitle="de 5 estrellas" icon={<Star size={20} />} trend={{ value: 0.3, label: "mejora" }} color="purple" delay={0.3} />
       </>
     ),
-    auditor: (
+    hincha: (
       <>
-        <StatCard title="Auditorías completadas" value="23" subtitle="este trimestre" icon={<ClipboardCheck size={20} />} trend={{ value: 5, label: "este mes" }} color="green" delay={0} />
-        <StatCard title="Pendientes" value="7" subtitle="revisiones activas" icon={<Clock size={20} />} trend={{ value: -2, label: "vs mes anterior" }} color="orange" delay={0.1} />
-        <StatCard title="Cumplimiento" value="91%" subtitle="promedio plataforma" icon={<Shield size={20} />} trend={{ value: 3, label: "mejora" }} color="cyan" delay={0.2} />
-        <StatCard title="Alertas de riesgo" value="4" subtitle="requieren atención" icon={<AlertTriangle size={20} />} trend={{ value: -1, label: "menos que ayer" }} color="purple" delay={0.3} />
+        <StatCard title="Puntos fan" value="1,240" subtitle="acumulados" icon={<Star size={20} />} trend={{ value: 120, label: "esta semana" }} color="purple" delay={0} />
+        <StatCard title="Nivel" value="Plata" subtitle="Fan Zone" icon={<Trophy size={20} />} trend={{ value: 0, label: "próx. nivel: Oro" }} color="orange" delay={0.1} />
+        <StatCard title="Acciones ESG" value="8" subtitle="completadas" icon={<Zap size={20} />} trend={{ value: 3, label: "este mes" }} color="green" delay={0.2} />
+        <StatCard title="Recompensas" value="3" subtitle="disponibles" icon={<CheckCircle size={20} />} trend={{ value: 1, label: "nueva" }} color="cyan" delay={0.3} />
       </>
     ),
   };

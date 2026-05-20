@@ -1,6 +1,6 @@
 // ===== TYPES =====
 
-export type UserRole = "admin" | "club" | "brand" | "manager" | "auditor" | "solucion" | "hincha";
+export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha";
 
 export interface User {
   id: string;
@@ -154,4 +154,120 @@ export interface SolutionProvider {
   verified: boolean;
   featured?: boolean;
   tags?: string[];
+}
+
+// ===== FAN ZONE TYPES =====
+
+export type FanTierName = "bronce" | "plata" | "oro" | "leyenda";
+
+export interface FanTier {
+  name: FanTierName;
+  label: string;
+  emoji: string;
+  minPoints: number;
+  maxPoints: number;
+  color: string;
+  glowColor: string;
+}
+
+export type FanActionCategory = "fisica" | "digital" | "social";
+
+export interface FanAction {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  category: FanActionCategory;
+  icon: string;
+  frequency: string;
+  completed?: boolean;
+}
+
+export type FanRewardType = "club" | "sponsor" | "badge";
+
+export interface FanReward {
+  id: string;
+  name: string;
+  description: string;
+  points: number;
+  type: FanRewardType;
+  icon: string;
+  available: boolean;
+  quota?: number;
+  claimed?: boolean;
+}
+
+export interface FanProfile {
+  id: string;
+  name: string;
+  alias?: string;
+  clubId: string;
+  clubName: string;
+  country: string;
+  flag: string;
+  points: number;
+  tier: FanTierName;
+  actionsCompleted: number;
+  badgesEarned: number;
+  rankingPosition: number;
+  joinedAt: string;
+  completedActionIds: string[];
+  claimedRewardIds: string[];
+}
+
+export interface FanZoneStats {
+  totalFans: number;
+  activeFans: number;
+  participationRate: number;
+  totalActions: number;
+  collectiveScore: number;
+  rewardsRedeemed: number;
+  npsScore: number;
+  churnRate: number;
+  goldPlusFans: number;
+}
+
+// ===== BRAND ONBOARDING TYPES =====
+
+export type SponsorshipObjective =
+  | "reconocimiento_marca"
+  | "engagement_digital"
+  | "generacion_leads"
+  | "ventas_directas"
+  | "reputacion_esg"
+  | "fidelizacion"
+  | "lanzamiento_producto"
+  | "expansion_mercados";
+
+export type DataSource =
+  | "redes_sociales"
+  | "web_analytics"
+  | "crm"
+  | "medios_tradicionales"
+  | "datos_evento"
+  | "encuestas";
+
+export interface BrandKPI {
+  id: string;
+  name: string;
+  category: "visibilidad" | "engagement" | "reputacion" | "conversion";
+  badge: string;
+  enabled: boolean;
+}
+
+export interface BrandConfig {
+  brandName: string;
+  industry: string;
+  country: string;
+  website: string;
+  objectives: SponsorshipObjective[];
+  sponsorshipName: string;
+  sponsorshipType: string;
+  startDate: string;
+  endDate: string;
+  budget: string;
+  territory: string;
+  sports: string[];
+  dataSources: DataSource[];
+  kpis: BrandKPI[];
 }
