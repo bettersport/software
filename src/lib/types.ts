@@ -1,6 +1,6 @@
 // ===== TYPES =====
 
-export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha";
+export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha" | "auditor" | "manager";
 
 export interface User {
   id: string;
