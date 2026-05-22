@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, ArrowLeft, CheckCircle, Trophy, Tag, Wrench, Users } from "lucide-react";
 import Link from "next/link";
+import { mockClubs } from "@/lib/data";
 
 const roles = [
   {
@@ -55,7 +56,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [selectedRole, setSelectedRole] = useState("club");
-  const [form, setForm] = useState({ name: "", org: "", email: "", country: "Chile", sport: "" });
+  const [form, setForm] = useState({ name: "", org: "", email: "", country: "Chile", sport: "", clubId: "" });
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -63,6 +64,18 @@ export default function RegisterPage() {
   const handleSubmit = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
+    const selectedClub = mockClubs.find((c) => c.id === form.clubId);
+    const userData = {
+      id: `user_${Date.now()}`,
+      name: form.name || "Usuario",
+      email: form.email,
+      role: selectedRole,
+      country: form.country,
+      club: selectedRole === "hincha" ? (selectedClub?.name ?? "") : form.org,
+      clubId: selectedRole === "hincha" ? form.clubId : undefined,
+    };
+    localStorage.setItem("bettersport_user_data", JSON.stringify(userData));
+    localStorage.setItem("bettersport_user", userData.id);
     router.push("/dashboard");
   };
 
@@ -184,6 +197,23 @@ export default function RegisterPage() {
                     <input className="input-field" placeholder="Rugby, Fútbol..." value={form.sport} onChange={(e) => setForm({ ...form, sport: e.target.value })} />
                   </div>
                 )}
+                {selectedRole === "hincha" && (
+                  <div>
+                    <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Club al que te vinculas</label>
+                    <select
+                      className="input-field"
+                      value={form.clubId}
+                      onChange={(e) => setForm({ ...form, clubId: e.target.value })}
+                    >
+                      <option value="">Seleccionar club...</option>
+                      {mockClubs.map((club) => (
+                        <option key={club.id} value={club.id}>
+                          {club.flag} {club.name} — {club.sport}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">País</label>
                   <select className="input-field" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })}>
@@ -220,7 +250,11 @@ export default function RegisterPage() {
                 <div className="p-4 rounded-xl" style={{ backgroundColor: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <p className="text-xs text-teal-600 font-medium mb-2">Resumen de tu cuenta:</p>
                   <p className="text-xs text-slate-500">Rol: {roles.find((r) => r.id === selectedRole)?.label}</p>
-                  <p className="text-xs text-slate-500">{form.org || "Tu organización"}</p>
+                  {selectedRole === "hincha" ? (
+                    <p className="text-xs text-slate-500">Club: {mockClubs.find((c) => c.id === form.clubId)?.name || "Sin seleccionar"}</p>
+                  ) : (
+                    <p className="text-xs text-slate-500">{form.org || "Tu organización"}</p>
+                  )}
                   <p className="text-xs text-slate-500">{form.email || "tu@email.com"}</p>
                 </div>
               </div>

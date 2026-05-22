@@ -52,6 +52,7 @@ const categoryOptions = [
   { value: "educacion_ambiental", label: "Educación" },
   { value: "impacto_social", label: "Impacto social" },
   { value: "movilidad_sostenible", label: "Movilidad" },
+  { value: "regulatorio", label: "Regulatorio" },
 ];
 
 /* ─── Sub-components ─── */
@@ -122,6 +123,7 @@ export default function SolutionsPage() {
   const [view, setView] = useState<"list" | "grid">("list");
   const [selected, setSelected] = useState<SolutionProvider | null>(null);
   const [search, setSearch] = useState("");
+  const [onlyEmpresaB, setOnlyEmpresaB] = useState(false);
 
   const filtered = mockSolutionProviders.filter((p) => {
     const matchCountry = country === "Todos los países" || p.country === country;
@@ -130,7 +132,8 @@ export default function SolutionsPage() {
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase());
-    return matchCountry && matchCat && matchSearch;
+    const matchEmpresaB = !onlyEmpresaB || !!(p as { isEmpresaB?: boolean }).isEmpresaB;
+    return matchCountry && matchCat && matchSearch && matchEmpresaB;
   });
 
   return (
@@ -207,8 +210,23 @@ export default function SolutionsPage() {
           </div>
         </div>
 
-        {/* Category pills */}
+        {/* Category pills + Empresa B toggle */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Empresa B toggle */}
+          <motion.button
+            onClick={() => setOnlyEmpresaB(!onlyEmpresaB)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.96 }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 border"
+            style={
+              onlyEmpresaB
+                ? { backgroundColor: "#7C3AED", color: "#fff", borderColor: "#7C3AED", boxShadow: "0 4px 14px #7C3AED45" }
+                : { backgroundColor: "#f5f3ff", color: "#7C3AED", borderColor: "#DDD6FE" }
+            }
+          >
+            <ShieldCheck size={11} />
+            Empresa B
+          </motion.button>
           {categoryOptions.map((opt) => {
             const active = category === opt.value;
             const Icon = opt.value !== "all" ? (categoryIcons[opt.value] ?? Sparkles) : Sparkles;

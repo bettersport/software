@@ -47,32 +47,63 @@ const medals = [
 
 const getRankChange = (rank: number) => [0, 1, -1, 2, 0, -2, 1, 0][rank - 1] ?? 0;
 
-/* ── Custom Top-8 animated bar ── */
+/* ── Club team colors lookup ── */
+const TEAM_COLORS: Record<string, { bg: string; text: string; abbr?: string }> = {
+  "Colo-Colo":              { bg: "linear-gradient(135deg, #1a1a1a, #444)", text: "#fff", abbr: "CC" },
+  "Universidad de Chile":   { bg: "linear-gradient(135deg, #003087, #0055cc)", text: "#fff", abbr: "U" },
+  "Universidad Católica":   { bg: "linear-gradient(135deg, #CC0000, #FF3333)", text: "#fff", abbr: "UC" },
+  "Padel Eco Club":         { bg: "linear-gradient(135deg, #0EA5E9, #38BDF8)", text: "#fff" },
+  "Rugby Verde":            { bg: "linear-gradient(135deg, #166534, #22c55e)", text: "#fff", abbr: "RV" },
+  "Deportes Temuco":        { bg: "linear-gradient(135deg, #7C2D12, #C2410C)", text: "#fff", abbr: "DT" },
+};
+
+function getTeamAbbr(name: string): string {
+  if (TEAM_COLORS[name]?.abbr) return TEAM_COLORS[name].abbr!;
+  return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
+/* ── Custom Top-10 animated bar ── */
 function ESGBar({ club, index, maxScore }: { club: Club; index: number; maxScore: number }) {
+  const [hovered, setHovered] = useState(false);
   const pct = (club.esgScore / maxScore) * 100;
   const barColor =
     index === 0 ? "#F59E0B" :
     index === 1 ? "#94A3B8" :
     index === 2 ? "#CD7F32" : "#10B981";
-  const opacity = index > 2 ? 0.85 : 1;
+
+  const teamStyle = TEAM_COLORS[club.name];
 
   return (
-    <div className="group flex items-center gap-3 py-1.5">
+    <motion.div
+      className="flex items-center gap-3 py-1.5 px-2 rounded-xl cursor-pointer"
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      animate={{ backgroundColor: hovered ? "rgba(16,185,129,0.05)" : "rgba(0,0,0,0)" }}
+      transition={{ duration: 0.2 }}
+    >
       {/* Rank number */}
       <span className="w-5 text-xs font-bold text-slate-400 text-right flex-shrink-0">{index + 1}</span>
 
-      {/* Club avatar */}
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-        style={{ background: `linear-gradient(135deg, ${barColor}, ${barColor}88)`, opacity }}
+      {/* Club logo / avatar */}
+      <motion.div
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 shadow-sm"
+        style={{
+          background: teamStyle?.bg ?? `linear-gradient(135deg, ${barColor}, ${barColor}88)`,
+          color: teamStyle?.text ?? "#fff",
+        }}
+        animate={{ scale: hovered ? 1.12 : 1 }}
+        transition={{ duration: 0.2 }}
       >
-        {club.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("")}
-      </div>
+        {getTeamAbbr(club.name)}
+      </motion.div>
 
       {/* Name */}
-      <span className="w-28 text-xs font-semibold text-slate-700 truncate flex-shrink-0 group-hover:text-teal-600 transition-colors">
-        {club.name.split(" ").slice(0, 2).join(" ")}
-      </span>
+      <motion.span
+        className="w-32 text-xs font-semibold truncate flex-shrink-0 transition-colors"
+        animate={{ color: hovered ? "#0d9488" : "#374151" }}
+      >
+        {club.name.split(" ").slice(0, 3).join(" ")}
+      </motion.span>
 
       {/* Bar */}
       <div className="flex-1 h-7 rounded-lg bg-slate-100 overflow-hidden relative">
@@ -83,14 +114,18 @@ function ESGBar({ club, index, maxScore }: { club: Club; index: number; maxScore
           className="absolute inset-y-0 left-0 rounded-lg flex items-center justify-end pr-2.5"
           style={{
             background: `linear-gradient(90deg, ${barColor}cc, ${barColor})`,
-            opacity,
-            boxShadow: `0 0 16px ${barColor}44`,
+            boxShadow: hovered ? `0 0 20px ${barColor}66` : `0 0 10px ${barColor}33`,
           }}
         >
-          <span className="text-[11px] font-bold text-white">{club.esgScore}</span>
+          <motion.span
+            className="text-[11px] font-bold text-white"
+            animate={{ scale: hovered ? 1.1 : 1 }}
+          >
+            {club.esgScore}
+          </motion.span>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -143,7 +178,7 @@ export default function RankingPage() {
     })
     .map(resolveClub);
 
-  const maxScore = Math.max(...mockClubs.slice(0, 8).map((c) => c.esgScore));
+  const maxScore = Math.max(...mockClubs.slice(0, 10).map((c) => c.esgScore));
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -354,11 +389,11 @@ export default function RankingPage() {
                 <p className="text-xs text-slate-400 mt-0.5">Clasificación de mejores clubes por puntaje global</p>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#FEF3C7", color: "#D97706" }}>
-                <Trophy size={12} /> Top 8
+                <Trophy size={12} /> Top 10
               </div>
             </div>
             <div className="space-y-0.5">
-              {mockClubs.slice(0, 8).map(resolveClub).map((club, i) => (
+              {mockClubs.slice(0, 10).map(resolveClub).map((club, i) => (
                 <ESGBar key={club.id} club={club} index={i} maxScore={maxScore} />
               ))}
             </div>

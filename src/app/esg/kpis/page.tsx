@@ -46,7 +46,7 @@ const sponsors = [
 export default function KPIsPage() {
   const [kpis, setKpis] = useState(kpiData);
   const [showForm, setShowForm] = useState(false);
-  const [newKpi, setNewKpi] = useState({ name: "", category: "Ambiental", current: "", target: "", unit: "" });
+  const [newKpi, setNewKpi] = useState({ name: "", description: "", category: "Ambiental", current: "", target: "", unit: "" });
   const [showSponsorModal, setShowSponsorModal] = useState(false);
   const [selectedSponsors, setSelectedSponsors] = useState<string[]>(["s1", "s2", "s3", "s4"]);
   const [sending, setSending] = useState(false);
@@ -78,7 +78,7 @@ export default function KPIsPage() {
     };
     setKpis((prev) => [...prev, kpi]);
     setShowForm(false);
-    setNewKpi({ name: "", category: "Ambiental", current: "", target: "", unit: "" });
+    setNewKpi({ name: "", description: "", category: "Ambiental", current: "", target: "", unit: "" });
     toast.success("KPI agregado correctamente");
   };
 
@@ -86,7 +86,7 @@ export default function KPIsPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       <SectionHeader
         icon={<BarChart3 size={22} className="text-teal-600" />}
-        title="KPIs e Indicadores ESG"
+        title="KPIs y Performance ESG"
         subtitle="Monitorea el desempeño de tus indicadores de sostenibilidad"
         action={
           <div className="flex items-center gap-3">
@@ -166,6 +166,16 @@ export default function KPIsPage() {
               <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Meta</label>
               <input className="input-field" type="number" placeholder="100" value={newKpi.target} onChange={(e) => setNewKpi({ ...newKpi, target: e.target.value })} />
             </div>
+          </div>
+          <div className="mt-4">
+            <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Descripción</label>
+            <textarea
+              className="input-field w-full resize-none"
+              rows={2}
+              placeholder="Ej: Reducción 20% consumo hídrico sobre línea base 2025, valor actual m3, valor meta m3"
+              value={newKpi.description}
+              onChange={(e) => setNewKpi({ ...newKpi, description: e.target.value })}
+            />
           </div>
           <div className="flex justify-end gap-3 mt-4">
             <button onClick={() => setShowForm(false)} className="btn-secondary">Cancelar</button>

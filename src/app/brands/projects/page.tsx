@@ -94,7 +94,7 @@ export default function BrandsProjectsPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       <SectionHeader
         icon={<Handshake size={22} className="text-teal-600" />}
-        title="Proyectos con Marcas"
+        title="Proyectos con Clubes y Federaciones"
         subtitle="Colaboraciones y patrocinios con impacto ESG verificado"
         action={
           <button className="btn-primary" onClick={() => setShowNewModal(true)}>

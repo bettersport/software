@@ -5,6 +5,7 @@ import {
   Leaf, Trophy, ShoppingBag, TrendingUp, ArrowUpRight, AlertTriangle,
   CheckCircle, Clock, Zap, BarChart3, Target, Users, Brain,
   Shield, FileCheck, Building2, DollarSign, Eye, Briefcase, ClipboardCheck, Star, Wrench,
+  FileText, TrendingDown, BarChart2,
 } from "lucide-react";
 import { StatCard, ProgressBar, SectionHeader } from "@/components/ui";
 import { mockESGProjects, mockClubs, mockEvents, categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
@@ -14,7 +15,7 @@ import Link from "next/link";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  BarChart, Bar,
+  BarChart, Bar, PieChart, Pie, Cell,
 } from "recharts";
 
 // Static compliance scores per club (replaces Math.random())
@@ -61,6 +62,20 @@ const investmentData = [
   { category: "Social", invested: 32000, roi: 280 },
   { category: "Gobernanza", invested: 18000, roi: 190 },
   { category: "Deportivo", invested: 52000, roi: 410 },
+];
+
+const sportsPieData = [
+  { name: "Fútbol", value: 60, color: "#10B981" },
+  { name: "Rugby", value: 20, color: "#3B82F6" },
+  { name: "Tenis", value: 20, color: "#F59E0B" },
+];
+
+const recommendedEvents = [
+  { id: "e1", name: "Copa Verde Santiago 2025", sport: "Fútbol", country: "Chile", flag: "🇨🇱", esgScore: 88, budget: 45000 },
+  { id: "e2", name: "Marathón Patagonia Eco", sport: "Atletismo", country: "Chile", flag: "🇨🇱", esgScore: 92, budget: 28000 },
+  { id: "e3", name: "Rugby Sustentable BCN", sport: "Rugby", country: "España", flag: "🇪🇸", esgScore: 85, budget: 62000 },
+  { id: "e4", name: "Tenis Inclusivo Open", sport: "Tenis", country: "Argentina", flag: "🇦🇷", esgScore: 80, budget: 35000 },
+  { id: "e5", name: "Torneo Pádel Ecológico", sport: "Pádel", country: "Chile", flag: "🇨🇱", esgScore: 77, budget: 19000 },
 ];
 
 const alerts = [
@@ -190,7 +205,7 @@ export default function DashboardPage() {
             {roleSubtitle[role]} · {new Date().toLocaleDateString("es-CL", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {quickActions.map((a) => (
             <Link
               key={a.label}
@@ -202,6 +217,28 @@ export default function DashboardPage() {
               <span className="hidden xl:inline">{a.label}</span>
             </Link>
           ))}
+          {role === "brand" && (
+            <>
+              <motion.button
+                whileHover={{ scale: 1.03, boxShadow: "0 4px 16px rgba(59,130,246,0.25)" }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all"
+                style={{ backgroundColor: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.3)", color: "#3B82F6" }}
+                onClick={() => {}}
+              >
+                <FileText size={15} /> Solicitar Reporte Patrocinado
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03, boxShadow: "0 4px 16px rgba(139,92,246,0.25)" }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all"
+                style={{ backgroundColor: "rgba(139,92,246,0.08)", borderColor: "rgba(139,92,246,0.3)", color: "#8B5CF6" }}
+                onClick={() => {}}
+              >
+                <BarChart2 size={15} /> Performance Marketing
+              </motion.button>
+            </>
+          )}
         </div>
       </motion.div>
 
@@ -332,44 +369,114 @@ export default function DashboardPage() {
 
       {/* ── Brand charts ── */}
       {role === "brand" && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-7">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Inversión por categoría</h3>
-            <span className="badge badge-green">YTD</span>
-          </div>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={investmentData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis dataKey="category" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
-              <Bar dataKey="invested" name="Inversión ($)" fill="#06B6D4" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-7">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Inversión por categoría</h3>
+              <span className="badge badge-green">YTD</span>
+            </div>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={investmentData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <XAxis dataKey="category" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
+                <Bar dataKey="invested" name="Inversión ($)" fill="#06B6D4" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Clubes recomendados para patrocinio</h3>
-            <span className="badge badge-cyan">Por ESG score</span>
-          </div>
-          <div className="space-y-4">
-            {mockClubs.slice(0, 5).map((club) => (
-              <div key={club.id} className="flex items-center gap-4 p-4 rounded-xl transition-colors hover:bg-slate-50" style={{ border: "1px solid #f1f5f9" }}>
-                <span className="text-lg">{club.flag}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: "#0f172a" }}>{club.name}</p>
-                  <p className="text-xs" style={{ color: "#94a3b8" }}>{club.country} · {club.sport}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold" style={{ color: "#10B981" }}>{club.esgScore}</p>
-                  <p className="text-xs" style={{ color: "#94a3b8" }}>ESG score</p>
-                </div>
+          {/* Sports distribution pie chart */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Distribución por deporte</h3>
+              <span className="badge badge-cyan">Inversión actual</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <ResponsiveContainer width="55%" height={220}>
+                <PieChart>
+                  <Pie data={sportsPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={4} dataKey="value">
+                    {sportsPieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", fontSize: "13px" }} formatter={(v) => [`${v}%`, ""]} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-4">
+                {sportsPieData.map((d) => (
+                  <div key={d.name}>
+                    <div className="flex items-center justify-between text-sm mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
+                        <span className="font-medium" style={{ color: "#475569" }}>{d.name}</span>
+                      </div>
+                      <span className="font-bold" style={{ color: d.color }}>{d.value}%</span>
+                    </div>
+                    <ProgressBar value={d.value} color={d.color} showPercent={false} height={4} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </motion.div>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-7">
+          {/* Clubes recomendados */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card p-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Clubes recomendados para patrocinio</h3>
+              <span className="badge badge-cyan">Por ESG score</span>
+            </div>
+            <div className="space-y-3">
+              {mockClubs.slice(0, 5).map((club) => (
+                <Link key={club.id} href="/brands/projects"
+                  className="flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-slate-50 hover:shadow-sm cursor-pointer group"
+                  style={{ border: "1px solid #f1f5f9" }}
+                >
+                  <span className="text-lg">{club.flag}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#0f172a" }}>{club.name}</p>
+                    <p className="text-xs" style={{ color: "#94a3b8" }}>{club.country} · {club.sport}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold" style={{ color: "#10B981" }}>{club.esgScore}</p>
+                    <p className="text-xs" style={{ color: "#94a3b8" }}>ESG score</p>
+                  </div>
+                  <ArrowUpRight size={14} className="text-slate-300 group-hover:text-teal-500 transition-colors flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Eventos recomendados para patrocinio */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card p-8">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Eventos recomendados para patrocinio</h3>
+              <span className="badge badge-green">Por ESG score</span>
+            </div>
+            <div className="space-y-3">
+              {recommendedEvents.map((event) => (
+                <Link key={event.id} href="/marketplace"
+                  className="flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-slate-50 hover:shadow-sm cursor-pointer group"
+                  style={{ border: "1px solid #f1f5f9" }}
+                >
+                  <span className="text-lg">{event.flag}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#0f172a" }}>{event.name}</p>
+                    <p className="text-xs" style={{ color: "#94a3b8" }}>{event.country} · {event.sport}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold" style={{ color: "#10B981" }}>{event.esgScore}</p>
+                    <p className="text-xs" style={{ color: "#94a3b8" }}>ESG score</p>
+                  </div>
+                  <ArrowUpRight size={14} className="text-slate-300 group-hover:text-teal-500 transition-colors flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
       )}
 

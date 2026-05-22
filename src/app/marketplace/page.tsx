@@ -17,6 +17,7 @@ const categoryTabs = [
   { label: "💧 Huella hídrica", value: "huella_hidrica" },
   { label: "🌱 Huella de carbono", value: "huella_carbono" },
   { label: "♻️ Gestión de residuos", value: "gestion_residuos" },
+  { label: "⚡ Eficiencia Energética", value: "eficiencia_energetica" },
   { label: "📚 Educación", value: "educacion" },
   { label: "🤝 Inclusión", value: "inclusion" },
   { label: "⚖️ Equidad de género", value: "equidad_genero" },
@@ -96,7 +97,7 @@ export default function MarketplacePage() {
     <div className="max-w-7xl mx-auto space-y-8">
       <SectionHeader
         icon={<Lightbulb size={22} className="text-amber-400" />}
-        title="Proyectos de alto impacto"
+        title="Eventos de alto impacto"
         subtitle="Descubre y patrocina proyectos deportivos sostenibles"
       />
 

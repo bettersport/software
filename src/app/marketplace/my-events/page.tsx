@@ -23,8 +23,17 @@ const statusConfig = {
 };
 
 const SPORTS = ["Fútbol", "Atletismo", "Ciclismo", "Natación", "Tenis", "Rugby", "Básquetbol", "Otro"];
-const ROLES = ["Organizador", "Patrocinador", "Participante", "Voluntario"];
-const emptyForm = { title: "", date: "", location: "", sport: "Fútbol", role: "Organizador", sponsorLogo: "", mediaPartnerLogo: "" };
+const ROLES = ["Organizador"];
+const ESG_OBJECTIVES = [
+  "Huella de Carbono",
+  "Eficiencia Hídrica",
+  "Gestión de Residuos",
+  "Eficiencia Energética",
+  "Inclusión Social",
+  "Equidad de Género",
+  "Educación Ambiental",
+];
+const emptyForm = { title: "", date: "", location: "", sport: "Fútbol", role: "Organizador", sponsorLogo: "", mediaPartnerLogo: "", esgObjectives: [] as string[] };
 
 /* ── Logo upload helper ── */
 function LogoUpload({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -323,6 +332,38 @@ export default function MyEventsPage() {
                       {ROLES.map((r) => <option key={r}>{r}</option>)}
                     </select>
                   </div>
+                </div>
+                {/* ESG Objectives */}
+                <div>
+                  <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">Objetivos ESG vinculados</label>
+                  <div className="flex flex-wrap gap-2">
+                    {ESG_OBJECTIVES.map((obj) => {
+                      const active = form.esgObjectives.includes(obj);
+                      return (
+                        <button
+                          key={obj}
+                          type="button"
+                          onClick={() => setForm((f) => ({
+                            ...f,
+                            esgObjectives: active
+                              ? f.esgObjectives.filter((o) => o !== obj)
+                              : [...f.esgObjectives, obj],
+                          }))}
+                          className="text-xs px-3 py-1.5 rounded-full font-semibold border transition-all"
+                          style={
+                            active
+                              ? { backgroundColor: "#10B981", color: "#fff", borderColor: "#10B981" }
+                              : { backgroundColor: "#f8fafc", color: "#64748b", borderColor: "#e2e8f0" }
+                          }
+                        >
+                          {obj}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {form.esgObjectives.length === 0 && (
+                    <p className="text-xs text-slate-400 mt-1.5">Selecciona al menos un objetivo ESG</p>
+                  )}
                 </div>
                 {/* Logo uploads */}
                 <div className="grid grid-cols-2 gap-3">

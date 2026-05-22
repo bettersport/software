@@ -57,9 +57,14 @@ const navItems: NavItem[] = [
     roles: allRoles,
     children: [
       { label: "Clubes", href: "/ranking", icon: <Trophy size={15} /> },
-      { label: "Soluciones", href: "/solutions", icon: <Wrench size={15} /> },
       { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin"] },
     ],
+  },
+  {
+    label: "Soluciones",
+    href: "/solutions",
+    icon: <Wrench size={18} />,
+    roles: allRoles,
   },
   {
     label: "Proyectos de alto impacto",
@@ -110,7 +115,15 @@ const navItems: NavItem[] = [
     label: "Mi Fan Zone",
     href: "/fanzone",
     icon: <Star size={18} />,
-    roles: ["hincha"],
+    roles: ["hincha", "admin"],
+  },
+  {
+    label: "Engagement Hinchas",
+    icon: <Users size={18} />,
+    roles: ["admin", "club"],
+    children: [
+      { label: "Estrategia de Fidelización", href: "/fanzone", icon: <Zap size={15} /> },
+    ],
   },
   {
     label: "Mi Club",
@@ -130,6 +143,7 @@ const navItems: NavItem[] = [
     children: [
       { label: "Todos los clubes",  href: "/ranking",       icon: <Building2 size={15} /> },
       { label: "Gestión de marcas", href: "/admin/brands",  icon: <Tag size={15} /> },
+      { label: "Fan Zone",          href: "/fanzone",       icon: <Star size={15} /> },
       { label: "Configuración",     href: "/club/settings", icon: <Settings size={15} /> },
     ],
   },
