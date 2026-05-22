@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum UserRole {
+  admin
+  club
+  brand
+  solucion
+  hincha
+  auditor
+  manager
+}
+
+enum ESGCategory {
+  huella_hidrica
+  huella_carbono
+  gestion_residuos
+  educacion
+  inclusion
+  equidad_genero
+}
+
+enum ProjectStatus {
+  planning
+  in_progress
+  completed
+  paused
+}
+
+enum EventStatus {
+  open
+  negotiating
+  funded
+  closed
+}
+
+// ─── Models ──────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      UserRole @default(club)
+  avatar    String?
+  country   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  club   Club?   @relation(fields: [clubId], references: [id])
+  clubId String?
+}
+
+model Club {
+  id           String  @id @default(cuid())
+  name         String
+  sport        String
+  country      String
+  flag         String
+  logo         String?
+  esgScore     Float   @default(0)
+  ranking      Int     @default(0)
+  environmental Float  @default(0)
+  social        Float  @default(0)
+  governance    Float  @default(0)
+  transparency  Float  @default(0)
+  members      Int     @default(0)
+  founded      Int
+  description  String?
+
+  users       User[]
+  esgProjects ESGProject[]
+  events      Event[]
+}
+
+model ESGProject {
+  id          String        @id @default(cuid())
+  title       String
+  category    ESGCategory
+  status      ProjectStatus @default(planning)
+  progress    Int           @default(0)
+  budget      Float
+  spent       Float         @default(0)
+  startDate   DateTime
+  endDate     DateTime
+  responsible String
+  description String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  club   Club?   @relation(fields: [clubId], references: [id])
+  clubId String?
+}
+
+model Event {
+  id               String      @id @default(cuid())
+  title            String
+  country          String
+  flag             String
+  sport            String
+  category         ESGCategory
+  image            String
+  description      String
+  sustainableImpact String
+  budget           Float
+  funded           Float       @default(0)
+  daysLeft         Int
+  sealEsg          Boolean     @default(false)
+  featured         Boolean     @default(false)
+  audience         Int         @default(0)
+  status           EventStatus @default(open)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  club   Club?   @relation(fields: [clubId], references: [id])
+  clubId String?
+}
+
