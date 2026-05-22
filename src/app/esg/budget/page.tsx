@@ -422,8 +422,6 @@ export default function BudgetPage() {
 }
 
 
-const COLORS = ["#10B981", "#06B6D4", "#8B5CF6", "#F59E0B", "#EF4444"];
-
 function Portal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
