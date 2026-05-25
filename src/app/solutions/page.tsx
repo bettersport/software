@@ -258,7 +258,7 @@ export default function SolutionsPage() {
           <div
             className="grid text-xs font-semibold uppercase tracking-wider px-6 py-3.5"
             style={{
-              gridTemplateColumns: "44px 1fr 180px 120px 80px 140px",
+              gridTemplateColumns: "44px 1fr 180px 80px 140px",
               color: "#94A3B8",
               borderBottom: "1px solid #F1F5F9",
               background: "#FAFBFC",
@@ -267,7 +267,6 @@ export default function SolutionsPage() {
             <span>#</span>
             <span>Proveedor</span>
             <span>Proyectos</span>
-            <span>Marca</span>
             <span>Club</span>
             <span>Valoración</span>
           </div>
@@ -284,7 +283,7 @@ export default function SolutionsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.035 }}
                     className="group grid items-center px-6 py-3.5 hover:bg-slate-50 cursor-pointer transition-all duration-150"
-                    style={{ gridTemplateColumns: "44px 1fr 180px 120px 80px 140px" }}
+                    style={{ gridTemplateColumns: "44px 1fr 180px 80px 140px" }}
                     onClick={() => setSelected(p)}
                   >
                     <span className="text-sm font-bold text-slate-300 group-hover:text-slate-400 transition-colors">
@@ -328,8 +327,6 @@ export default function SolutionsPage() {
                         {p.projectsCount}
                       </span>
                     </div>
-
-                    <div>{p.associatedBrand && <BrandBadge name={p.associatedBrand} />}</div>
 
                     <div>
                       {p.associatedClub && (
