@@ -29,6 +29,7 @@ import {
   Zap,
   Star,
   SlidersHorizontal,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -146,6 +147,12 @@ const navItems: NavItem[] = [
       { label: "Fan Zone",          href: "/fanzone",       icon: <Star size={15} /> },
       { label: "Configuración",     href: "/club/settings", icon: <Settings size={15} /> },
     ],
+  },
+  {
+    label: "Data Intelligence",
+    href: "/admin/data-intelligence",
+    icon: <Database size={18} />,
+    roles: ["admin"],
   },
 ];
 
