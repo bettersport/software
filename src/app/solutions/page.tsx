@@ -8,12 +8,13 @@ import {
   ExternalLink, MapPin, Search, SlidersHorizontal, ArrowUpRight,
   Sparkles, ShieldCheck,
 } from "lucide-react";
-import {
-  mockSolutionProviders,
-  solutionCategoryLabels,
-} from "@/lib/data";
+import { solutionCategoryLabels } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import type { SolutionProvider } from "@/lib/types";
+import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
+
+const EMPTY: SolutionProvider[] = [];
 
 /* ─── Category icon map (Lucide) ─── */
 const categoryIcons: Record<string, React.ElementType> = {
@@ -118,6 +119,11 @@ function ClubBadge({ name, initials }: { name: string; initials: string }) {
 
 /* ─── Main page ─── */
 export default function SolutionsPage() {
+  const { activeUser, loaded } = useUser();
+  const { data: providers } = useResource<SolutionProvider[]>(
+    loaded && activeUser ? "/api/solutions" : null, EMPTY,
+  );
+
   const [country, setCountry] = useState("Todos los países");
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<"list" | "grid">("list");
@@ -125,7 +131,7 @@ export default function SolutionsPage() {
   const [search, setSearch] = useState("");
   const [onlyEmpresaB, setOnlyEmpresaB] = useState(false);
 
-  const filtered = mockSolutionProviders.filter((p) => {
+  const filtered = providers.filter((p) => {
     const matchCountry = country === "Todos los países" || p.country === country;
     const matchCat = category === "all" || p.category === category;
     const matchSearch =

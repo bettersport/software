@@ -2,10 +2,13 @@
 
 import { motion } from "framer-motion";
 import { Medal, TrendingUp, TrendingDown, Target, Award, ChevronUp, ChevronDown } from "lucide-react";
-import { mockClubs } from "@/lib/data";
 import { ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
+import type { Club } from "@/lib/types";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, ReferenceLine } from "recharts";
+
+const EMPTY: Club[] = [];
 
 const evolutionData = [
   { mes: "Ago", posicion: 8, score: 72,  benchmarkCategoria: 3, benchmarkLatam: 1 },
@@ -19,10 +22,45 @@ const evolutionData = [
 ];
 
 export default function RankingPositionPage() {
-  const { activeUser } = useUser();
-  const myClub = mockClubs.find((c) => c.id === activeUser.clubId) ?? mockClubs[3];
+  const { activeUser, isDemo, loaded } = useUser();
+  const clubId = activeUser?.clubId ?? null;
+  const { data: clubs } = useResource<Club[]>(
+    loaded && activeUser ? "/api/clubs" : null, EMPTY,
+  );
+  const { data: myClub } = useResource<Club | null>(
+    loaded && clubId ? `/api/clubs/${clubId}` : null, null,
+  );
   const prevPos = evolutionData[evolutionData.length - 2].posicion;
-  const trend = prevPos - myClub.ranking;
+  const trend = prevPos - (myClub?.ranking ?? prevPos);
+
+  // Wait for the session to load to avoid flashing the demo view for real accounts
+  if (!loaded) return null;
+
+  // New accounts have no ranking history yet
+  if (!isDemo) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
+            <Medal size={18} className="text-amber-400" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>Mi Posición en el Ranking</h1>
+            <p className="text-sm text-slate-400">Evolución y análisis comparativo de tu posición ESG</p>
+          </div>
+        </div>
+        <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="card p-10 text-center">
+          <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Posición actual</p>
+          <span className="text-8xl font-black text-slate-200" style={{ fontFamily: "'Manrope', sans-serif" }}>—</span>
+          <p className="text-slate-500 text-sm mt-4 font-medium">Aún no apareces en el ranking.</p>
+          <p className="text-slate-400 text-xs mt-1.5 max-w-md mx-auto">
+            Tu puntaje ESG actual es <span className="font-bold text-teal-600">{(myClub?.esgScore ?? 0).toFixed(1)}/100</span>.
+            Crea y avanza proyectos ESG para construir tu puntaje y entrar al ranking de clubes.
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -40,7 +78,7 @@ export default function RankingPositionPage() {
       <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="card p-8 text-center bg-gradient-to-br from-amber-500/5 via-transparent to-emerald-500/5 border-amber-500/15">
         <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Posición actual</p>
         <div className="flex items-center justify-center gap-4">
-          <span className="text-8xl font-black text-gradient" style={{ fontFamily: "'Manrope', sans-serif" }}>#{myClub.ranking}</span>
+          <span className="text-8xl font-black text-gradient" style={{ fontFamily: "'Manrope', sans-serif" }}>#{myClub?.ranking ?? "—"}</span>
           {trend > 0 ? (
             <div className="flex flex-col items-center gap-1">
               <span className="text-teal-600 flex items-center gap-1 text-sm font-bold"><ChevronUp size={18} />+{trend} posiciones</span>
@@ -53,7 +91,7 @@ export default function RankingPositionPage() {
             </div>
           ) : null}
         </div>
-        <p className="text-slate-400 text-sm mt-2">Score ESG: <span className="text-teal-600 font-bold">{myClub.esgScore}/100</span></p>
+        <p className="text-slate-400 text-sm mt-2">Score ESG: <span className="text-teal-600 font-bold">{myClub?.esgScore ?? 0}/100</span></p>
       </motion.div>
 
       {/* Charts + nearby clubs */}
@@ -108,8 +146,8 @@ export default function RankingPositionPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-7">
           <h3 className="font-semibold text-slate-800 text-sm mb-4 flex items-center gap-2"><Target size={15} className="text-teal-600" /> Clubes cercanos</h3>
           <div className="space-y-2.5">
-            {mockClubs.slice(0, 5).map((club, i) => {
-              const isMe = club.id === myClub.id;
+            {clubs.slice(0, 5).map((club, i) => {
+              const isMe = club.id === clubId;
               return (
                 <div key={club.id} className={`flex items-center gap-3 p-2.5 rounded-xl transition-colors ${isMe ? "bg-teal-50 border border-teal-200" : "hover:bg-slate-50"}`}>
                   <span className={`text-xs font-bold w-6 ${isMe ? "text-teal-600" : "text-slate-400"}`}>#{i + 1}</span>

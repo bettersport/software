@@ -9,34 +9,14 @@ import {
 import type { FanAction, FanReward, FanActionCategory, FanRewardType } from "@/lib/types";
 import { fanActions as defaultActions, fanRewards as defaultRewards } from "@/lib/data";
 import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
-// ── storage helpers ────────────────────────────────────────────────────────────
+// ── config defaults ────────────────────────────────────────────────────────────
 
-function storageKey(clubId: string) {
-  return `bettersport_fanzone_config_${clubId}`;
-}
-
-interface FanZoneClubConfig {
-  actions: FanAction[];
-  rewards: FanReward[];
-}
-
-function loadConfig(clubId: string): FanZoneClubConfig {
-  if (typeof window === "undefined") return { actions: defaultActions, rewards: defaultRewards };
-  const raw = localStorage.getItem(storageKey(clubId));
-  if (raw) {
-    try { return JSON.parse(raw); } catch {}
-  }
-  return {
-    actions: defaultActions.map((a) => ({ ...a })),
-    rewards: defaultRewards.map((r) => ({ ...r })),
-  };
-}
-
-function saveConfig(clubId: string, cfg: FanZoneClubConfig) {
-  localStorage.setItem(storageKey(clubId), JSON.stringify(cfg));
-}
+const EMPTY_CONFIG: { actions: FanAction[] | null; rewards: FanReward[] | null } = {
+  actions: null, rewards: null,
+};
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
@@ -352,8 +332,11 @@ function RewardForm({ initial, onSave, onClose }: RewardFormProps) {
 type Tab = "actions" | "rewards";
 
 export default function FanZoneConfigPage() {
-  const { activeUser } = useUser();
-  const clubId = activeUser?.clubId ?? "default";
+  const { activeUser, loaded } = useUser();
+
+  const { data: config } = useResource(
+    loaded && activeUser ? "/api/fan-config" : null, EMPTY_CONFIG,
+  );
 
   const [tab, setTab] = useState<Tab>("actions");
   const [actions, setActions] = useState<FanAction[]>([]);
@@ -367,17 +350,21 @@ export default function FanZoneConfigPage() {
   // Confirm delete
   const [deleteTarget, setDeleteTarget] = useState<{ type: "action" | "reward"; id: string } | null>(null);
 
+  // Seed the editable lists from the fetched config, falling back to defaults
   useEffect(() => {
-    const cfg = loadConfig(clubId);
-    setActions(cfg.actions);
-    setRewards(cfg.rewards);
-  }, [clubId]);
+    setActions((config.actions ?? defaultActions).map((a) => ({ ...a })));
+    setRewards((config.rewards ?? defaultRewards).map((r) => ({ ...r })));
+  }, [config]);
 
-  const handleSaveAll = () => {
-    saveConfig(clubId, { actions, rewards });
-    setSaved(true);
-    toast.success("Fan Zone guardada — los fans verán los cambios al recargar");
-    setTimeout(() => setSaved(false), 3000);
+  const handleSaveAll = async () => {
+    try {
+      await apiSend("/api/fan-config", "PUT", { actions, rewards });
+      setSaved(true);
+      toast.success("Fan Zone guardada — los fans verán los cambios al recargar");
+      setTimeout(() => setSaved(false), 3000);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar la configuración");
+    }
   };
 
   // Actions CRUD
@@ -420,6 +407,8 @@ export default function FanZoneConfigPage() {
   const rewardsByType = REWARD_TYPES.map((t) => ({
     ...t, count: rewards.filter((r) => r.type === t.value).length,
   }));
+
+  if (!loaded) return null;
 
   return (
     <>

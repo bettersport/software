@@ -5,7 +5,9 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Plus, TrendingUp, TrendingDown, DollarSign, X, Handshake, BarChart2, ChevronRight } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
-import { mockESGProjects } from "@/lib/data";
+import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
+import type { ESGProject } from "@/lib/types";
 import {
   PieChart as RechartsPie, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
@@ -52,27 +54,28 @@ const stageColors: Record<PipelineStage, string> = {
   "Cierre":         "#10B981",
 };
 
-const initialLeads: SponsorLead[] = [
-  { id: "l1", brand: "Banco Estado", category: "Finanzas", amount: 45000, stage: "Cierre", color: "#1E40AF" },
-  { id: "l2", brand: "Entel", category: "Telecom", amount: 38000, stage: "Negociación", color: "#0EA5E9" },
-  { id: "l3", brand: "Falabella", category: "Retail", amount: 55000, stage: "Propuesta", color: "#10B981" },
-  { id: "l4", brand: "CCU", category: "Bebidas", amount: 28000, stage: "Primer Contacto", color: "#F59E0B" },
-  { id: "l5", brand: "Latam Airlines", category: "Aerolinea", amount: 72000, stage: "Propuesta", color: "#E11D48" },
-  { id: "l6", brand: "VTR", category: "Telecom", amount: 20000, stage: "Sin contacto", color: "#7C3AED" },
-  { id: "l7", brand: "Cencosud", category: "Retail", amount: 40000, stage: "Negociación", color: "#D97706" },
-];
+const NO_LEADS: SponsorLead[] = [];
+const NO_PROJECTS: ESGProject[] = [];
+
+// Zeroed quarterly series for accounts without sponsorship history (stable reference).
+const EMPTY_QUARTERLY = quarterlyData.map((q) => ({ ...q, presupuesto: 0, cerrado: 0 }));
 
 export default function BudgetPage() {
+  const { isDemo, activeUser, loaded } = useUser();
+  const { data: projects, setData: setProjects, reload: reloadProjects } = useResource<ESGProject[]>(
+    loaded && activeUser ? "/api/projects" : null, NO_PROJECTS,
+  );
+  const { data: leads, setData: setLeads, reload: reloadLeads } = useResource<SponsorLead[]>(
+    loaded && activeUser ? "/api/sponsor-leads" : null, NO_LEADS,
+  );
   const [activeTab, setActiveTab] = useState<"presupuesto" | "sponsorship">("presupuesto");
-  const [projects, setProjects] = useState(mockESGProjects.map((p) => ({ ...p })));
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyGasto);
-  const [leads, setLeads] = useState<SponsorLead[]>(initialLeads);
 
   const totalBudget = projects.reduce((acc, p) => acc + p.budget, 0);
   const totalSpent = projects.reduce((acc, p) => acc + p.spent, 0);
   const totalAvailable = totalBudget - totalSpent;
-  const spentPct = (totalSpent / totalBudget) * 100;
+  const spentPct = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
   const budgetData = projects.map((p) => ({
     name: p.title.length > 20 ? p.title.slice(0, 20) + "…" : p.title,
@@ -86,7 +89,7 @@ export default function BudgetPage() {
     color: COLORS[i % COLORS.length],
   }));
 
-  const handleRegistrar = () => {
+  const handleRegistrar = async () => {
     if (!form.projectId) { toast.error("Selecciona un proyecto"); return; }
     const amount = parseFloat(form.amount);
     if (!amount || amount <= 0) { toast.error("Ingresa un monto válido"); return; }
@@ -96,25 +99,39 @@ export default function BudgetPage() {
       toast.error("El gasto supera el presupuesto disponible");
       return;
     }
+    const newSpent = project.spent + amount;
+    const projectId = project.id;
     setProjects((prev) =>
-      prev.map((p) => p.id === form.projectId ? { ...p, spent: p.spent + amount } : p)
+      prev.map((p) => p.id === projectId ? { ...p, spent: newSpent } : p)
     );
     setForm(emptyGasto);
     setShowModal(false);
-    toast.success(`Gasto de $${amount.toLocaleString()} registrado en "${project.title}"`);
+    try {
+      await apiSend(`/api/projects/${projectId}`, "PATCH", { spent: newSpent });
+      toast.success(`Gasto de $${amount.toLocaleString()} registrado en "${project.title}"`);
+    } catch {
+      reloadProjects();
+      toast.error("No se pudo registrar el gasto");
+    }
   };
 
-  const advanceLead = (id: string) => {
-    setLeads((prev) => prev.map((l) => {
-      if (l.id !== id) return l;
-      const idx = pipelineStages.indexOf(l.stage);
-      if (idx >= pipelineStages.length - 1) return l;
-      return { ...l, stage: pipelineStages[idx + 1] };
-    }));
+  const advanceLead = async (id: string) => {
+    const lead = leads.find((l) => l.id === id);
+    if (!lead) return;
+    const idx = pipelineStages.indexOf(lead.stage);
+    if (idx >= pipelineStages.length - 1) return;
+    const nextStage = pipelineStages[idx + 1];
+    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, stage: nextStage } : l)));
+    try {
+      await apiSend(`/api/sponsor-leads/${id}`, "PATCH", { stage: nextStage });
+    } catch {
+      reloadLeads();
+    }
   };
 
-  const totalSponsorBudget = quarterlyData.reduce((a, q) => a + q.presupuesto, 0);
-  const totalSponsorClosed = quarterlyData.reduce((a, q) => a + q.cerrado, 0);
+  const quarterly = isDemo ? quarterlyData : EMPTY_QUARTERLY;
+  const totalSponsorBudget = quarterly.reduce((a, q) => a + q.presupuesto, 0);
+  const totalSponsorClosed = quarterly.reduce((a, q) => a + q.cerrado, 0);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -280,7 +297,7 @@ export default function BudgetPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-7">
             <h3 className="font-semibold text-slate-800 text-sm mb-4">Presupuesto Sponsorship Anual y por Quarter</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={quarterlyData}>
+              <BarChart data={quarterly}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="q" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />

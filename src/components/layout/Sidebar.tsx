@@ -173,6 +173,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const { activeUser } = useUser();
+  const role = activeUser?.role ?? "club";
   const [openMenus, setOpenMenus] = useState<string[]>(["Ranking", "Marketplace", "Marcas"]);
 
   // Auto-close drawer on mobile when navigating
@@ -194,10 +195,10 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
 
   // Filtrar items según el rol del usuario activo
   const filteredNavItems = navItems
-    .filter((item) => !item.roles || item.roles.includes(activeUser.role))
+    .filter((item) => !item.roles || item.roles.includes(role))
     .map((item) => ({
       ...item,
-      children: item.children?.filter((child) => !child.roles || child.roles.includes(activeUser.role)),
+      children: item.children?.filter((child) => !child.roles || child.roles.includes(role)),
     }));
 
   return (

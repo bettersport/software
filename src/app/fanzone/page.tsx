@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Trophy, Gift, Star, CheckCircle2, Lock,
@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import { fanTiers, fanActions as defaultActions, fanRewards as defaultRewards, mockFans } from "@/lib/data";
 import { useUser } from "@/lib/userContext";
-import type { FanTierName, FanActionCategory, FanAction, FanReward } from "@/lib/types";
+import { useResource, apiSend } from "@/lib/useResource";
+import type { FanTierName, FanActionCategory, FanAction, FanReward, FanProfile } from "@/lib/types";
 import toast from "react-hot-toast";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -31,6 +32,15 @@ function progressToNext(points: number, tierName: FanTierName) {
   return Math.min(100, Math.round((done / range) * 100));
 }
 
+/** Highest tier whose minimum points the fan has reached */
+function tierForPoints(points: number): FanTierName {
+  let current: FanTierName = fanTiers[0].name;
+  for (const t of fanTiers) {
+    if (points >= t.minPoints) current = t.name;
+  }
+  return current;
+}
+
 const categoryConfig: Record<FanActionCategory, { label: string; color: string; bg: string }> = {
   fisica:  { label: "Física",  color: "#10B981", bg: "rgba(16,185,129,0.1)"  },
   digital: { label: "Digital", color: "#3B82F6", bg: "rgba(59,130,246,0.1)"  },
@@ -40,7 +50,7 @@ const categoryConfig: Record<FanActionCategory, { label: string; color: string; 
 // ── FAN CARD ─────────────────────────────────────────────────────────────────
 
 function FanCard({ fan, pct, tier, nextTier }: {
-  fan: typeof mockFans[0];
+  fan: FanProfile;
   pct: number;
   tier: ReturnType<typeof getTier>;
   nextTier: ReturnType<typeof getNextTier>;
@@ -142,7 +152,7 @@ function FanCard({ fan, pct, tier, nextTier }: {
           {[
             { icon: <Zap size={14} />,    label: "Retos",    value: fan.actionsCompleted,      color: "#10B981" },
             { icon: <Award size={14} />,  label: "Badges",   value: fan.badgesEarned,          color: "#F59E0B" },
-            { icon: <Trophy size={14} />, label: "Posición", value: `#${fan.rankingPosition}`, color: "#8B5CF6" },
+            { icon: <Trophy size={14} />, label: "Posición", value: fan.rankingPosition > 0 ? `#${fan.rankingPosition}` : "—", color: "#8B5CF6" },
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl p-3 text-center"
               style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -173,31 +183,62 @@ const REWARD_TABS = [
   { id: "badge",   label: "Badges" },
 ];
 
+const EMPTY_PROFILE: FanProfile = {
+  id: "", name: "", clubId: "", clubName: "", country: "", flag: "",
+  points: 0, tier: "bronce", actionsCompleted: 0, badgesEarned: 0,
+  rankingPosition: 0, joinedAt: "", completedActionIds: [], claimedRewardIds: [],
+};
+const EMPTY_CONFIG: { actions: FanAction[] | null; rewards: FanReward[] | null } = {
+  actions: null, rewards: null,
+};
+
 export default function FanZonePage() {
-  const { activeUser } = useUser();
+  const { activeUser, loaded } = useUser();
   const [actionTab, setActionTab] = useState<string>("todos");
   const [rewardTab, setRewardTab] = useState<string>("todos");
-  const [completed, setCompleted] = useState<Set<string>>(new Set(["a2","a5","a6","a8","a11"]));
-  const [claimed,   setClaimed]   = useState<Set<string>>(new Set(["r7"]));
 
-  // Load club-specific fan zone config from localStorage
-  const [fanActions, setFanActions] = useState<FanAction[]>(defaultActions);
-  const [fanRewards, setFanRewards] = useState<FanReward[]>(defaultRewards);
+  // Fan progress (completed actions / claimed rewards) persisted per account
+  const { data: profile, setData: setProfile, reload } = useResource<FanProfile | null>(
+    loaded && activeUser ? "/api/fan-profile" : null, null,
+  );
 
-  useEffect(() => {
-    const clubId = activeUser?.clubId;
-    if (!clubId) return;
-    const raw = localStorage.getItem(`bettersport_fanzone_config_${clubId}`);
-    if (raw) {
-      try {
-        const cfg = JSON.parse(raw);
-        if (cfg.actions?.length) setFanActions(cfg.actions);
-        if (cfg.rewards?.length) setFanRewards(cfg.rewards);
-      } catch {}
-    }
-  }, [activeUser?.clubId]);
+  // Club-specific fan zone config; fall back to the default catalogs when unset
+  const { data: config } = useResource(
+    loaded && activeUser ? "/api/fan-config" : null, EMPTY_CONFIG,
+  );
+  const fanActions = config.actions ?? defaultActions;
+  const fanRewards = config.rewards ?? defaultRewards;
 
-  const fan    = mockFans.find((f) => f.id === "f-hincha")!;
+  const completedIds = useMemo(() => profile?.completedActionIds ?? [], [profile]);
+  const claimedIds   = useMemo(() => profile?.claimedRewardIds ?? [], [profile]);
+  const completed = useMemo(() => new Set(completedIds), [completedIds]);
+  const claimed   = useMemo(() => new Set(claimedIds), [claimedIds]);
+
+  // Points are derived from the fan's completed actions using the active catalog
+  const earnedPoints = useMemo(() => {
+    const pointsByAction = new Map(fanActions.map((a) => [a.id, a.points]));
+    return completedIds.reduce((acc, id) => acc + (pointsByAction.get(id) ?? 0), 0);
+  }, [fanActions, completedIds]);
+
+  // Fan identity comes from the signed-in user; progress from the fetched profile
+  const fan = useMemo<FanProfile>(() => ({
+    id: activeUser?.id ?? "",
+    name: activeUser?.name ?? "Fan",
+    alias: undefined,
+    clubId: activeUser?.clubId ?? "",
+    clubName: activeUser?.club || "Sin club",
+    country: activeUser?.country ?? "",
+    flag: "",
+    points: earnedPoints,
+    tier: tierForPoints(earnedPoints),
+    actionsCompleted: completedIds.length,
+    badgesEarned: profile?.badgesEarned ?? 0,
+    rankingPosition: profile?.rankingPosition ?? 0,
+    joinedAt: profile?.joinedAt ?? "2026",
+    completedActionIds: completedIds,
+    claimedRewardIds: claimedIds,
+  }), [activeUser, earnedPoints, completedIds, claimedIds, profile]);
+
   const tier   = getTier(fan.tier);
   const next   = getNextTier(fan.tier);
   const pct    = progressToNext(fan.points, fan.tier);
@@ -205,17 +246,33 @@ export default function FanZonePage() {
   const visibleActions = fanActions.filter((a) => actionTab === "todos" || a.category === actionTab);
   const visibleRewards = fanRewards.filter((r) => rewardTab === "todos" || r.type === rewardTab);
 
+  const persist = (patch: {
+    completedActionIds: string[]; claimedRewardIds: string[];
+    points: number; tier: FanTierName; badgesEarned: number;
+  }) => {
+    apiSend("/api/fan-profile", "PATCH", patch).catch(() => reload());
+  };
+
   const handleComplete = (id: string) => {
     if (completed.has(id)) return;
-    setCompleted((prev) => new Set([...prev, id]));
+    const nextCompleted = [...completedIds, id];
+    const pointsByAction = new Map(fanActions.map((a) => [a.id, a.points]));
+    const nextPoints = nextCompleted.reduce((acc, cid) => acc + (pointsByAction.get(cid) ?? 0), 0);
+    const nextTier = tierForPoints(nextPoints);
+    setProfile((prev) => ({ ...(prev ?? EMPTY_PROFILE), completedActionIds: nextCompleted, points: nextPoints, tier: nextTier }));
     toast.success("¡Acción registrada! Tus puntos serán confirmados pronto 🌱");
+    persist({ completedActionIds: nextCompleted, claimedRewardIds: claimedIds, points: nextPoints, tier: nextTier, badgesEarned: fan.badgesEarned });
   };
 
   const handleClaim = (id: string, pts: number) => {
     if (claimed.has(id) || pts > fan.points) return;
-    setClaimed((prev) => new Set([...prev, id]));
+    const nextClaimed = [...claimedIds, id];
+    setProfile((prev) => ({ ...(prev ?? EMPTY_PROFILE), claimedRewardIds: nextClaimed }));
     toast.success("¡Recompensa canjeada! Revisa tu correo para más detalles 🎁");
+    persist({ completedActionIds: completedIds, claimedRewardIds: nextClaimed, points: fan.points, tier: fan.tier, badgesEarned: fan.badgesEarned });
   };
+
+  if (!loaded) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">

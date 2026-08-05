@@ -31,22 +31,22 @@ const roleLabel: Record<string, string> = {
 };
 
 export default function ClubSettingsPage() {
-  const { activeUser, setActiveUser } = useUser();
+  const { activeUser } = useUser();
   const [active, setActive] = useState("perfil");
   const [saved, setSaved] = useState(false);
   const [notifications, setNotifications] = useState(notificationDefaults);
 
   // Controlled profile fields
-  const [nameVal, setNameVal] = useState(activeUser.name);
-  const [emailVal, setEmailVal] = useState(activeUser.email);
-  const [clubVal, setClubVal] = useState(activeUser.club || "");
+  const [nameVal, setNameVal] = useState(activeUser?.name ?? "");
+  const [emailVal, setEmailVal] = useState(activeUser?.email ?? "");
+  const [clubVal, setClubVal] = useState(activeUser?.club || "");
 
-  // Sync fields when activeUser loads from localStorage
+  // Sync fields once the authenticated user loads
   useEffect(() => {
-    setNameVal(activeUser.name);
-    setEmailVal(activeUser.email);
-    setClubVal(activeUser.club || "");
-  }, [activeUser.id]);
+    setNameVal(activeUser?.name ?? "");
+    setEmailVal(activeUser?.email ?? "");
+    setClubVal(activeUser?.club || "");
+  }, [activeUser?.id]);
 
   // Controlled security fields
   const [currentPwd, setCurrentPwd] = useState("");
@@ -65,12 +65,7 @@ export default function ClubSettingsPage() {
         toast.error("El nombre y el email son obligatorios");
         return;
       }
-      setActiveUser({
-        ...activeUser,
-        name: nameVal.trim(),
-        email: emailVal.trim(),
-        club: clubVal.trim() || undefined,
-      });
+      // No user-update endpoint yet — local state already holds the edited values.
     } else if (active === "seguridad") {
       if (!currentPwd || !newPwd || !confirmPwd) {
         toast.error("Completa todos los campos de contraseña");
@@ -128,7 +123,7 @@ export default function ClubSettingsPage() {
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Cargo</label>
-                <input type="text" value={roleLabel[activeUser.role] || activeUser.role} className="input-field w-full opacity-60 cursor-not-allowed" readOnly />
+                <input type="text" value={roleLabel[activeUser?.role ?? ""] || (activeUser?.role ?? "")} className="input-field w-full opacity-60 cursor-not-allowed" readOnly />
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Organización</label>

@@ -1,9 +1,6 @@
 node_modules
 .next
 .vercel
+.env
 .env*.local
 .claude
-
-/src/generated/prisma
-.env.local
-.env

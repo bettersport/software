@@ -44,39 +44,58 @@ enum EventStatus {
 // ─── Models ──────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  role      UserRole @default(club)
-  avatar    String?
-  country   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(club)
+  avatar       String?
+  country      String?
+  sport        String?
+  /// For brand/solution accounts: organization name (clubs use the Club relation).
+  org          String?
+  demo         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   club   Club?   @relation(fields: [clubId], references: [id])
   clubId String?
+
+  brandConfig  BrandConfig?
+  fanProfile   FanProfile?
+  clubEvents   ClubEvent[]
+  brandProjects BrandProject[]
+  sponsorLeads SponsorLead[]
+  notifications Notification[]
 }
 
 model Club {
-  id           String  @id @default(cuid())
-  name         String
-  sport        String
-  country      String
-  flag         String
-  logo         String?
-  esgScore     Float   @default(0)
-  ranking      Int     @default(0)
-  environmental Float  @default(0)
-  social        Float  @default(0)
-  governance    Float  @default(0)
-  transparency  Float  @default(0)
-  members      Int     @default(0)
-  founded      Int
-  description  String?
+  id            String  @id @default(cuid())
+  name          String
+  sport         String
+  country       String
+  flag          String
+  logo          String?
+  esgScore      Float   @default(0)
+  ranking       Int     @default(0)
+  environmental Float   @default(0)
+  social        Float   @default(0)
+  governance    Float   @default(0)
+  transparency  Float   @default(0)
+  members       Int     @default(0)
+  founded       Int
+  description   String?
+  demo          Boolean @default(false)
+  /// Per-club Fan Zone configuration (custom actions / rewards). Null = default set.
+  fanActions    Json?
+  fanRewards    Json?
 
   users       User[]
   esgProjects ESGProject[]
   events      Event[]
+  kpis        Kpi[]
+  documents   Document[]
+  fanProfiles FanProfile[]
 }
 
 model ESGProject {
@@ -91,34 +110,197 @@ model ESGProject {
   endDate     DateTime
   responsible String
   description String
+  /// Nested milestones and project-level KPIs (fidelity with the UI shape).
+  milestones  Json?
+  kpis        Json?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  club   Club?   @relation(fields: [clubId], references: [id])
-  clubId String?
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String
 }
 
+/// Club-level ESG KPIs (the KPIs & Performance page).
+model Kpi {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  current     Float
+  target      Float
+  unit        String
+  trend       String   @default("up")
+  color       String   @default("#10B981")
+  icon        String   @default("📊")
+  description String   @default("")
+  createdAt   DateTime @default(now())
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  type       String
+  category   String
+  size       String
+  version    String   @default("v1.0")
+  uploadedBy String
+  uploadedAt DateTime @default(now())
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String
+}
+
+/// Public marketplace catalog of high-impact events.
 model Event {
-  id               String      @id @default(cuid())
-  title            String
-  country          String
-  flag             String
-  sport            String
-  category         ESGCategory
-  image            String
-  description      String
+  id                String      @id @default(cuid())
+  title             String
+  clubName          String
+  country           String
+  flag              String
+  sport             String
+  category          ESGCategory
+  image             String
+  description       String
   sustainableImpact String
-  budget           Float
-  funded           Float       @default(0)
-  daysLeft         Int
-  sealEsg          Boolean     @default(false)
-  featured         Boolean     @default(false)
-  audience         Int         @default(0)
-  status           EventStatus @default(open)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  budget            Float
+  funded            Float       @default(0)
+  daysLeft          Int
+  sponsoredBy       String[]
+  mediaPartner      String?
+  sealEsg           Boolean     @default(false)
+  featured          Boolean     @default(false)
+  audience          Int         @default(0)
+  status            EventStatus @default(open)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
   club   Club?   @relation(fields: [clubId], references: [id])
   clubId String?
 }
 
+/// Events organized/managed by a user (the "Mis Eventos" page).
+model ClubEvent {
+  id                String   @id @default(cuid())
+  title             String
+  date              String
+  location          String
+  sport             String
+  role              String   @default("Organizador")
+  sponsorLogo       String?
+  mediaPartnerLogo  String?
+  esgObjectives     String[]
+  status            String   @default("upcoming")
+  participants      Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+}
+
+/// Sponsorship projects managed by a brand (the brands/projects page).
+model BrandProject {
+  id          String   @id @default(cuid())
+  brand       String
+  project     String
+  status      String   @default("Propuesta")
+  investment  Float    @default(0)
+  reach       Int      @default(0)
+  esgScore    Int      @default(0)
+  category    String
+  progress    Int      @default(0)
+  description String   @default("")
+  createdAt   DateTime @default(now())
+
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+}
+
+/// Sponsorship pipeline leads (esg/budget sponsorship tab).
+model SponsorLead {
+  id        String   @id @default(cuid())
+  brand     String
+  category  String
+  amount    Float    @default(0)
+  stage     String   @default("Sin contacto")
+  color     String   @default("#94A3B8")
+  createdAt DateTime @default(now())
+
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+}
+
+model SolutionProvider {
+  id                  String   @id @default(cuid())
+  name                String
+  logo                String?
+  initials            String
+  color               String
+  category            String
+  country             String
+  flag                String
+  description         String
+  services            String[]
+  projectsCount       Int      @default(0)
+  associatedBrand     String?
+  associatedBrandLogo String?
+  associatedClub      String?
+  associatedClubLogo  String?
+  stars               Int      @default(5)
+  verified            Boolean  @default(false)
+  featured            Boolean  @default(false)
+  tags                String[]
+}
+
+/// A brand's sponsorship configuration (onboarding + brands/config).
+model BrandConfig {
+  id              String   @id @default(cuid())
+  brandName       String   @default("")
+  industry        String   @default("")
+  country         String   @default("")
+  website         String   @default("")
+  objectives      String[]
+  sponsorshipName String   @default("")
+  sponsorshipType String   @default("")
+  startDate       String   @default("")
+  endDate         String   @default("")
+  budget          String   @default("")
+  territory       String   @default("")
+  sports          String[]
+  dataSources     String[]
+  kpis            Json?
+  updatedAt       DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+}
+
+/// A hincha's Fan Zone profile and progress.
+model FanProfile {
+  id                 String   @id @default(cuid())
+  points             Int      @default(0)
+  tier               String   @default("bronce")
+  badgesEarned       Int      @default(0)
+  completedActionIds String[]
+  claimedRewardIds   String[]
+  joinedAt           DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  club   Club?   @relation(fields: [clubId], references: [id])
+  clubId String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   @default("info")
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+}

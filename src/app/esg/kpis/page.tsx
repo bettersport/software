@@ -9,15 +9,21 @@ import {
   LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, Legend,
 } from "recharts";
 import toast from "react-hot-toast";
+import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 
-const kpiData = [
-  { id: "k1", name: "Emisiones CO2", category: "Ambiental", current: 24, target: 18, unit: "ton/año", trend: "down" as const, color: "#10B981", icon: "🌱", description: "Reducción de emisiones de carbono" },
-  { id: "k2", name: "Energía renovable", category: "Ambiental", current: 65, target: 100, unit: "%", trend: "up" as const, color: "#06B6D4", icon: "⚡", description: "% de energía de fuentes renovables" },
-  { id: "k3", name: "Consumo agua", category: "Ambiental", current: 1200, target: 800, unit: "m³/mes", trend: "down" as const, color: "#F59E0B", icon: "💧", description: "Consumo mensual de agua" },
-  { id: "k4", name: "Personas incluidas", category: "Social", current: 160, target: 200, unit: "personas", trend: "up" as const, color: "#8B5CF6", icon: "🤝", description: "Personas en programas de inclusión" },
-  { id: "k5", name: "Tasa retención", category: "Social", current: 82, target: 80, unit: "%", trend: "up" as const, color: "#EC4899", icon: "👥", description: "Retención de participantes" },
-  { id: "k6", name: "Puntaje gobernanza", category: "Gobernanza", current: 83, target: 90, unit: "pts", trend: "up" as const, color: "#3B82F6", icon: "⚖️", description: "Puntaje de buenas prácticas" },
-];
+interface Kpi {
+  id: string;
+  name: string;
+  category: string;
+  current: number;
+  target: number;
+  unit: string;
+  trend: "up" | "down" | "stable";
+  color: string;
+  icon: string;
+  description: string;
+}
 
 const monthlyData = [
   { month: "Ene", Ambiental: 72, Social: 78, Gobernanza: 80 },
@@ -43,8 +49,13 @@ const sponsors = [
   { id: "s4", name: "Falabella", initials: "FA", color: "#10B981", email: "esg@falabella.com" },
 ];
 
+const EMPTY: Kpi[] = [];
+
 export default function KPIsPage() {
-  const [kpis, setKpis] = useState(kpiData);
+  const { activeUser, loaded, isDemo } = useUser();
+  const { data: kpis, reload } = useResource<Kpi[]>(
+    loaded && activeUser ? "/api/kpis" : null, EMPTY,
+  );
   const [showForm, setShowForm] = useState(false);
   const [newKpi, setNewKpi] = useState({ name: "", description: "", category: "Ambiental", current: "", target: "", unit: "" });
   const [showSponsorModal, setShowSponsorModal] = useState(false);
@@ -64,22 +75,27 @@ export default function KPIsPage() {
     setTimeout(() => { setSent(false); setShowSponsorModal(false); }, 1200);
   };
 
-  const addKpi = () => {
+  const addKpi = async () => {
     if (!newKpi.name) return;
-    const kpi = {
-      id: `k${Date.now()}`,
-      ...newKpi,
-      current: parseFloat(newKpi.current) || 0,
-      target: parseFloat(newKpi.target) || 100,
-      trend: "up" as const,
-      color: "#10B981",
-      icon: "📊",
-      description: newKpi.name,
-    };
-    setKpis((prev) => [...prev, kpi]);
-    setShowForm(false);
-    setNewKpi({ name: "", description: "", category: "Ambiental", current: "", target: "", unit: "" });
-    toast.success("KPI agregado correctamente");
+    try {
+      await apiSend("/api/kpis", "POST", {
+        name: newKpi.name,
+        category: newKpi.category,
+        current: parseFloat(newKpi.current) || 0,
+        target: parseFloat(newKpi.target) || 100,
+        unit: newKpi.unit || "-",
+        trend: "up",
+        color: "#10B981",
+        icon: "📊",
+        description: newKpi.name,
+      });
+      await reload();
+      setShowForm(false);
+      setNewKpi({ name: "", description: "", category: "Ambiental", current: "", target: "", unit: "" });
+      toast.success("KPI agregado correctamente");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo crear el KPI");
+    }
   };
 
   return (
@@ -108,7 +124,16 @@ export default function KPIsPage() {
         }
       />
 
-      {/* Charts row */}
+      {/* No indicators yet — shown until the account has KPIs */}
+      {kpis.length === 0 && (
+        <div className="card p-8 text-center">
+          <p className="text-sm font-medium text-slate-600">Aún no tienes historial de indicadores.</p>
+          <p className="text-xs text-slate-400 mt-1.5">Agrega tu primer KPI con el botón &quot;Nuevo KPI&quot; para comenzar a medir tu desempeño ESG.</p>
+        </div>
+      )}
+
+      {/* Illustrative trend/radar charts — sample data, demo accounts only */}
+      {isDemo && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Line chart */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card p-7">
@@ -140,6 +165,7 @@ export default function KPIsPage() {
           </ResponsiveContainer>
         </motion.div>
       </div>
+      )}
 
       {/* New KPI form */}
       {showForm && (

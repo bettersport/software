@@ -12,10 +12,13 @@ import {
   UserCircle2,
   Menu,
 } from "lucide-react";
-import { mockNotifications } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
 import { useRouter } from "next/navigation";
+
+type Notif = { id: string; type: string; title: string; message: string; read: boolean; createdAt?: string };
+const NO_NOTIFS: Notif[] = [];
 
 
 
@@ -28,18 +31,29 @@ const roleConfig: Record<string, { label: string; badge: string; color: string }
 };
 
 export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
-  const { activeUser } = useUser();
+  const { activeUser, loaded, logout } = useUser();
   const router = useRouter();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const [search, setSearch] = useState("");
+  const { data: notifications } = useResource<Notif[]>(loaded && activeUser ? "/api/notifications" : null, NO_NOTIFS);
 
-  const role = roleConfig[activeUser.role] ?? roleConfig.club;
-  const unreadCount = mockNotifications.filter((n) => !n.read).length;
+  const role = roleConfig[activeUser?.role ?? "club"] ?? roleConfig.club;
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const userName = activeUser?.name ?? "";
 
-  const handleLogout = () => {
-    localStorage.removeItem("bettersport_user");
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
+  };
+
+  const relativeTime = (iso?: string) => {
+    if (!iso) return "";
+    const diff = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(diff / 3_600_000);
+    if (h < 1) return "Hace un momento";
+    if (h < 24) return `Hace ${h}h`;
+    return `Hace ${Math.floor(h / 24)}d`;
   };
 
   const notifTypeColors: Record<string, string> = {
@@ -109,7 +123,7 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                   <span className="badge badge-green text-xs">{unreadCount} nuevas</span>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
-                  {mockNotifications.map((notif) => (
+                  {notifications.map((notif) => (
                     <div
                       key={notif.id}
                       className={cn(
@@ -122,7 +136,7 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                         <div className="flex-1 min-w-0">
                           <p className={cn("text-sm font-medium", notifTypeColors[notif.type])}>{notif.title}</p>
                           <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#64748b" }}>{notif.message}</p>
-                          <p className="text-xs mt-1" style={{ color: "#94a3b8" }}>{notif.time}</p>
+                          <p className="text-xs mt-1" style={{ color: "#94a3b8" }}>{relativeTime(notif.createdAt)}</p>
                         </div>
                         {!notif.read && <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: "#10B981" }} />}
                       </div>
@@ -147,9 +161,9 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
           >
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
               style={{ background: `linear-gradient(135deg, ${role.color}, ${role.color}99)`, color: "#fff" }}>
-              {activeUser.name.charAt(0)}
+              {userName.charAt(0)}
             </div>
-            <span className="hidden sm:block text-sm font-medium" style={{ color: "#0f172a" }}>{activeUser.name.split(" ")[0]}</span>
+            <span className="hidden sm:block text-sm font-medium" style={{ color: "#0f172a" }}>{userName.split(" ")[0]}</span>
             <ChevronDown size={12} style={{ color: "#94a3b8" }} />
           </button>
 
@@ -166,16 +180,16 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: `linear-gradient(135deg, ${role.color}, ${role.color}99)`, color: "#fff" }}>
-                      {activeUser.name.charAt(0)}
+                      {userName.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: "#0f172a" }}>{activeUser.name}</p>
-                      <p className="text-xs truncate" style={{ color: "#94a3b8" }}>{activeUser.email}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: "#0f172a" }}>{userName}</p>
+                      <p className="text-xs truncate" style={{ color: "#94a3b8" }}>{activeUser?.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`${role.badge} badge`}>{role.label}</span>
-                    {activeUser.country && <span className="text-xs" style={{ color: "#94a3b8" }}>{activeUser.country}</span>}
+                    {activeUser?.country && <span className="text-xs" style={{ color: "#94a3b8" }}>{activeUser.country}</span>}
                   </div>
                 </div>
                 {[

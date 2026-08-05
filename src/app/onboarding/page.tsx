@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import type { BrandConfig, DataSource, SponsorshipObjective, BrandKPI } from "@/lib/types";
+import { apiSend } from "@/lib/useResource";
 
 // ── constants ────────────────────────────────────────────────────────────────
 
@@ -158,8 +159,12 @@ export default function OnboardingPage() {
       kpis: c.kpis.map((k) => (k.id === id ? { ...k, enabled: !k.enabled } : k)),
     }));
 
-  const finish = () => {
-    localStorage.setItem("bettersport_brand_config", JSON.stringify(cfg));
+  const finish = async () => {
+    try {
+      await apiSend("/api/brand-config", "PUT", cfg);
+    } catch {
+      /* keep going to the success screen even if the save hiccups */
+    }
     setDone(true);
   };
 

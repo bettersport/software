@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, ArrowLeft, CheckCircle, Trophy, Tag, Wrench, Users } from "lucide-react";
 import Link from "next/link";
-import { mockClubs } from "@/lib/data";
+
+type ClubOption = { id: string; name: string; sport: string; flag: string };
 
 const roles = [
   {
@@ -60,23 +61,45 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [clubs, setClubs] = useState<ClubOption[]>([]);
+
+  // Load the club list for the hincha picker.
+  useEffect(() => {
+    fetch("/api/public/clubs")
+      .then((r) => r.json())
+      .then((d) => setClubs(d.data ?? []))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async () => {
+    setError("");
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    const selectedClub = mockClubs.find((c) => c.id === form.clubId);
-    const userData = {
-      id: `user_${Date.now()}`,
-      name: form.name || "Usuario",
-      email: form.email,
-      role: selectedRole,
-      country: form.country,
-      club: selectedRole === "hincha" ? (selectedClub?.name ?? "") : form.org,
-      clubId: selectedRole === "hincha" ? form.clubId : undefined,
-    };
-    localStorage.setItem("bettersport_user_data", JSON.stringify(userData));
-    localStorage.setItem("bettersport_user", userData.id);
-    router.push("/dashboard");
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        password,
+        role: selectedRole,
+        country: form.country,
+        sport: form.sport || undefined,
+        org: selectedRole === "brand" || selectedRole === "solucion" || selectedRole === "club" ? form.org : undefined,
+        clubId: selectedRole === "hincha" ? form.clubId : undefined,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "No se pudo crear la cuenta");
+      setLoading(false);
+      return;
+    }
+    router.push(selectedRole === "brand" ? "/onboarding" : "/dashboard");
   };
 
   return (
@@ -206,7 +229,7 @@ export default function RegisterPage() {
                       onChange={(e) => setForm({ ...form, clubId: e.target.value })}
                     >
                       <option value="">Seleccionar club...</option>
-                      {mockClubs.map((club) => (
+                      {clubs.map((club) => (
                         <option key={club.id} value={club.id}>
                           {club.flag} {club.name} — {club.sport}
                         </option>
@@ -251,7 +274,7 @@ export default function RegisterPage() {
                   <p className="text-xs text-teal-600 font-medium mb-2">Resumen de tu cuenta:</p>
                   <p className="text-xs text-slate-500">Rol: {roles.find((r) => r.id === selectedRole)?.label}</p>
                   {selectedRole === "hincha" ? (
-                    <p className="text-xs text-slate-500">Club: {mockClubs.find((c) => c.id === form.clubId)?.name || "Sin seleccionar"}</p>
+                    <p className="text-xs text-slate-500">Club: {clubs.find((c) => c.id === form.clubId)?.name || "Sin seleccionar"}</p>
                   ) : (
                     <p className="text-xs text-slate-500">{form.org || "Tu organización"}</p>
                   )}
@@ -259,6 +282,12 @@ export default function RegisterPage() {
                 </div>
               </div>
             </motion.div>
+          )}
+
+          {error && (
+            <div className="mt-6 px-4 py-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#dc2626" }}>
+              {error}
+            </div>
           )}
 
           {/* Navigation buttons */}

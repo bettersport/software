@@ -2,15 +2,19 @@
 
 export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha" | "auditor" | "manager";
 
+export type ProjectStatus = "planning" | "in_progress" | "completed" | "paused";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   avatar?: string;
-  club?: string;
-  country?: string;
-  clubId?: string;
+  club?: string | null;
+  country?: string | null;
+  clubId?: string | null;
+  sport?: string | null;
+  demo?: boolean;
 }
 
 export interface Club {

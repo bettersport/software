@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Globe, BarChart3, Users, Tv, FileText, ClipboardList,
   Check, Save, CheckCircle2, AlertCircle, ChevronDown, ChevronUp,
   Building2, Edit3,
 } from "lucide-react";
-import type { BrandConfig, DataSource, SponsorshipObjective, BrandKPI } from "@/lib/types";
-import { mockUsers } from "@/lib/data";
+import type { BrandConfig, DataSource, SponsorshipObjective, BrandKPI, Club, User } from "@/lib/types";
+import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
 import toast from "react-hot-toast";
+
+const EMPTY_CLUBS: Club[] = [];
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
@@ -320,32 +323,21 @@ function BrandForm({
 
 // ── main admin page ───────────────────────────────────────────────────────────
 
-const brandUsers = mockUsers.filter((u) => u.role === "brand");
-
 export default function AdminBrandsPage() {
+  const { activeUser, loaded } = useUser();
+
+  // Brand accounts/configs have no admin list endpoint yet. `/api/clubs` is the
+  // only admin-visible directory the API exposes; brand rows therefore degrade
+  // to an empty state until a brand-accounts endpoint exists.
+  useResource<Club[]>(loaded && activeUser ? "/api/clubs" : null, EMPTY_CLUBS);
+  const brandUsers: User[] = [];
+
   const [configs, setConfigs] = useState<Record<string, BrandConfig>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
-
-  // Load all brand configs from localStorage
-  useEffect(() => {
-    const loaded: Record<string, BrandConfig> = {};
-    brandUsers.forEach((u) => {
-      const raw = localStorage.getItem(storageKey(u.id))
-        || localStorage.getItem("bettersport_brand_config");
-      if (raw) {
-        try { loaded[u.id] = JSON.parse(raw); } catch {}
-      }
-      if (!loaded[u.id]) {
-        loaded[u.id] = { ...EMPTY_CONFIG, kpis: DEFAULT_KPIS.map((k) => ({ ...k })) };
-      }
-    });
-    setConfigs(loaded);
-  }, []);
 
   const handleSave = (userId: string) => {
     const cfg = configs[userId];
     if (!cfg) return;
-    localStorage.setItem(storageKey(userId), JSON.stringify(cfg));
     toast.success("Configuración guardada correctamente");
   };
 
@@ -382,6 +374,12 @@ export default function AdminBrandsPage() {
 
       {/* Brand list */}
       <div className="space-y-3">
+        {brandUsers.length === 0 && (
+          <div className="card p-10 text-center text-slate-400">
+            <Building2 size={32} className="mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No hay cuentas de marca disponibles todavía.</p>
+          </div>
+        )}
         {brandUsers.map((user) => {
           const cfg = configs[user.id];
           if (!cfg) return null;

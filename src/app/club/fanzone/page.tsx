@@ -10,8 +10,10 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { fanZoneStats, mockFans, fanTiers } from "@/lib/data";
+import { mockFans, fanTiers } from "@/lib/data";
 import type { FanTierName } from "@/lib/types";
+import { useUser } from "@/lib/userContext";
+import Link from "next/link";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -100,7 +102,37 @@ const VIEWS = ["Resumen", "Ranking fans", "Segmentos", "Campañas"] as const;
 type View = typeof VIEWS[number];
 
 export default function ClubFanZonePage() {
+  const { isDemo, loaded } = useUser();
   const [view, setView] = useState<View>("Resumen");
+
+  // Wait for the session to load to avoid flashing the demo view for real accounts
+  if (!loaded) return null;
+
+  // New accounts: no fan activity yet
+  if (!isDemo) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div>
+          <p className="text-xs font-mono tracking-widest uppercase text-teal-600 mb-1">Fan Zone Analytics</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Dashboard de tu hinchada</h1>
+          <p className="text-sm text-slate-400 mt-1">Datos estratégicos de participación ESG de tus fans</p>
+        </div>
+        <div className="card p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#FDF2F8" }}>
+            <Users size={24} style={{ color: "#EC4899" }} />
+          </div>
+          <h3 className="font-bold text-lg text-slate-900">Tu Fan Zone aún no tiene actividad</h3>
+          <p className="text-sm mt-2 max-w-md mx-auto text-slate-500">
+            Cuando tus hinchas se registren y comiencen a completar acciones ESG, aquí verás sus estadísticas de participación, ranking y campañas.
+          </p>
+          <Link href="/club/fanzone/config" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}>
+            Configurar mi Fan Zone
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

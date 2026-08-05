@@ -5,10 +5,12 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Handshake, Plus, Filter, TrendingUp, DollarSign, Users, Target, X, ExternalLink } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
+import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
 type Project = {
-  id: number;
+  id: string;
   brand: string;
   project: string;
   status: string;
@@ -19,15 +21,6 @@ type Project = {
   progress: number;
   description: string;
 };
-
-const initialProjects: Project[] = [
-  { id: 1, brand: "GreenSport SA", project: "Reforestación Campus Deportivo", status: "Activo", investment: 48000, reach: 12500, esgScore: 91, category: "Ambiental", progress: 72, description: "Reforestación de 12 hectáreas alrededor del campus deportivo, incluyendo zona de entrenamiento y perímetro urbano." },
-  { id: 2, brand: "EcoTech Iberia", project: "Paneles Solares Estadio Norte", status: "Activo", investment: 75000, reach: 8200, esgScore: 88, category: "Ambiental", progress: 45, description: "Instalación de 240 paneles solares en la cubierta del estadio para autoconsumo energético." },
-  { id: 3, brand: "Sustainable Pro", project: "Programa de Reciclaje", status: "Evaluación", investment: 22000, reach: 5400, esgScore: 76, category: "Social", progress: 0, description: "Implementación de estaciones de reciclaje inteligentes en todas las instalaciones del club." },
-  { id: 4, brand: "ClimateGear", project: "Movilidad Sostenible", status: "Propuesta", investment: 35000, reach: 9800, esgScore: 82, category: "Ambiental", progress: 0, description: "Flota de vehículos eléctricos para desplazamiento del equipo y cuerpo técnico." },
-  { id: 5, brand: "SportInclusion", project: "Deporte para Todos", status: "Activo", investment: 28000, reach: 15200, esgScore: 94, category: "Social", progress: 88, description: "Programa de inclusión deportiva para personas con discapacidad en 8 comunidades." },
-  { id: 6, brand: "TransparenSport", project: "Gobernanza Digital", status: "Evaluación", investment: 41000, reach: 3100, esgScore: 79, category: "Gobernanza", progress: 15, description: "Portal de transparencia con blockchain para seguimiento de fondos ESG." },
-];
 
 const emptyForm = { brand: "", project: "", category: "Ambiental", investment: "", reach: "", description: "" };
 
@@ -41,8 +34,13 @@ function Portal({ children }: { children: React.ReactNode }) {
 const statusColors: Record<string, string> = { Activo: "#10B981", Evaluación: "#F59E0B", Propuesta: "#06B6D4" };
 const categoryFilters = ["Todos", "Ambiental", "Social", "Gobernanza"];
 
+const NO_PROJECTS: Project[] = [];
+
 export default function BrandsProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const { activeUser, loaded } = useUser();
+  const { data: projects, reload } = useResource<Project[]>(
+    loaded && activeUser ? "/api/brand-projects" : null, NO_PROJECTS,
+  );
   const [filter, setFilter] = useState("Todos");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
@@ -66,29 +64,35 @@ export default function BrandsProjectsPage() {
     return errs;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return; }
-    const newProject: Project = {
-      id: projects.length + 1,
-      brand: form.brand.trim(),
-      project: form.project.trim(),
-      status: "Propuesta",
-      investment: Number(form.investment),
-      reach: Number(form.reach),
-      esgScore: 75,
-      category: form.category,
-      progress: 0,
-      description: form.description.trim(),
-    };
-    setProjects((prev) => [newProject, ...prev]);
-    setShowNewModal(false);
-    setForm(emptyForm);
-    setFormErrors({});
-    toast.success(`Propuesta "${newProject.project}" enviada correctamente`);
+    const projectName = form.project.trim();
+    try {
+      await apiSend("/api/brand-projects", "POST", {
+        brand: form.brand.trim(),
+        project: projectName,
+        status: "Propuesta",
+        investment: Number(form.investment),
+        reach: Number(form.reach),
+        esgScore: 75,
+        category: form.category,
+        progress: 0,
+        description: form.description.trim(),
+      });
+      await reload();
+      setShowNewModal(false);
+      setForm(emptyForm);
+      setFormErrors({});
+      toast.success(`Propuesta "${projectName}" enviada correctamente`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo enviar la propuesta");
+    }
   };
 
   const closeNewModal = () => { setShowNewModal(false); setForm(emptyForm); setFormErrors({}); };
+
+  if (!loaded) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -109,7 +113,7 @@ export default function BrandsProjectsPage() {
           { label: "Inversión total", value: `$${(totalInvestment / 1000).toFixed(0)}K`, icon: <DollarSign size={16} />, color: "#10B981" },
           { label: "Proyectos activos", value: activeCount.toString(), icon: <Target size={16} />, color: "#3B82F6" },
           { label: "Alcance total", value: `${(totalReach / 1000).toFixed(1)}K`, icon: <Users size={16} />, color: "#8B5CF6" },
-          { label: "Score prom.", value: `${Math.round(projects.reduce((s: number, p: Project) => s + p.esgScore, 0) / projects.length)}`, icon: <TrendingUp size={16} />, color: "#F59E0B" },
+          { label: "Score prom.", value: `${projects.length ? Math.round(projects.reduce((s: number, p: Project) => s + p.esgScore, 0) / projects.length) : 0}`, icon: <TrendingUp size={16} />, color: "#F59E0B" },
         ].map((s) => (
           <div key={s.label} className="card p-5 flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.color + "10" }}>
@@ -132,6 +136,20 @@ export default function BrandsProjectsPage() {
           </button>
         ))}
       </div>
+
+      {/* Empty states — distinguish "no projects at all" from "none in this filter" */}
+      {filtered.length === 0 && projects.length === 0 && (
+        <div className="card p-10 text-center">
+          <p className="text-sm font-medium text-slate-600">Aún no tienes proyectos de patrocinio.</p>
+          <p className="text-xs text-slate-400 mt-1.5">Crea tu primer proyecto con el botón &quot;Nuevo proyecto&quot; o explora el marketplace para patrocinar eventos.</p>
+        </div>
+      )}
+      {filtered.length === 0 && projects.length > 0 && (
+        <div className="card p-10 text-center">
+          <p className="text-sm font-medium text-slate-600">No hay proyectos en esta categoría.</p>
+          <p className="text-xs text-slate-400 mt-1.5">Prueba con otro filtro o selecciona &quot;Todos&quot;.</p>
+        </div>
+      )}
 
       {/* Projects grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

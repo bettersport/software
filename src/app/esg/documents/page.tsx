@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, Upload, Download, Trash2, Eye, Filter, Plus, Search, FileSpreadsheet, Image } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
-import { mockDocuments } from "@/lib/data";
+import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 import type { Document } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -18,33 +19,41 @@ const fileIcons: Record<string, React.ReactNode> = {
 
 const categories = ["Todos", "Política ESG", "Ambiental", "Social", "Gobernanza", "Certificaciones", "Financiero"];
 
+const EMPTY: Document[] = [];
+
 export default function DocumentsPage() {
-  const [docs, setDocs] = useState<Document[]>(mockDocuments);
+  const { activeUser, loaded } = useUser();
+  const { data: docs, reload } = useResource<Document[]>(
+    loaded && activeUser ? "/api/documents" : null, EMPTY,
+  );
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("Todos");
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const files = Array.from(input.files ?? []);
     if (!files.length) return;
-    files.forEach((file) => {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "doc";
-      const type = ["pdf"].includes(ext) ? "pdf" : ["xlsx", "xls", "csv"].includes(ext) ? "xls" : ["jpg", "png", "jpeg", "zip"].includes(ext) ? "img" : "doc";
-      const newDoc: Document = {
-        id: `d${Date.now()}`,
-        name: file.name,
-        type: type as Document["type"],
-        category: "Sin categor\u00eda",
-        size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-        uploadedAt: new Date().toISOString().split("T")[0],
-        uploadedBy: "Marta Gonz\u00e1lez",
-        version: "v1.0",
-      };
-      setDocs((prev) => [newDoc, ...prev]);
-    });
-    toast.success(`${files.length} archivo(s) subido(s) correctamente`);
-    e.target.value = "";
+    try {
+      for (const file of files) {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "doc";
+        const type = ["pdf"].includes(ext) ? "pdf" : ["xlsx", "xls", "csv"].includes(ext) ? "xls" : ["jpg", "png", "jpeg", "zip"].includes(ext) ? "img" : "doc";
+        await apiSend("/api/documents", "POST", {
+          name: file.name,
+          type,
+          category: "Sin categor\u00eda",
+          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+          uploadedBy: "Marta Gonz\u00e1lez",
+          version: "v1.0",
+        });
+      }
+      await reload();
+      toast.success(`${files.length} archivo(s) subido(s) correctamente`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo subir el documento");
+    }
+    input.value = "";
   };
 
   const filtered = docs.filter((d) => {
@@ -53,31 +62,39 @@ export default function DocumentsPage() {
     return matchSearch && matchCat;
   });
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    files.forEach((file) => {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "doc";
-      const type = ["pdf"].includes(ext) ? "pdf" : ["xlsx", "xls", "csv"].includes(ext) ? "xls" : ["jpg", "png", "jpeg", "zip"].includes(ext) ? "img" : "doc";
-      const newDoc: Document = {
-        id: `d${Date.now()}`,
-        name: file.name,
-        type: type as Document["type"],
-        category: "Sin categoría",
-        size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-        uploadedAt: new Date().toISOString().split("T")[0],
-        uploadedBy: "Marta González",
-        version: "v1.0",
-      };
-      setDocs((prev) => [newDoc, ...prev]);
-    });
-    toast.success(`${files.length} archivo(s) subido(s) correctamente`);
+    if (!files.length) return;
+    try {
+      for (const file of files) {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "doc";
+        const type = ["pdf"].includes(ext) ? "pdf" : ["xlsx", "xls", "csv"].includes(ext) ? "xls" : ["jpg", "png", "jpeg", "zip"].includes(ext) ? "img" : "doc";
+        await apiSend("/api/documents", "POST", {
+          name: file.name,
+          type,
+          category: "Sin categoría",
+          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+          uploadedBy: "Marta González",
+          version: "v1.0",
+        });
+      }
+      await reload();
+      toast.success(`${files.length} archivo(s) subido(s) correctamente`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo subir el documento");
+    }
   };
 
-  const deleteDoc = (id: string) => {
-    setDocs((prev) => prev.filter((d) => d.id !== id));
-    toast.success("Documento eliminado");
+  const deleteDoc = async (id: string) => {
+    try {
+      await apiSend(`/api/documents/${id}`, "DELETE");
+      await reload();
+      toast.success("Documento eliminado");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo eliminar el documento");
+    }
   };
 
   return (

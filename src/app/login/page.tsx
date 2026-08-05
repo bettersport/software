@@ -5,8 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ChevronDown, ShieldCheck, Building2, Tag, Wrench, Star } from "lucide-react";
 import Link from "next/link";
-import { mockUsers } from "@/lib/data";
-import type { User } from "@/lib/types";
+import type { UserRole } from "@/lib/types";
+
+/** Seeded demo accounts for the quick-access panel (all share the demo password). */
+const DEMO_PASSWORD = "demo1234";
+type DemoAccount = { id: string; name: string; email: string; role: UserRole };
+const DEMO_ACCOUNTS: DemoAccount[] = [
+  { id: "u1", name: "Carlos Rodríguez", email: "carlos@bettersport.com", role: "admin" },
+  { id: "u2", name: "Felipe González", email: "felipe@clubrugby.cl", role: "club" },
+  { id: "u3", name: "Alejandro Reyes", email: "alejandro@greensportsa.com", role: "brand" },
+  { id: "u5", name: "Sergio Blanco", email: "sergio@ecosolutions.com", role: "solucion" },
+  { id: "u7", name: "Martina Herrera", email: "martina@fanzone.com", role: "hincha" },
+];
 
 const features = [
   { icon: <Leaf size={20} />, title: "Gestión ESG", desc: "Monitorea y gestiona el desempeño ambiental, social y de gobernanza" },
@@ -25,38 +35,42 @@ const roleConfig: Record<string, { label: string; color: string; bg: string; ico
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("felipe@clubrugby.cl");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
-  const [selectedDemo, setSelectedDemo] = useState<User | null>(null);
+  const [selectedDemo, setSelectedDemo] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  const doLogin = async (mail: string, pass: string) => {
+    setError("");
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: mail, password: pass }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "No se pudo iniciar sesión");
+      return null;
+    }
+    return data.needsOnboarding ? "/onboarding" : "/dashboard";
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const found = mockUsers.find((u) => u.email === email);
-    if (found) {
-      localStorage.setItem("bettersport_user", found.id);
-      localStorage.removeItem("bettersport_user_data");
-    }
-    await new Promise((r) => setTimeout(r, 1000));
-    const dest = found?.role === "brand" && !localStorage.getItem("bettersport_brand_config")
-      ? "/onboarding"
-      : "/dashboard";
-    router.push(dest);
+    const dest = await doLogin(email, password);
+    if (dest) router.push(dest);
+    else setLoading(false);
   };
 
-  const loginAs = async (user: User) => {
-    setSelectedDemo(user);
-    setEmail(user.email);
-    localStorage.setItem("bettersport_user", user.id);
-    localStorage.removeItem("bettersport_user_data");
-    await new Promise((r) => setTimeout(r, 700));
-    const dest = user.role === "brand" && !localStorage.getItem("bettersport_brand_config")
-      ? "/onboarding"
-      : "/dashboard";
-    router.push(dest);
+  const loginAs = async (account: DemoAccount) => {
+    setSelectedDemo(account.id);
+    const dest = await doLogin(account.email, DEMO_PASSWORD);
+    if (dest) router.push(dest);
+    else setSelectedDemo(null);
   };
 
   return (
@@ -135,6 +149,11 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
+              {error && (
+                <div className="px-4 py-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#dc2626" }}>
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2.5">Correo electrónico</label>
                 <input
@@ -225,9 +244,9 @@ export default function LoginPage() {
                   className="overflow-hidden"
                 >
                   <div className="mt-2 space-y-2">
-                    {mockUsers.map((user, i) => {
+                    {DEMO_ACCOUNTS.map((user, i) => {
                       const rc = roleConfig[user.role];
-                      const isSelected = selectedDemo?.id === user.id;
+                      const isSelected = selectedDemo === user.id;
                       return (
                         <motion.button
                           key={user.id}

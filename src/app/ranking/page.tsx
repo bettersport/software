@@ -9,10 +9,12 @@ import {
   Leaf, Users, Scale, Eye, X, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
 } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
-import { mockClubs } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import type { Club } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
+
+const EMPTY: Club[] = [];
 
 /* ── Entity type config with Lucide icons ── */
 const entityTypes = ["Clubes", "Federaciones", "Eventos", "Venues / Recintos"] as const;
@@ -154,7 +156,11 @@ function FilterSelect({ label, value, options, onChange, icon }: {
 
 /* ── Main component ── */
 export default function RankingPage() {
-  const { activeUser, liveClub } = useUser();
+  const { activeUser, loaded } = useUser();
+  const clubId = activeUser?.clubId ?? null;
+  const { data: clubs } = useResource<Club[]>(
+    loaded && activeUser ? "/api/clubs" : null, EMPTY,
+  );
   const router = useRouter();
   const [entityType, setEntityType] = useState<EntityType>("Clubes");
   const [countryFilter, setCountryFilter] = useState("Todos");
@@ -166,19 +172,15 @@ export default function RankingPage() {
 
   const activeSeason = seasons[seasonIndex];
 
-  /** Swap the user's own club with the live (project-adjusted) version */
-  const resolveClub = (club: Club): Club =>
-    liveClub && club.id === activeUser.clubId ? liveClub : club;
+  const filtered = clubs.filter((c) => {
+    const matchCountry = countryFilter === "Todos" || c.country === countryFilter;
+    const matchSport   = sportFilter   === "Todos" || c.sport   === sportFilter;
+    return matchCountry && matchSport;
+  });
 
-  const filtered = mockClubs
-    .filter((c) => {
-      const matchCountry = countryFilter === "Todos" || c.country === countryFilter;
-      const matchSport   = sportFilter   === "Todos" || c.sport   === sportFilter;
-      return matchCountry && matchSport;
-    })
-    .map(resolveClub);
+  const maxScore = Math.max(1, ...clubs.slice(0, 10).map((c) => c.esgScore));
 
-  const maxScore = Math.max(...mockClubs.slice(0, 10).map((c) => c.esgScore));
+  if (!loaded) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -332,7 +334,8 @@ export default function RankingPage() {
         {/* ── Podium top 3 ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           {medals.map(({ place, color, glow, label, size }) => {
-            const club = resolveClub(mockClubs[place - 1]);
+            const club = clubs[place - 1];
+            if (!club) return null;
             const isHero = size === "hero";
             return (
               <motion.div
@@ -393,7 +396,7 @@ export default function RankingPage() {
               </div>
             </div>
             <div className="space-y-0.5">
-              {mockClubs.slice(0, 10).map(resolveClub).map((club, i) => (
+              {clubs.slice(0, 10).map((club, i) => (
                 <ESGBar key={club.id} club={club} index={i} maxScore={maxScore} />
               ))}
             </div>
@@ -434,7 +437,7 @@ export default function RankingPage() {
           <div className="divide-y divide-slate-50">
             {filtered.map((club, i) => {
               const change  = getRankChange(club.ranking);
-              const isMyClub = club.id === activeUser.clubId;
+              const isMyClub = club.id === clubId;
               const medalColor = club.ranking === 1 ? "#F59E0B" : club.ranking === 2 ? "#94A3B8" : club.ranking === 3 ? "#CD7F32" : null;
               return (
                 <motion.div
@@ -476,7 +479,7 @@ export default function RankingPage() {
                           {club.name}
                         </p>
                         {isMyClub && <ShieldCheck size={12} className="text-teal-500 flex-shrink-0" />}
-                        {isMyClub && liveClub && (
+                        {isMyClub && (
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
                             style={{ background: "rgba(16,185,129,0.15)", color: "#10B981" }}>
                             LIVE
@@ -636,7 +639,7 @@ export default function RankingPage() {
                 </div>
 
                 {/* Admin: full detail link */}
-                {activeUser.role === "admin" && (
+                {activeUser?.role === "admin" && (
                   <button
                     onClick={() => router.push(`/admin/clubs/${selectedClub.id}`)}
                     className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"

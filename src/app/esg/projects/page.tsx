@@ -10,9 +10,14 @@ import {
 import { SectionHeader, ProgressBar } from "@/components/ui";
 import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
 import { getStatusColor, getStatusLabel, cn } from "@/lib/utils";
-import type { ESGProject } from "@/lib/types";
+import type { ESGProject, Club } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
+import { computeClubScore } from "@/lib/scoring";
+import { useMemo } from "react";
 import toast from "react-hot-toast";
+
+const NO_PROJECTS: ESGProject[] = [];
 
 /* ── Permission tiers ── */
 const CAN_MANAGE = ["admin", "club", "manager"];
@@ -51,10 +56,28 @@ const CATEGORIES = [
 ];
 
 export default function ESGProjectsPage() {
-  const { activeUser, projects, setProjects, liveClub } = useUser();
+  const { activeUser, loaded } = useUser();
+  const role = activeUser?.role ?? "hincha";
+  const clubId = activeUser?.clubId ?? null;
 
-  const canManage  = CAN_MANAGE.includes(activeUser.role);
-  const isReadOnly = CAN_READ.includes(activeUser.role);
+  const { data: rawProjects, setData: setProjects, reload } = useResource<ESGProject[]>(
+    loaded && activeUser ? "/api/projects" : null, NO_PROJECTS,
+  );
+  const { data: club } = useResource<Club | null>(
+    loaded && clubId ? `/api/clubs/${clubId}` : null, null,
+  );
+
+  // Normalize nested JSON (milestones/kpis can be null coming from the DB).
+  const projects = useMemo(
+    () => rawProjects.map((p) => ({ ...p, milestones: p.milestones ?? [], kpis: p.kpis ?? [] })),
+    [rawProjects],
+  );
+
+  // Live ESG score: recompute from the club baseline + current projects.
+  const liveClub = useMemo(() => (club ? computeClubScore(club, projects) : null), [club, projects]);
+
+  const canManage  = CAN_MANAGE.includes(role);
+  const isReadOnly = CAN_READ.includes(role);
   const noAccess   = !canManage && !isReadOnly;
 
   /* ── UI state ── */
@@ -73,38 +96,43 @@ export default function ESGProjectsPage() {
   const [newDesc,        setNewDesc]        = useState("");
 
   /* ── Handlers ── */
-  const handleToggleMilestone = (projectId: string, milestoneId: string) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === projectId
-          ? { ...p, milestones: p.milestones.map((m) => m.id === milestoneId ? { ...m, completed: !m.completed } : m) }
-          : p
-      )
+  const handleToggleMilestone = async (projectId: string, milestoneId: string) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    const milestones = (project.milestones ?? []).map((m) =>
+      m.id === milestoneId ? { ...m, completed: !m.completed } : m,
     );
+    setProjects((prev) => prev.map((p) => (p.id === projectId ? { ...p, milestones } : p)));
+    try {
+      await apiSend(`/api/projects/${projectId}`, "PATCH", { milestones });
+    } catch {
+      reload();
+    }
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newTitle.trim()) return;
-    const newProject: ESGProject = {
-      id: `p${Date.now()}`,
-      title: newTitle,
-      category: newCategory as ESGProject["category"],
-      status: "planning",
-      progress: 0,
-      budget: parseInt(newBudget) || 0,
-      spent: 0,
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date(Date.now() + 180 * 86400000).toISOString().split("T")[0],
-      responsible: newResponsible || "Por asignar",
-      description: newDesc,
-      milestones: [],
-      kpis: [],
-    };
-    setProjects((prev) => [newProject, ...prev]);
-    setShowForm(false);
-    setNewTitle(""); setNewCategory("huella_carbono");
-    setNewBudget(""); setNewResponsible(""); setNewDesc("");
-    toast.success("¡Proyecto ESG creado! El puntaje de Ranking se ha recalculado.");
+    try {
+      await apiSend("/api/projects", "POST", {
+        title: newTitle,
+        category: newCategory,
+        status: "planning",
+        budget: parseInt(newBudget) || 0,
+        responsible: newResponsible || "Por asignar",
+        description: newDesc,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 180 * 86400000).toISOString(),
+        milestones: [],
+        kpis: [],
+      });
+      await reload();
+      setShowForm(false);
+      setNewTitle(""); setNewCategory("huella_carbono");
+      setNewBudget(""); setNewResponsible(""); setNewDesc("");
+      toast.success("¡Proyecto ESG creado! El puntaje se ha recalculado.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo crear el proyecto");
+    }
   };
 
   const openEdit = (project: ESGProject, e: React.MouseEvent) => {
@@ -114,19 +142,30 @@ export default function ESGProjectsPage() {
     setEditStatus(project.status);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editTarget) return;
-    setProjects((prev) =>
-      prev.map((p) => p.id === editTarget.id ? { ...p, progress: editProgress, status: editStatus } : p)
-    );
+    const id = editTarget.id;
+    setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, progress: editProgress, status: editStatus } : p)));
     setEditTarget(null);
-    toast.success("Proyecto actualizado · Puntaje ESG recalculado en tiempo real");
+    try {
+      await apiSend(`/api/projects/${id}`, "PATCH", { progress: editProgress, status: editStatus });
+      toast.success("Proyecto actualizado · Puntaje ESG recalculado");
+    } catch {
+      reload();
+      toast.error("No se pudo actualizar el proyecto");
+    }
   };
 
-  const confirmDelete = (id: string) => {
+  const confirmDelete = async (id: string) => {
     setProjects((prev) => prev.filter((p) => p.id !== id));
     setPendingDel(null);
-    toast.success("Proyecto eliminado");
+    try {
+      await apiSend(`/api/projects/${id}`, "DELETE");
+      toast.success("Proyecto eliminado");
+    } catch {
+      reload();
+      toast.error("No se pudo eliminar el proyecto");
+    }
   };
 
   const statusStats = {
@@ -151,7 +190,7 @@ export default function ESGProjectsPage() {
           </div>
           <h3 className="text-lg font-bold text-slate-700 mb-2">Acceso restringido</h3>
           <p className="text-slate-400 text-sm max-w-xs mx-auto">
-            El perfil <strong>{ROLE_LABELS[activeUser.role] ?? activeUser.role}</strong> no tiene
+            El perfil <strong>{ROLE_LABELS[role] ?? role}</strong> no tiene
             permisos para gestionar proyectos ESG.
           </p>
           <p className="text-xs text-slate-300 mt-4">
@@ -187,7 +226,7 @@ export default function ESGProjectsPage() {
       >
         <Shield size={15} style={{ color: isReadOnly ? "#3B82F6" : "#10B981" }} />
         <p className="text-xs font-medium" style={{ color: isReadOnly ? "#3B82F6" : "#10B981" }}>
-          Accediendo como <strong>{ROLE_LABELS[activeUser.role] ?? activeUser.role}</strong>
+          Accediendo como <strong>{ROLE_LABELS[role] ?? role}</strong>
           {" — "}
           {isReadOnly
             ? "Modo solo lectura. Puedes ver proyectos pero no editarlos."

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { BrandConfig, DataSource, SponsorshipObjective, BrandKPI } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
 // ── constants (shared with onboarding) ───────────────────────────────────────
@@ -91,9 +92,6 @@ function toggle<T>(arr: T[], item: T): T[] {
   return arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
 }
 
-function storageKey(userId: string) {
-  return `bettersport_brand_config_${userId}`;
-}
 
 function completionOf(cfg: BrandConfig) {
   const sections = [
@@ -142,18 +140,28 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function BrandConfigPage() {
-  const { activeUser } = useUser();
-  const key = storageKey(activeUser.id);
+  const { activeUser, loaded } = useUser();
+
+  const { data: stored } = useResource<BrandConfig | null>(
+    loaded && activeUser ? "/api/brand-config" : null, null,
+  );
 
   const [cfg, setCfg] = useState<BrandConfig>(EMPTY_CONFIG);
   const [tab, setTab] = useState("perfil");
 
+  // Sync the editable form from the fetched config (null = no config yet → clean defaults).
   useEffect(() => {
-    const stored = localStorage.getItem(key) || localStorage.getItem("bettersport_brand_config");
     if (stored) {
-      try { setCfg(JSON.parse(stored)); } catch {}
+      setCfg({
+        ...EMPTY_CONFIG,
+        ...stored,
+        objectives: stored.objectives ?? [],
+        sports: stored.sports ?? [],
+        dataSources: stored.dataSources ?? [],
+        kpis: stored.kpis && stored.kpis.length ? stored.kpis : DEFAULT_KPIS,
+      });
     }
-  }, [key]);
+  }, [stored]);
 
   const set = <K extends keyof BrandConfig>(k: K, v: BrandConfig[K]) =>
     setCfg((c) => ({ ...c, [k]: v }));
@@ -161,14 +169,19 @@ export default function BrandConfigPage() {
   const toggleKPI = (id: string) =>
     setCfg((c) => ({ ...c, kpis: c.kpis.map((k) => k.id === id ? { ...k, enabled: !k.enabled } : k) }));
 
-  const handleSave = () => {
-    localStorage.setItem(key, JSON.stringify(cfg));
-    localStorage.setItem("bettersport_brand_config", JSON.stringify(cfg));
-    toast.success("Configuración guardada correctamente");
+  const handleSave = async () => {
+    try {
+      await apiSend("/api/brand-config", "PUT", cfg);
+      toast.success("Configuración guardada correctamente");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar la configuración");
+    }
   };
 
   const done = completionOf(cfg);
   const total = TABS.length;
+
+  if (!loaded) return null;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

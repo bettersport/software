@@ -1,31 +1,53 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, MapPin, Users, Star, Camera, Edit3, Trophy, TreePine, Zap, Recycle, X, Save, Upload, ImageIcon } from "lucide-react";
-import { mockClubs } from "@/lib/data";
 import { ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
+import type { Club } from "@/lib/types";
 import toast from "react-hot-toast";
 
+const DEFAULT_DESC =
+  "Club deportivo comprometido con la sostenibilidad y los valores del deporte responsable. Trabajamos para integrar la gestión ESG en cada aspecto de nuestra organización.";
+
 export default function ClubProfilePage() {
-  const { activeUser, setActiveUser } = useUser();
-  const userClub = mockClubs.find((c) => c.id === activeUser.clubId) ?? mockClubs[3];
-  const initialClub = userClub;
-  // Club data state
-  const [club, setClub] = useState(initialClub);
+  const { activeUser, loaded } = useUser();
+  const clubId = activeUser?.clubId ?? null;
+  const { data: fetchedClub } = useResource<Club | null>(
+    loaded && clubId ? `/api/clubs/${clubId}` : null, null,
+  );
+
+  // Local editable copy of the club, seeded from the fetched club
+  const [club, setClub] = useState<Club | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Edit mode
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: club.name,
-    description: club.description || "Club deportivo comprometido con la sostenibilidad y los valores del deporte responsable. Trabajamos para integrar la gestión ESG en cada aspecto de nuestra organización.",
-    country: club.country,
+    name: "",
+    description: DEFAULT_DESC,
+    country: "",
     region: "",
-    sport: club.sport,
+    sport: "",
   });
+
+  // Sync the local copy + form when the fetched club arrives
+  useEffect(() => {
+    if (!fetchedClub) return;
+    setClub(fetchedClub);
+    setEditForm((prev) => ({
+      ...prev,
+      name: fetchedClub.name,
+      description: fetchedClub.description || DEFAULT_DESC,
+      country: fetchedClub.country,
+      sport: fetchedClub.sport,
+    }));
+  }, [fetchedClub]);
+
+  const hasData = (club?.esgScore ?? 0) > 0;
 
   // File refs
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -58,19 +80,23 @@ export default function ClubProfilePage() {
   };
 
   const handleSaveProfile = () => {
-    setClub({ ...club, name: editForm.name, description: editForm.description, country: editForm.country, sport: editForm.sport });
-    setActiveUser({ ...activeUser, club: editForm.name });
+    // No user/club-update endpoint yet — update local state only.
+    setClub((prev) =>
+      prev
+        ? { ...prev, name: editForm.name, description: editForm.description, country: editForm.country, sport: editForm.sport }
+        : prev,
+    );
     setEditing(false);
     toast.success("Perfil actualizado correctamente");
   };
 
   const handleCancelEdit = () => {
     setEditForm({
-      name: club.name,
-      description: club.description || "Club deportivo comprometido con la sostenibilidad y los valores del deporte responsable.",
-      country: club.country,
+      name: club?.name ?? "",
+      description: club?.description || DEFAULT_DESC,
+      country: club?.country ?? "",
       region: editForm.region,
-      sport: club.sport,
+      sport: club?.sport ?? "",
     });
     setEditing(false);
   };
@@ -115,7 +141,7 @@ export default function ClubProfilePage() {
                 <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-2xl border-4 border-white object-cover shadow-lg" />
               ) : (
                 <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 border-4 border-white flex items-center justify-center text-3xl font-black text-white shadow-lg">
-                  {club.name[0]}
+                  {club?.name?.[0]}
                 </div>
               )}
               <div className="absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-all">
@@ -131,11 +157,11 @@ export default function ClubProfilePage() {
                   className="input-field text-xl font-bold mb-1"
                 />
               ) : (
-                <h1 className="text-xl font-bold text-slate-900">{club.name}</h1>
+                <h1 className="text-xl font-bold text-slate-900">{club?.name}</h1>
               )}
               <div className="flex items-center gap-3 mt-1 text-slate-400 text-sm">
-                <span className="flex items-center gap-1.5"><MapPin size={13} />{club.country}</span>
-                <span className="flex items-center gap-1.5"><Users size={13} />{club.members?.toLocaleString()} miembros</span>
+                <span className="flex items-center gap-1.5"><MapPin size={13} />{club?.country}</span>
+                <span className="flex items-center gap-1.5"><Users size={13} />{club?.members?.toLocaleString()} miembros</span>
               </div>
             </div>
             {editing ? (
@@ -206,7 +232,7 @@ export default function ClubProfilePage() {
               </motion.div>
             ) : (
               <motion.p key="description" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-500 leading-relaxed">
-                {club.description || "Club deportivo comprometido con la sostenibilidad y los valores del deporte responsable. Trabajamos para integrar la gestión ESG en cada aspecto de nuestra organización."}
+                {club?.description || DEFAULT_DESC}
               </motion.p>
             )}
           </AnimatePresence>
@@ -222,23 +248,23 @@ export default function ClubProfilePage() {
               <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="16" fill="none" strokeWidth="3" stroke="rgba(255,255,255,0.08)" />
                 <circle cx="18" cy="18" r="16" fill="none" strokeWidth="3" stroke="url(#scoreGrad)"
-                  strokeDasharray={`${(club.esgScore / 100) * 100.53} 100.53`} strokeLinecap="round" />
+                  strokeDasharray={`${((club?.esgScore ?? 0) / 100) * 100.53} 100.53`} strokeLinecap="round" />
                 <defs><linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="0"><stop stopColor="#10B981" /><stop offset="1" stopColor="#06B6D4" /></linearGradient></defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-black text-gradient">{club.esgScore}</span>
+                <span className="text-xl font-black text-gradient">{club?.esgScore ?? 0}</span>
               </div>
             </div>
             <div>
-              <p className="text-2xl font-black text-gradient">{club.esgScore}/100</p>
-              <p className="text-xs text-teal-600 font-semibold">↑ +3.2 vs trimestre anterior</p>
-              <p className="text-xs text-slate-400 mt-1">Ranking: #{club.ranking} nacional</p>
+              <p className="text-2xl font-black text-gradient">{club?.esgScore ?? 0}/100</p>
+              {hasData && <p className="text-xs text-teal-600 font-semibold">↑ +3.2 vs trimestre anterior</p>}
+              <p className="text-xs text-slate-400 mt-1">{(club?.ranking ?? 0) > 0 ? `Ranking: #${club?.ranking} nacional` : "Aún sin posición en el ranking"}</p>
             </div>
           </div>
           {[
-            { key: "ambiental", value: club.environmental, color: "#10B981" },
-            { key: "social", value: club.social, color: "#06B6D4" },
-            { key: "gobernanza", value: club.governance, color: "#8B5CF6" },
+            { key: "ambiental", value: club?.environmental ?? 0, color: "#10B981" },
+            { key: "social", value: club?.social ?? 0, color: "#06B6D4" },
+            { key: "gobernanza", value: club?.governance ?? 0, color: "#8B5CF6" },
           ].map(({ key, value, color }) => (
             <div key={key} className="mb-3">
               <div className="flex justify-between text-xs mb-1.5">
@@ -252,12 +278,15 @@ export default function ClubProfilePage() {
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-7">
           <h3 className="font-semibold text-slate-800 text-sm mb-4 flex items-center gap-2"><Trophy size={16} className="text-amber-400" /> Logros & Certificaciones</h3>
+          {!hasData && (
+            <p className="text-sm text-slate-400 py-6 text-center">Aún no tienes logros ni certificaciones. Se mostrarán aquí a medida que tu club avance en su gestión ESG.</p>
+          )}
           <div className="space-y-3">
-            {[
+            {(hasData ? [
               { icon: <TreePine size={16} className="text-teal-600" />, title: "Club Verde Certificado", year: "2024", color: "#10B981" },
               { icon: <Zap size={16} className="text-amber-400" />, title: "100% Energía Renovable", year: "2023", color: "#F59E0B" },
               { icon: <Recycle size={16} className="text-teal-600" />, title: "Cero Residuos Estadio", year: "2024", color: "#06B6D4" },
-            ].map((ach, i) => (
+            ] : []).map((ach) => (
               <div key={ach.title} className="flex items-center gap-4 p-5 rounded-xl" style={{ backgroundColor: ach.color + "10", border: `1px solid ${ach.color}20` }}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: ach.color + "18" }}>
                   {ach.icon}

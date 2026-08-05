@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,11 +13,12 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  mockClubs, mockEvents, mockESGProjects, mockFans, fanZoneStats,
   fanTiers, fanActions as defaultActions, fanRewards as defaultRewards,
 } from "@/lib/data";
 import { ProgressBar } from "@/components/ui";
-import type { FanTierName } from "@/lib/types";
+import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
+import type { FanTierName, Club, Event, ESGProject, FanProfile } from "@/lib/types";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -67,36 +68,41 @@ const TABS: { id: Tab; label: string; Icon: React.ElementType }[] = [
 export default function AdminClubDetailPage({ params }: { params: Promise<{ clubId: string }> }) {
   const { clubId } = use(params);
   const router = useRouter();
+  const { activeUser, loaded } = useUser();
   const [tab, setTab] = useState<Tab>("perfil");
 
-  const club = mockClubs.find((c) => c.id === clubId);
+  const { data: club } = useResource<Club | null>(
+    loaded && activeUser ? `/api/clubs/${clubId}` : null, null,
+  );
+
+  // Events, ESG projects and fans are club-scoped to the logged-in user's own
+  // club; there is no cross-club admin endpoint. These sections degrade to a
+  // graceful empty state derived from what the club object exposes.
+  const clubEvents: Event[]      = [];
+  const clubProjects: ESGProject[] = [];
+  const clubFans: FanProfile[]   = [];
+
+  // Fan zone catalogs fall back to the shared presentational defaults (no
+  // per-club fan-config endpoint is available to an admin viewing another club).
+  const fanZoneActions = defaultActions;
+  const fanZoneRewards = defaultRewards;
+
+  const fanZoneStats = {
+    totalFans:         clubFans.length,
+    activeFans:        clubFans.length,
+    participationRate: 0,
+    collectiveScore:   clubFans.reduce((s, f) => s + f.points, 0),
+  };
+
   if (!club) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-slate-400">
         <Building2 size={40} className="mb-3 opacity-30" />
-        <p>Club no encontrado</p>
+        <p>{loaded ? "Club no encontrado" : "Cargando club..."}</p>
         <button onClick={() => router.back()} className="mt-4 text-sm text-teal-600 underline">Volver</button>
       </div>
     );
   }
-
-  const clubEvents   = mockEvents.filter((e) => e.clubId === clubId);
-  const clubProjects = mockESGProjects; // same club in mock data
-  const clubFans     = mockFans.filter((f) => f.clubId === clubId);
-
-  // Load fan zone config saved by club
-  const [fanZoneActions, setFanZoneActions] = useState(defaultActions);
-  const [fanZoneRewards, setFanZoneRewards] = useState(defaultRewards);
-  useEffect(() => {
-    const raw = localStorage.getItem(`bettersport_fanzone_config_${clubId}`);
-    if (raw) {
-      try {
-        const cfg = JSON.parse(raw);
-        if (cfg.actions?.length) setFanZoneActions(cfg.actions);
-        if (cfg.rewards?.length) setFanZoneRewards(cfg.rewards);
-      } catch {}
-    }
-  }, [clubId]);
 
   const tierCounts = fanTiers.map((t) => ({
     ...t,
@@ -436,7 +442,7 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
               { label: "Proyectos activos",   value: clubProjects.filter((p) => p.status === "in_progress").length, color: "#10B981" },
               { label: "Proyectos completados",value: clubProjects.filter((p) => p.status === "completed").length,  color: "#6366F1" },
               { label: "Presupuesto total",    value: `$${(clubProjects.reduce((s, p) => s + p.budget, 0) / 1000).toFixed(0)}K`, color: "#F59E0B" },
-              { label: "Progreso promedio",    value: `${Math.round(clubProjects.reduce((s, p) => s + p.progress, 0) / clubProjects.length)}%`, color: "#06B6D4" },
+              { label: "Progreso promedio",    value: `${clubProjects.length ? Math.round(clubProjects.reduce((s, p) => s + p.progress, 0) / clubProjects.length) : 0}%`, color: "#06B6D4" },
             ].map((s) => (
               <div key={s.label} className="card p-4">
                 <p className="text-2xl font-black" style={{ color: s.color }}>{s.value}</p>
@@ -447,6 +453,12 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
 
           {/* Projects list */}
           <div className="space-y-3">
+            {clubProjects.length === 0 && (
+              <div className="text-center py-16 text-slate-400">
+                <Leaf size={40} className="mx-auto mb-3 opacity-30" />
+                <p>No hay proyectos ESG disponibles para este club</p>
+              </div>
+            )}
             {clubProjects.map((proj) => {
               const sc = statusConfig[proj.status] ?? statusConfig.in_progress;
               const Icon = sc.Icon;

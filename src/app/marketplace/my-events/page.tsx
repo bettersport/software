@@ -1,20 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Send, Bell, Upload, ImageIcon } from "lucide-react";
-import { mockEvents } from "@/lib/data";
-import type { ESGCategory } from "@/lib/types";
 import { SectionHeader } from "@/components/ui";
+import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
-const initialMyEvents = mockEvents.slice(0, 3).map((e, i) => ({
-  ...e,
-  myRole: ["Organizador", "Patrocinador", "Participante"][i],
-  status: ["active", "upcoming", "completed"][i] as "active" | "upcoming" | "completed",
-  myParticipants: [120, 80, 250][i],
-}));
+interface ClubEvent {
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  sport: string;
+  role: string;
+  esgObjectives: string[];
+  status: string;
+  participants: number;
+  sponsorLogo?: string | null;
+  mediaPartnerLogo?: string | null;
+  createdAt?: string;
+}
+
+const EMPTY: ClubEvent[] = [];
 
 const statusConfig = {
   active: { label: "Activo", color: "#10B981", icon: <CheckCircle2 size={13} /> },
@@ -77,52 +87,61 @@ function Portal({ children }: { children: React.ReactNode }) {
 }
 
 export default function MyEventsPage() {
-  const [events, setEvents] = useState(initialMyEvents);
+  const { activeUser, loaded } = useUser();
+  const { data: rawEvents, reload } = useResource<ClubEvent[]>(
+    loaded && activeUser ? "/api/my-events" : null, EMPTY,
+  );
+
+  // Derive a display-only daysLeft from the stored date string.
+  const events = useMemo(
+    () => rawEvents.map((e) => ({
+      ...e,
+      daysLeft: Math.max(0, Math.ceil((new Date(e.date).getTime() - Date.now()) / 86400000)),
+    })),
+    [rawEvents],
+  );
+
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [sponsorUpdateEvent, setSponsorUpdateEvent] = useState<string | null>(null);
   const [sponsorMessage, setSponsorMessage] = useState("");
 
-  const createEvent = () => {
+  const createEvent = async () => {
     if (!form.title.trim() || !form.date || !form.location.trim()) {
       toast.error("Completa todos los campos requeridos");
       return;
     }
-    const daysLeft = Math.ceil((new Date(form.date).getTime() - Date.now()) / 86400000);
-    const newEvent = {
-      id: `ev${Date.now()}`,
-      title: form.title,
-      description: "Evento creado desde la plataforma BetterSport.",
-      sport: form.sport,
-      country: form.location,
-      flag: "🌍",
-      clubId: "",
-      clubName: "",
-      image: "",
-      sustainableImpact: "",
-      budget: 0,
-      funded: 0,
-      remaining: 0,
-      sponsoredBy: [] as string[],
-      mediaPartner: "",
-      sealEsg: false,
-      status: "upcoming" as const,
-      myRole: form.role,
-      myParticipants: 0,
-      daysLeft: Math.max(0, daysLeft),
-      audience: 0,
-      category: "huella_carbono" as ESGCategory,
-    };
-    setEvents((prev) => [newEvent, ...prev]);
-    setForm(emptyForm);
-    setShowNew(false);
-    toast.success("Evento creado correctamente");
+    try {
+      await apiSend("/api/my-events", "POST", {
+        title: form.title,
+        date: form.date,
+        location: form.location,
+        sport: form.sport,
+        role: form.role,
+        esgObjectives: form.esgObjectives,
+        sponsorLogo: form.sponsorLogo,
+        mediaPartnerLogo: form.mediaPartnerLogo,
+        status: "upcoming",
+        participants: 0,
+      });
+      await reload();
+      setForm(emptyForm);
+      setShowNew(false);
+      toast.success("Evento creado correctamente");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo crear el evento");
+    }
   };
 
-  const deleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    toast("Evento eliminado", { icon: "🗑️" });
+  const deleteEvent = async (id: string) => {
+    try {
+      await apiSend(`/api/my-events/${id}`, "DELETE");
+      await reload();
+      toast("Evento eliminado", { icon: "🗑️" });
+    } catch {
+      toast.error("No se pudo eliminar el evento");
+    }
   };
 
   const sendSponsorUpdate = (eventId: string) => {
@@ -165,7 +184,7 @@ export default function MyEventsPage() {
       {/* Events list */}
       <div className="space-y-3">
         {events.map((event, i) => {
-          const cfg = statusConfig[event.status];
+          const cfg = statusConfig[event.status as keyof typeof statusConfig] ?? statusConfig.upcoming;
           const isOpen = expanded === event.id;
           return (
             <motion.div key={event.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 + 0.2 }} className="card overflow-hidden">
@@ -182,9 +201,9 @@ export default function MyEventsPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-slate-400 flex-wrap">
-                    <span className="flex items-center gap-1"><MapPin size={11} />{event.country}</span>
-                    <span className="flex items-center gap-1"><Tag size={11} />{event.myRole}</span>
-                    <span className="flex items-center gap-1"><Users size={11} />{event.myParticipants} participantes</span>
+                    <span className="flex items-center gap-1"><MapPin size={11} />{event.location}</span>
+                    <span className="flex items-center gap-1"><Tag size={11} />{event.role}</span>
+                    <span className="flex items-center gap-1"><Users size={11} />{event.participants} participantes</span>
                     <span className="flex items-center gap-1"><Clock size={11} />{event.daysLeft}d restantes</span>
                   </div>
                 </div>
@@ -194,12 +213,12 @@ export default function MyEventsPage() {
                 {isOpen && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-100">
                     <div className="p-6 space-y-5">
-                      <p className="text-sm text-slate-400 leading-relaxed">{event.description}</p>
+                      <p className="text-sm text-slate-400 leading-relaxed">Evento creado desde la plataforma BetterSport.</p>
                       <div className="grid grid-cols-2 gap-3">
                         {[
-                          { label: "Categoría ESG", value: event.category || "Ambiental" },
+                          { label: "Categoría ESG", value: event.esgObjectives[0] || "Ambiental" },
                           { label: "Deporte", value: event.sport },
-                          { label: "Audiencia", value: event.audience?.toLocaleString() || "N/A" },
+                          { label: "Participantes", value: event.participants?.toLocaleString() || "N/A" },
                           { label: "Días restantes", value: event.daysLeft?.toString() || "N/A" },
                         ].map((d) => (
                           <div key={d.label} className="bg-slate-50 rounded-xl p-3">
@@ -260,7 +279,7 @@ export default function MyEventsPage() {
                 <div className="p-4 rounded-xl" style={{ backgroundColor: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <p className="text-xs font-semibold text-teal-700 mb-1">Destinatarios</p>
                   <p className="text-xs text-slate-500">
-                    {events.find((e) => e.id === sponsorUpdateEvent)?.sponsoredBy?.join(", ") || "Todos los sponsors del evento"}
+                    Todos los sponsors del evento
                   </p>
                 </div>
                 <div>

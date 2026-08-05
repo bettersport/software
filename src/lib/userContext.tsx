@@ -5,69 +5,63 @@ import {
   useContext,
   useState,
   useEffect,
-  useMemo,
+  useCallback,
   ReactNode,
-  Dispatch,
-  SetStateAction,
 } from "react";
-import { User, ESGProject, Club } from "./types";
-import { mockUsers, mockESGProjects, mockClubs } from "./data";
-import { computeClubScore } from "./scoring";
+import { User } from "./types";
 
 interface UserContextType {
-  activeUser: User;
-  setActiveUser: (user: User) => void;
-  projects: ESGProject[];
-  setProjects: Dispatch<SetStateAction<ESGProject[]>>;
-  /** Live ESG scores for the logged-in user's club, updated as projects change. */
-  liveClub: Club | null;
+  /** The authenticated user, or null when not logged in. */
+  activeUser: User | null;
+  /** False until /api/auth/me has resolved. */
+  loaded: boolean;
+  /** True for seeded demo accounts. */
+  isDemo: boolean;
+  /** Re-fetch the current user from the server. */
+  refresh: () => Promise<void>;
+  /** End the session server-side and clear local state. */
+  logout: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType>({
-  activeUser: mockUsers[0],
-  setActiveUser: () => {},
-  projects: mockESGProjects,
-  setProjects: () => {},
-  liveClub: null,
+  activeUser: null,
+  loaded: false,
+  isDemo: false,
+  refresh: async () => {},
+  logout: async () => {},
 });
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [activeUser, setActiveUserState] = useState<User>(mockUsers[0]);
-  const [projects, setProjects] = useState<ESGProject[]>(mockESGProjects);
+  const [activeUser, setActiveUser] = useState<User | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    // First try to load full user data (includes profile edits)
-    const storedData = localStorage.getItem("bettersport_user_data");
-    if (storedData) {
-      try {
-        setActiveUserState(JSON.parse(storedData));
-        return;
-      } catch {}
-    }
-    // Fallback: load by ID from mockUsers
-    const stored = localStorage.getItem("bettersport_user");
-    if (stored) {
-      const found = mockUsers.find((u) => u.id === stored);
-      if (found) setActiveUserState(found);
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me", { cache: "no-store" });
+      const data = await res.json();
+      setActiveUser(data.user ?? null);
+    } catch {
+      setActiveUser(null);
+    } finally {
+      setLoaded(true);
     }
   }, []);
 
-  const setActiveUser = (user: User) => {
-    setActiveUserState(user);
-    localStorage.setItem("bettersport_user", user.id);
-    localStorage.setItem("bettersport_user_data", JSON.stringify(user));
-  };
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
-  /** Recompute club ESG scores whenever projects change */
-  const liveClub = useMemo(() => {
-    if (!activeUser.clubId) return null;
-    const base = mockClubs.find((c) => c.id === activeUser.clubId);
-    if (!base) return null;
-    return computeClubScore(base, projects);
-  }, [activeUser.clubId, projects]);
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    setActiveUser(null);
+  }, []);
+
+  const isDemo = !!activeUser?.demo;
 
   return (
-    <UserContext.Provider value={{ activeUser, setActiveUser, projects, setProjects, liveClub }}>
+    <UserContext.Provider value={{ activeUser, loaded, isDemo, refresh, logout }}>
       {children}
     </UserContext.Provider>
   );

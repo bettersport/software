@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Lightbulb, Search, Filter, ArrowUpRight, Heart, Users,
   Calendar, DollarSign, ChevronDown, Star, CheckCircle,
 } from "lucide-react";
 import { SectionHeader, ProgressBar, Tabs } from "@/components/ui";
-import { mockEvents, categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
+import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
 import { getStatusLabel, getStatusColor, cn } from "@/lib/utils";
 import type { Event } from "@/lib/types";
+import { useUser } from "@/lib/userContext";
+import { useResource } from "@/lib/useResource";
 import toast from "react-hot-toast";
+
+const EMPTY: Event[] = [];
 
 const categoryTabs = [
   { label: "Todos", value: "all" },
@@ -68,6 +72,17 @@ function SponsorLogo({ name }: { name: string }) {
 }
 
 export default function MarketplacePage() {
+  const { activeUser, loaded } = useUser();
+  const { data: rawEvents } = useResource<Event[]>(
+    loaded && activeUser ? "/api/events" : null, EMPTY,
+  );
+
+  // The DB doesn't store `remaining`; derive it from budget - funded.
+  const events = useMemo(
+    () => rawEvents.map((e) => ({ ...e, remaining: e.budget - e.funded })),
+    [rawEvents],
+  );
+
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [sportFilter, setSportFilter] = useState("Todos");
@@ -76,7 +91,7 @@ export default function MarketplacePage() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  const filtered = mockEvents.filter((e) => {
+  const filtered = events.filter((e) => {
     const matchCat = activeCategory === "all" || e.category === activeCategory;
     const matchSearch = e.title.toLowerCase().includes(search.toLowerCase()) ||
       e.clubName.toLowerCase().includes(search.toLowerCase());
