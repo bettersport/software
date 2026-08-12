@@ -135,7 +135,7 @@ async function main() {
         description: e.description, sustainableImpact: e.sustainableImpact,
         budget: e.budget, funded: e.funded, daysLeft: e.daysLeft,
         sponsoredBy: e.sponsoredBy ?? [], mediaPartner: e.mediaPartner,
-        sealEsg: e.sealEsg ?? false, featured: e.featured ?? false,
+        sealEsg: e.sealEsg ?? false, featured: e.featured ?? false, demo: true,
         audience: e.audience, status: e.status,
         clubId: e.clubId && clubIds.has(e.clubId) ? e.clubId : null,
       },
@@ -154,7 +154,7 @@ async function main() {
         services: s.services, projectsCount: s.projectsCount,
         associatedBrand: s.associatedBrand, associatedBrandLogo: s.associatedBrandLogo,
         associatedClub: s.associatedClub, associatedClubLogo: s.associatedClubLogo,
-        stars: s.stars, verified: s.verified, featured: s.featured ?? false, tags: s.tags ?? [],
+        stars: s.stars, verified: s.verified, featured: s.featured ?? false, tags: s.tags ?? [], demo: true,
       },
     });
   }

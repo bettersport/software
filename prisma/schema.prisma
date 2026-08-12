@@ -173,6 +173,8 @@ model Event {
   featured          Boolean     @default(false)
   audience          Int         @default(0)
   status            EventStatus @default(open)
+  /// Seeded showcase data — hidden from real (non-demo) accounts.
+  demo              Boolean     @default(false)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
@@ -251,6 +253,8 @@ model SolutionProvider {
   verified            Boolean  @default(false)
   featured            Boolean  @default(false)
   tags                String[]
+  /// Seeded showcase data — hidden from real (non-demo) accounts.
+  demo                Boolean  @default(false)
 }
 
 /// A brand's sponsorship configuration (onboarding + brands/config).

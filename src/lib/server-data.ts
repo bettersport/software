@@ -16,3 +16,12 @@ export function json<T>(data: T, init?: ResponseInit) {
 export function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
+
+/**
+ * Visibility filter for the shared catalogs (clubs, events, solutions).
+ * Demo accounts see the seeded showcase plus real records; real accounts
+ * only ever see real data — seeded demo rows stay hidden from them.
+ */
+export function catalogFilter(user: SessionUser) {
+  return user.demo ? {} : { demo: false };
+}
