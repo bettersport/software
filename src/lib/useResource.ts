@@ -54,3 +54,14 @@ export async function apiSend<T = unknown>(
   if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
   return json as T;
 }
+
+/** Sube un archivo (multipart) con campos extra. Devuelve el JSON del servidor o lanza con el error. */
+export async function apiUpload<T = unknown>(url: string, file: File, fields: Record<string, string> = {}): Promise<T> {
+  const fd = new FormData();
+  fd.append("file", file);
+  for (const [k, v] of Object.entries(fields)) fd.append(k, v);
+  const res = await fetch(url, { method: "POST", body: fd });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || `Error ${res.status}`);
+  return json as T;
+}

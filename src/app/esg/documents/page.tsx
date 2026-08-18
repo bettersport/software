@@ -2,10 +2,10 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Upload, Trash2, FileLock2, Search, FileSpreadsheet, Image } from "lucide-react";
+import { FileText, Upload, Trash2, Download, Eye, Search, FileSpreadsheet, Image } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
-import { useResource, apiSend } from "@/lib/useResource";
+import { useResource, apiSend, apiUpload } from "@/lib/useResource";
 import type { Document } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -33,25 +33,22 @@ export default function DocumentsPage() {
   const [uploadCategory, setUploadCategory] = useState("Sin categoría");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [uploading, setUploading] = useState(false);
   const uploadFiles = async (files: File[]) => {
     if (!files.length) return;
-    try {
-      for (const file of files) {
-        const ext = file.name.split(".").pop()?.toLowerCase() || "doc";
-        const type = ["pdf"].includes(ext) ? "pdf" : ["xlsx", "xls", "csv"].includes(ext) ? "xls" : ["jpg", "png", "jpeg", "zip"].includes(ext) ? "img" : "doc";
-        await apiSend("/api/documents", "POST", {
-          name: file.name,
-          type,
-          category: uploadCategory,
-          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          version: "v1.0",
-        });
+    setUploading(true);
+    let ok = 0;
+    for (const file of files) {
+      try {
+        await apiUpload("/api/documents", file, { category: uploadCategory, version: "v1.0" });
+        ok++;
+      } catch (err) {
+        toast.error(`${file.name}: ${err instanceof Error ? err.message : "no se pudo subir"}`);
       }
-      await reload();
-      toast.success(`${files.length} archivo(s) subido(s) correctamente`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo subir el documento");
     }
+    setUploading(false);
+    await reload();
+    if (ok) toast.success(`${ok} archivo(s) subido(s) correctamente`);
   };
 
   const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +82,7 @@ export default function DocumentsPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Hidden file input for button click */}
-      <input ref={fileInputRef} type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.jpg,.png,.jpeg,.zip" className="hidden" onChange={handleFileInput} />
+      <input ref={fileInputRef} type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.doc,.docx,.jpg,.png,.jpeg,.webp,.svg,.zip" className="hidden" onChange={handleFileInput} />
 
       <SectionHeader
         icon={<FileText size={22} className="text-blue-400" />}
@@ -116,7 +113,7 @@ export default function DocumentsPage() {
           <p className="text-sm font-medium text-slate-600">
             {dragging ? "Suelta aquí los archivos" : "Arrastra archivos o haz clic para subir"}
           </p>
-          <p className="text-xs text-slate-300 mt-1">PDF, XLS, XLSX, PNG, JPG, ZIP — máx. 50MB por archivo</p>
+          <p className="text-xs text-slate-300 mt-1">{uploading ? "Subiendo…" : "PDF, XLS, XLSX, CSV, DOCX, PNG, JPG, ZIP — máx. 25MB por archivo"}</p>
         </motion.div>
         <div className="card p-5 md:w-64 flex flex-col justify-center">
           <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Categoría del documento</label>
@@ -209,13 +206,18 @@ export default function DocumentsPage() {
                   <span className="badge-blue text-xs">{doc.version}</span>
                   <span className="text-xs text-slate-300">{new Date(doc.uploadedAt).toLocaleDateString("es-CL")}</span>
                   <div className="flex items-center gap-1">
-                    <button
-                      className="btn-ghost p-1.5 opacity-50 cursor-not-allowed"
-                      title="Almacenamiento de archivos aún no habilitado"
-                      onClick={() => toast.error("Almacenamiento de archivos aún no habilitado")}
-                    >
-                      <FileLock2 size={14} />
-                    </button>
+                    {(doc as Document & { storageKey?: string | null }).storageKey ? (
+                      <>
+                        <a href={`/api/documents/${doc.id}/download?inline=1`} target="_blank" rel="noopener noreferrer" className="btn-ghost p-1.5" title="Previsualizar">
+                          <Eye size={14} />
+                        </a>
+                        <a href={`/api/documents/${doc.id}/download`} className="btn-ghost p-1.5" title="Descargar">
+                          <Download size={14} />
+                        </a>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-slate-300 px-1.5" title="Registro sin archivo adjunto">sin archivo</span>
+                    )}
                     <button
                       className="p-1.5 rounded-lg hover:bg-red-500/15 text-slate-300 hover:text-red-400 transition-colors"
                       onClick={() => deleteDoc(doc.id)}

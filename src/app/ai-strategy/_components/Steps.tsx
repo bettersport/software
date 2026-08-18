@@ -1,8 +1,10 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Upload, X, FileText, Info, AlertTriangle, CheckCircle2, ArrowUp, ArrowDown, Globe } from "lucide-react";
 import type { ChallengeInput, Pillar } from "@/lib/strategy/types";
+import { apiUpload, apiSend } from "@/lib/useResource";
+import toast from "react-hot-toast";
 import { PILLAR_LABEL } from "@/lib/strategy/types";
 import type { Strategy, GriRow, FrameworkRow } from "./useStrategy";
 import { OBJECTIVE_LABEL } from "@/lib/strategy/engine";
@@ -151,11 +153,43 @@ function ChallengeDiagnosis({ c, color, onChange, onRemove }: { c: ChallengeInpu
   const fileRef = useRef<HTMLInputElement>(null);
   const anyYes = c.hasBaseline || c.hasDiagnosis || c.hasHistorical;
   const [q1, q2, q3] = DIAG_Q[c.pillar];
-  const addFiles = (files: FileList | null) => {
+  const [busy, setBusy] = useState(false);
+  const accept = ".pdf,.xls,.xlsx,.csv,.doc,.docx,.png,.jpg,.jpeg,.webp";
+
+  const addFiles = async (files: FileList | null) => {
     if (!files) return;
-    const docs = Array.from(files).filter((f) => /\.(pdf|xlsx?|csv|png|jpe?g)$/i.test(f.name)).map((f) => ({ name: f.name, type: /pdf$/i.test(f.name) ? "pdf" : /xls|csv/i.test(f.name) ? "xls" : "img", size: `${(f.size / 1024 / 1024).toFixed(1)} MB` }));
-    onChange({ documents: [...c.documents, ...docs] });
+    const list = Array.from(files);
+    if (!c.id) {
+      // El desafío aún no existe en la DB: encolar; se sube al pasar de paso.
+      onChange({ pendingFiles: [...(c.pendingFiles ?? []), ...list], documents: [...c.documents, ...list.map((f) => ({ name: f.name, type: f.type.startsWith("image/") ? "img" : /pdf$/i.test(f.name) ? "pdf" : /xls|csv/i.test(f.name) ? "xls" : "doc", size: `${(f.size / 1024 / 1024).toFixed(1)} MB` }))] });
+      toast("Archivo listo — se subirá al continuar", { icon: "📎" });
+      return;
+    }
+    setBusy(true);
+    const uploaded: ChallengeInput["documents"] = [];
+    for (const f of list) {
+      try {
+        const r = await apiUpload<{ data: { id: string; name: string; type: string; size: string; storageKey: string } }>("/api/strategy/documents", f, { challengeId: c.id });
+        uploaded.push(r.data);
+      } catch (e) {
+        toast.error(`${f.name}: ${e instanceof Error ? e.message : "no se pudo subir"}`);
+      }
+    }
+    setBusy(false);
+    if (uploaded.length) { onChange({ documents: [...c.documents, ...uploaded] }); toast.success(`${uploaded.length} respaldo(s) subido(s)`); }
   };
+
+  const removeDoc = async (i: number) => {
+    const d = c.documents[i];
+    if (d.id && d.storageKey) {
+      try { await apiSend(`/api/strategy/documents/${d.id}`, "DELETE"); } catch { toast.error("No se pudo eliminar el archivo"); return; }
+    } else if (!d.id) {
+      // quitar también del pendiente si aplica
+      onChange({ pendingFiles: (c.pendingFiles ?? []).filter((f) => f.name !== d.name) });
+    }
+    onChange({ documents: c.documents.filter((_, j) => j !== i) });
+  };
+
   return (
     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-3 p-4 rounded-xl" style={{ backgroundColor: "#fff", border: `1px solid ${color}40` }}>
       <div className="flex items-center justify-between mb-3"><p className="text-sm font-semibold text-slate-800">Diagnóstico · {c.label}</p><button onClick={onRemove} className="text-slate-300 hover:text-red-400"><X size={14} /></button></div>
@@ -166,10 +200,16 @@ function ChallengeDiagnosis({ c, color, onChange, onRemove }: { c: ChallengeInpu
       </div>
       {anyYes ? (
         <div className="mt-4">
-          <input ref={fileRef} type="file" multiple accept=".pdf,.xls,.xlsx,.csv,.png,.jpg,.jpeg" className="hidden" onChange={(e) => addFiles(e.target.files)} />
-          <button type="button" onClick={() => fileRef.current?.click()} className="btn-secondary flex items-center gap-2 text-sm"><Upload size={14} /> Cargar documento(s) de respaldo</button>
-          {c.documents.length > 0 && <div className="flex flex-wrap gap-2 mt-2">{c.documents.map((d, i) => <span key={i} className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600"><FileText size={12} />{d.name}<button onClick={() => onChange({ documents: c.documents.filter((_, j) => j !== i) })}><X size={11} /></button></span>)}</div>}
-          <p className="text-[11px] text-slate-400 mt-1.5">PDF, Excel o imagen. El motor incorpora estos respaldos al diagnóstico.</p>
+          <input ref={fileRef} type="file" multiple accept={accept} className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
+          <button type="button" disabled={busy} onClick={() => fileRef.current?.click()} className="btn-secondary flex items-center gap-2 text-sm disabled:opacity-60"><Upload size={14} /> {busy ? "Subiendo…" : "Cargar documento(s) de respaldo"}</button>
+          {c.documents.length > 0 && <div className="flex flex-wrap gap-2 mt-2">{c.documents.map((d, i) => (
+            <span key={d.id ?? `${d.name}-${i}`} className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">
+              <FileText size={12} />
+              {d.id && d.storageKey ? <a href={`/api/strategy/documents/${d.id}/download?inline=1`} target="_blank" rel="noopener noreferrer" className="hover:underline">{d.name}</a> : <span>{d.name}{!d.id && <em className="text-slate-400 ml-1">(pendiente)</em>}</span>}
+              <button onClick={() => removeDoc(i)}><X size={11} /></button>
+            </span>
+          ))}</div>}
+          <p className="text-[11px] text-slate-400 mt-1.5">PDF, Excel, Word o imagen (máx. 25 MB). El motor incorpora estos respaldos al diagnóstico.</p>
         </div>
       ) : (
         <div className="mt-4"><DevNote tone="warn">Sin datos base: el motor marcará este desafío como <em>“{NO_DATA_MSG[c.pillar]}”</em> y propondrá el levantamiento como acción previa dentro del plan.</DevNote></div>

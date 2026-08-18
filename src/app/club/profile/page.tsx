@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Building2, MapPin, Users, Star, Camera, Edit3, Trophy, TreePine, Zap, Recycle, X, Save, Upload, ImageIcon } from "lucide-react";
 import { ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
-import { useResource, apiSend } from "@/lib/useResource";
+import { useResource, apiSend, apiUpload } from "@/lib/useResource";
+import { clubImageUrl } from "@/lib/clubImage";
 import type { Club } from "@/lib/types";
 import toast from "react-hot-toast";
 
@@ -14,15 +15,6 @@ const DESC_PLACEHOLDER = "Añade una descripción de tu club";
 
 /** Club with the profile fields the API exposes (region/banner) that the shared type omits. */
 type ClubProfile = Club & { region?: string | null; banner?: string | null };
-
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function ClubProfilePage() {
   const { activeUser, loaded, isDemo } = useUser();
@@ -51,8 +43,8 @@ export default function ClubProfilePage() {
   useEffect(() => {
     if (!fetchedClub) return;
     setClub(fetchedClub);
-    setBannerUrl(fetchedClub.banner ?? null);
-    setAvatarUrl(fetchedClub.logo ?? null);
+    setBannerUrl(clubImageUrl(fetchedClub.id, "banner", fetchedClub.banner));
+    setAvatarUrl(clubImageUrl(fetchedClub.id, "logo", fetchedClub.logo));
     setEditForm({
       name: fetchedClub.name,
       description: fetchedClub.description ?? "",
@@ -70,16 +62,10 @@ export default function ClubProfilePage() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !clubId) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("La imagen no puede superar 2MB");
-      return;
-    }
+    if (file.size > 5 * 1024 * 1024) { toast.error("La imagen no puede superar 5MB"); return; }
     try {
-      const dataUrl = await readFileAsDataUrl(file);
-      const { data: updated } = await apiSend<{ data: ClubProfile }>(`/api/clubs/${clubId}`, "PATCH", { banner: dataUrl });
-      const banner = updated?.banner ?? dataUrl;
-      setBannerUrl(banner);
-      setClub((prev) => (prev ? { ...prev, banner } : prev));
+      const r = await apiUpload<{ data: { url: string } }>(`/api/clubs/${clubId}/image/banner`, file);
+      setBannerUrl(r.data.url);
       toast.success("Banner actualizado correctamente");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo guardar el banner");
@@ -89,9 +75,8 @@ export default function ClubProfilePage() {
   const handleRemoveBanner = async () => {
     if (!clubId) return;
     try {
-      await apiSend(`/api/clubs/${clubId}`, "PATCH", { banner: null });
+      await apiSend(`/api/clubs/${clubId}/image/banner`, "DELETE");
       setBannerUrl(null);
-      setClub((prev) => (prev ? { ...prev, banner: null } : prev));
       toast.success("Banner eliminado");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo eliminar el banner");
@@ -102,16 +87,10 @@ export default function ClubProfilePage() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !clubId) return;
-    if (file.size > 1 * 1024 * 1024) {
-      toast.error("La imagen no puede superar 1MB");
-      return;
-    }
+    if (file.size > 2 * 1024 * 1024) { toast.error("La imagen no puede superar 2MB"); return; }
     try {
-      const dataUrl = await readFileAsDataUrl(file);
-      const { data: updated } = await apiSend<{ data: ClubProfile }>(`/api/clubs/${clubId}`, "PATCH", { logo: dataUrl });
-      const logo = updated?.logo ?? dataUrl;
-      setAvatarUrl(logo);
-      setClub((prev) => (prev ? { ...prev, logo } : prev));
+      const r = await apiUpload<{ data: { url: string } }>(`/api/clubs/${clubId}/image/logo`, file);
+      setAvatarUrl(r.data.url);
       toast.success("Foto de perfil actualizada");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo guardar la foto de perfil");

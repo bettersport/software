@@ -6,6 +6,7 @@ import { Brain, ChevronLeft, ChevronRight, Sparkles, Save, CheckCircle, Lock } f
 import { SectionHeader } from "@/components/ui";
 import toast from "react-hot-toast";
 import type { ChallengeInput } from "@/lib/strategy/types";
+import { apiUpload } from "@/lib/useResource";
 import { useStrategy } from "./_components/useStrategy";
 import { Welcome } from "./_components/Welcome";
 import { BetterAgent } from "./_components/BetterAgent";
@@ -21,7 +22,7 @@ const CAN_MANAGE = ["club", "admin", "manager"];
 type View = "welcome" | "wizard" | "generating" | "doc";
 
 export default function AIStrategyPage() {
-  const { activeUser, loaded, loading, saving, strategy, config, create, save, generate, materialize } = useStrategy();
+  const { activeUser, loaded, loading, saving, strategy, config, create, save, generate, materialize, setStrategy } = useStrategy();
   const [view, setView] = useState<View>("welcome");
   const [step, setStep] = useState(1);
   const [starting, setStarting] = useState(false);
@@ -35,7 +36,10 @@ export default function AIStrategyPage() {
   // Al cargar: decidir vista inicial. Siempre se entra por "Listo para crear tu estrategia ESG".
   useEffect(() => {
     if (!strategy) return;
-    setChallenges(strategy.challenges.map((c) => ({ ...c, documents: c.documents.map((d) => ({ name: d.name, type: d.type, size: d.size })) })));
+    setChallenges((prev) => strategy.challenges.map((c) => {
+      const local = prev.find((x) => x.id === c.id || (!x.id && x.key === c.key && x.pillar === c.pillar));
+      return { ...c, documents: c.documents.map((d) => ({ id: d.id, name: d.name, type: d.type, size: d.size, storageKey: (d as { storageKey?: string | null }).storageKey ?? null })), pendingFiles: local?.pendingFiles ?? [] };
+    }));
   }, [strategy]);
 
   const startNew = async () => {
@@ -61,10 +65,30 @@ export default function AIStrategyPage() {
   };
 
   const persistStep = async (n: number) => {
-    // Guardar inmediato incluyendo desafíos cuando corresponde.
+    // Guardar inmediato incluyendo desafíos cuando corresponde (sin los File en memoria).
     const patch: Record<string, unknown> = { currentStep: n };
-    if (n === 2 || n === 3) patch.challenges = challenges;
+    if (n === 2 || n === 3) patch.challenges = challenges.map(({ pendingFiles: _pf, ...c }) => ({ ...c, documents: c.documents.filter((d) => !d.id || d.storageKey) }));
     await save(patch, true);
+    // Subir archivos pendientes ahora que cada desafío tiene id en la DB.
+    const pending = challenges.filter((c) => (c.pendingFiles?.length ?? 0) > 0);
+    if (!pending.length) return;
+    // strategyRef del hook ya se actualizó dentro de save(); leemos la versión persistida vía un fetch ligero
+    const r = await fetch("/api/strategy", { cache: "no-store" }).then((x) => x.json()).catch(() => null);
+    const persisted: { id: string; key: string; pillar: string }[] = r?.data?.challenges ?? [];
+    let uploaded = 0;
+    for (const c of pending) {
+      const match = persisted.find((p) => p.key === c.key && p.pillar === c.pillar);
+      if (!match) continue;
+      for (const f of c.pendingFiles ?? []) {
+        try { await apiUpload("/api/strategy/documents", f, { challengeId: match.id }); uploaded++; }
+        catch (e) { toast.error(`${f.name}: ${e instanceof Error ? e.message : "no se pudo subir"}`); }
+      }
+    }
+    if (uploaded) {
+      toast.success(`${uploaded} respaldo(s) subido(s)`);
+      const r2 = await fetch("/api/strategy", { cache: "no-store" }).then((x) => x.json()).catch(() => null);
+      if (r2?.data) setStrategy(r2.data);
+    }
   };
 
   const next = async () => {

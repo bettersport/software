@@ -449,6 +449,8 @@ model StrategyDocument {
   name        String
   type        String
   size        String   @default("")
+  storageKey  String?
+  mimeType    String?
   uploadedAt  DateTime @default(now())
 
   challenge   StrategyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)

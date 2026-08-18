@@ -25,7 +25,9 @@ export interface ChallengeInput {
   hasBaseline: boolean;
   hasDiagnosis: boolean;
   hasHistorical: boolean;
-  documents: { name: string; type: string; size: string }[];
+  documents: { id?: string; name: string; type: string; size: string; storageKey?: string | null }[];
+  /** Archivos elegidos antes de que el desafío exista en la DB; se suben al persistir el paso. */
+  pendingFiles?: File[];
   // Paso 3
   griStandard: string;
   griTitle: string;

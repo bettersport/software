@@ -96,9 +96,13 @@ export async function PATCH(req: Request) {
       const docs = Array.isArray(c.documents) ? (c.documents as Array<{ name: string; type: string; size: string }>) : [];
       if (c.id) {
         await prisma.strategyChallenge.update({ where: { id: String(c.id) }, data: payload });
-        // docs: reemplazo simple
-        await prisma.strategyDocument.deleteMany({ where: { challengeId: String(c.id) } });
-        if (docs.length) await prisma.strategyDocument.createMany({ data: docs.map((d) => ({ name: String(d.name), type: String(d.type ?? "doc"), size: String(d.size ?? ""), challengeId: String(c.id) })) });
+        // Documentos: los archivos reales se suben por /api/strategy/documents y no se tocan aquí.
+        // Solo se conservan entradas de metadata sin archivo que el cliente aún envíe (compatibilidad).
+        const metaOnly = docs.filter((d) => !("id" in d));
+        if (metaOnly.length) {
+          await prisma.strategyDocument.deleteMany({ where: { challengeId: String(c.id), storageKey: null } });
+          await prisma.strategyDocument.createMany({ data: metaOnly.map((d) => ({ name: String(d.name), type: String(d.type ?? "doc"), size: String(d.size ?? ""), challengeId: String(c.id) })) });
+        }
       } else {
         const created = await prisma.strategyChallenge.create({ data: { ...payload, strategyId: existing.id } });
         if (docs.length) await prisma.strategyDocument.createMany({ data: docs.map((d) => ({ name: String(d.name), type: String(d.type ?? "doc"), size: String(d.size ?? ""), challengeId: created.id })) });
