@@ -99,7 +99,8 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
-    router.push(selectedRole === "brand" ? "/onboarding" : "/dashboard");
+    // Un club nuevo entra primero al Motor IA: "Listo para crear tu estrategia ESG".
+    router.push(selectedRole === "brand" ? "/onboarding" : selectedRole === "club" ? "/ai-strategy" : "/dashboard");
   };
 
   return (

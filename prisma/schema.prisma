@@ -96,6 +96,7 @@ model Club {
   kpis        Kpi[]
   documents   Document[]
   fanProfiles FanProfile[]
+  strategies  EsgStrategy[]
 }
 
 model ESGProject {
@@ -118,6 +119,10 @@ model ESGProject {
 
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
   clubId String
+
+  /// Origen: meta de la Estrategia ESG que materializó este proyecto.
+  challenge   StrategyChallenge? @relation(fields: [challengeId], references: [id])
+  challengeId String?
 }
 
 /// Club-level ESG KPIs (the KPIs & Performance page).
@@ -307,4 +312,156 @@ model Notification {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
+}
+
+// ─── Motor IA · Estrategia ESG ───────────────────────────
+
+enum StrategyStatus {
+  draft
+  generated
+  active
+  archived
+}
+
+enum EsgPillar {
+  ambiental
+  social
+  gobernanza
+}
+
+/// Nivel de madurez de datos del club sobre un desafío (determina cómo se redacta la meta).
+enum DataMaturity {
+  con_linea_base
+  con_diagnostico
+  sin_datos
+}
+
+model EsgStrategy {
+  id              String         @id @default(cuid())
+  status          StrategyStatus @default(draft)
+  version         Int            @default(1)
+  /// Último paso completado (0-6) para retomar el borrador donde quedó.
+  currentStep     Int            @default(0)
+
+  // Paso 1 — datos generales y vigencia
+  orgName         String         @default("")
+  sport           String         @default("")
+  orgType         String         @default("")
+  vigenciaInicio  Int?
+  vigenciaFin     Int?
+  respName        String         @default("")
+  respRole        String         @default("")
+  respEmail       String         @default("")
+  isFirstStrategy Boolean        @default(true)
+
+  // Paso 4 — objetivos estratégicos (ordenados por prioridad)
+  objectives      String[]
+
+  // Paso 5 — alineación con organismo global del deporte
+  alignGlobal     Boolean        @default(false)
+  globalBody      String?
+
+  // Paso 6 — contexto adicional libre
+  additionalContext String       @default("")
+
+  /// Mejora #8 — periodicidad de revisión de la estrategia.
+  reviewFrequency String         @default("anual")
+
+  /// Mejora #2 — ESG Maturity Score por pilar, calculado del Paso 2.
+  maturityScores  Json?
+  /// Documento generado (JSON estructurado → se renderiza a HTML/PDF).
+  generatedDoc    Json?
+  generatedAt     DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  club       Club                @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId     String
+  challenges StrategyChallenge[]
+
+  @@index([clubId])
+}
+
+model StrategyChallenge {
+  id          String       @id @default(cuid())
+  pillar      EsgPillar
+  /// Clave del catálogo (o "otro" cuando el club lo escribe).
+  key         String
+  label       String
+  isCustom    Boolean      @default(false)
+
+  // Paso 2 — diagnóstico
+  hasBaseline    Boolean   @default(false)
+  hasDiagnosis   Boolean   @default(false)
+  hasHistorical  Boolean   @default(false)
+  maturity       DataMaturity @default(sin_datos)
+
+  // Paso 3 — meta, GRI, presupuesto, RR.HH.
+  griStandard    String    @default("")
+  griTitle       String    @default("")
+  indicators     String[]
+  sdgs           String[]
+  goalText       String    @default("")
+  /// Mejora #6 — meta sin línea base se marca preliminar.
+  goalPreliminary Boolean  @default(true)
+  milestones     Json?
+  budgetStatus   String    @default("no")
+  budgetAmount   Float?
+  budgetCurrency String    @default("CLP")
+  budgetPeriod   String    @default("total")
+  hrStatus       String    @default("no")
+  hrNote         String    @default("")
+  proposedProjects Json?
+
+  createdAt   DateTime     @default(now())
+
+  strategy   EsgStrategy         @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  strategyId String
+  documents  StrategyDocument[]
+  /// Proyectos ESG materializados desde esta meta (cadena estrategia → proyecto → ranking).
+  projects   ESGProject[]
+
+  @@index([strategyId])
+}
+
+model StrategyDocument {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  size        String   @default("")
+  uploadedAt  DateTime @default(now())
+
+  challenge   StrategyChallenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  challengeId String
+
+  @@index([challengeId])
+}
+
+/// Anexo A — mapeo Desafío → estándar GRI. Tabla de configuración editable en backend.
+model GriMapping {
+  id           String    @id @default(cuid())
+  pillar       EsgPillar
+  key          String    @unique
+  label        String
+  griStandard  String
+  griTitle     String
+  indicators   String[]
+  /// Mejora #4 — ODS vinculados al estándar.
+  sdgs         String[]
+  /// Unidad y verbo sugeridos para redactar la meta SMART.
+  metricUnit   String    @default("")
+  metricVerb   String    @default("reducir")
+  active       Boolean   @default(true)
+  sortOrder    Int       @default(0)
+}
+
+/// Anexo B — lineamientos ESG globales por deporte. Tabla de configuración editable.
+model SportFramework {
+  id          String  @id @default(cuid())
+  sport       String  @unique
+  organism    String
+  framework   String
+  summary     String  @default("")
+  active      Boolean @default(true)
 }

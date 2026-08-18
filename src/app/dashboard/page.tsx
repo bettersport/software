@@ -329,14 +329,20 @@ export default function DashboardPage() {
           <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#ECFDF5" }}>
             <Leaf size={24} style={{ color: "#059669" }} />
           </div>
-          <h3 className="font-bold text-lg" style={{ color: "#0F172A" }}>Tu perfil ESG está listo para comenzar</h3>
+          <h3 className="font-bold text-lg" style={{ color: "#0F172A" }}>Listo para crear tu estrategia ESG</h3>
           <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#64748B" }}>
-            Aún no tienes datos históricos. Crea tu primer proyecto ESG para comenzar a construir tu puntaje y aparecer en el ranking.
+            Todo parte por la estrategia: define tus desafíos, metas bajo estándares GRI y plan de inversión. De ahí nacen los proyectos que financian las marcas y alimentan tu Ranking.
           </p>
-          <Link href="/esg/projects" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}>
-            <Leaf size={15} /> Crear mi primer proyecto ESG
-          </Link>
+          <div className="flex items-center justify-center gap-3 mt-5 flex-wrap">
+            <Link href="/ai-strategy" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold"
+              style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}>
+              <Brain size={15} /> Crear mi estrategia ESG
+            </Link>
+            <Link href="/esg/projects" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-slate-600"
+              style={{ backgroundColor: "#F1F5F9" }}>
+              <Leaf size={15} /> Ir a proyectos
+            </Link>
+          </div>
         </motion.div>
       )}
 
