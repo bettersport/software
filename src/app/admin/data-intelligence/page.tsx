@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useUser } from "@/lib/userContext";
+import { useResource, apiSend } from "@/lib/useResource";
 import {
   Database,
   BarChart3,
@@ -38,23 +40,52 @@ import {
 // ─────────────────────────────────────────────
 // DATA
 // ─────────────────────────────────────────────
-const monthlyGrowthData = [
-  { month: "Ene", clubes: 980, marcas: 140, fans: 72000 },
-  { month: "Feb", clubes: 1020, marcas: 148, fans: 75500 },
-  { month: "Mar", clubes: 1065, marcas: 155, fans: 79000 },
-  { month: "Abr", clubes: 1110, marcas: 162, fans: 83000 },
-  { month: "May", clubes: 1160, marcas: 170, fans: 87500 },
-  { month: "Jun", clubes: 1200, marcas: 176, fans: 91000 },
-  { month: "Jul", clubes: 1247, marcas: 183, fans: 94200 },
-];
+type AdminStats = {
+  clubs: number;
+  brands: number;
+  fans: number;
+  esgAvg: { esgScore: number | null; environmental: number | null; social: number | null; governance: number | null; transparency: number | null };
+  projects: number;
+  projectsByStatus: { status: string; _count: number }[];
+  events: number;
+  kpis: number;
+  docs: number;
+  countries: number;
+  sports: number;
+  byCountry: { country: string; _count: number }[];
+  bySport: { sport: string; _count: number }[];
+  brandInvestment: number;
+  brandProjects: number;
+  sponsorLeads: number;
+  growth: { month: string; clubs: number }[];
+};
 
-const esgRadarData = [
-  { pillar: "Ambiental", score: 74 },
-  { pillar: "Social", score: 82 },
-  { pillar: "Gobernanza", score: 79 },
-  { pillar: "Transparencia", score: 71 },
-  { pillar: "Impacto", score: 85 },
-];
+const PROJECT_STATUS_LABELS: Record<string, string> = {
+  planning: "Planificando", in_progress: "En curso", completed: "Completados", paused: "Pausados",
+};
+
+const fmtNum = (n: number | null | undefined, digits = 0) =>
+  n === null || n === undefined || Number.isNaN(n) ? "—" : n.toLocaleString("es-CL", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+const fmtScore = (n: number | null | undefined) => (n === null || n === undefined ? "—" : n.toFixed(1));
+
+const csvCell = (v: unknown) => {
+  const s = String(v ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+function downloadBlob(content: string, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function toCsv(header: string[], rows: unknown[][]) {
+  return [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
+}
 
 const compareEngagementData = [
   { initiative: "Iniciativa 1", clubA: 18200, clubB: 14300 },
@@ -70,14 +101,23 @@ const roiData = [
 ];
 
 const TABS = [
-  { id: "intelligence", label: "Intelligence Center", icon: <Database size={15} /> },
-  { id: "export", label: "Export Manager", icon: <Download size={15} /> },
-  { id: "ai", label: "AI Insights", icon: <Brain size={15} /> },
-  { id: "report", label: "Reporte IA Demo", icon: <FileText size={15} /> },
-  { id: "schema", label: "Data Schema", icon: <GitBranch size={15} /> },
-  { id: "crosses", label: "Cruces Estratégicos", icon: <BarChart3 size={15} /> },
-  { id: "api", label: "API Reference", icon: <Code2 size={15} /> },
+  { id: "intelligence", label: "Intelligence Center", icon: <Database size={15} />, demoOnly: false },
+  { id: "export", label: "Export Manager", icon: <Download size={15} />, demoOnly: false },
+  { id: "ai", label: "Asistente ESG", icon: <Brain size={15} />, demoOnly: false },
+  { id: "report", label: "Reporte IA Demo", icon: <FileText size={15} />, demoOnly: true },
+  { id: "schema", label: "Data Schema", icon: <GitBranch size={15} />, demoOnly: true },
+  { id: "crosses", label: "Cruces Estratégicos", icon: <BarChart3 size={15} />, demoOnly: true },
+  { id: "api", label: "API Reference", icon: <Code2 size={15} />, demoOnly: true },
 ];
+
+function ProposalBanner() {
+  return (
+    <div className="mb-5 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 text-sm font-medium flex items-center gap-2">
+      <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900">Especificación propuesta</span>
+      Contenido ilustrativo (no implementado). Los datos y estructuras aquí mostrados no provienen de la plataforma.
+    </div>
+  );
+}
 
 const SUGGESTED_PROMPTS = [
   {
@@ -412,47 +452,15 @@ const EXPORT_FORMATS = [
     name: "CSV",
     tag: "Operativo",
     tagColor: "bg-emerald-100 text-emerald-700",
-    desc: "Análisis rápido en Excel, carga en CRM, BI tools o scripts Python/R.",
+    desc: "Agregados por país y deporte (según filtros aplicados) para Excel, BI o scripts.",
     btnClass: "btn-primary",
-  },
-  {
-    icon: "📊",
-    name: "XLSX",
-    tag: "Ejecutivo",
-    tagColor: "bg-teal-100 text-teal-700",
-    desc: "Reportes ejecutivos formateados con tablas dinámicas y gráficos incluidos.",
-    btnClass: "btn-secondary",
   },
   {
     icon: "{ }",
     name: "JSON",
     tag: "Developers",
     tagColor: "bg-violet-100 text-violet-700",
-    desc: "Integraciones API, alimentación de modelos IA y conexión con sistemas externos.",
-    btnClass: "btn-secondary",
-  },
-  {
-    icon: "📋",
-    name: "PDF",
-    tag: "Formal",
-    tagColor: "bg-rose-100 text-rose-700",
-    desc: "Reportes formales para Ministerios, sponsors, directorios y organismos ESG.",
-    btnClass: "btn-secondary",
-  },
-  {
-    icon: "🎯",
-    name: "PowerPoint",
-    tag: "Comercial",
-    tagColor: "bg-amber-100 text-amber-700",
-    desc: "Presentaciones ejecutivas con slides generados automáticamente desde la data.",
-    btnClass: "btn-secondary",
-  },
-  {
-    icon: "🔌",
-    name: "API Endpoint",
-    tag: "Integración",
-    tagColor: "bg-teal-100 text-teal-700",
-    desc: "Conecta Power BI, Looker Studio, Tableau, HubSpot o cualquier sistema externo.",
+    desc: "Snapshot completo de los agregados de la plataforma para integraciones.",
     btnClass: "btn-secondary",
   },
 ];
@@ -543,42 +551,125 @@ function SchemaTableCard({
 // PAGE
 // ─────────────────────────────────────────────
 
+
+// ─────────────────────────────────────────────
+// PAGE
+// ─────────────────────────────────────────────
+
+const AI_DESTINATIONS = [
+  { value: "ministerio_deporte", label: "🏛️ Ministerio del Deporte" },
+  { value: "ministerio_medio", label: "🌿 Ministerio del Medio Ambiente" },
+  { value: "pacto_global", label: "🌐 Pacto Global ONU" },
+  { value: "marca_sponsor", label: "💼 Marca Sponsor" },
+  { value: "club", label: "🏟️ Club / Federación" },
+  { value: "directorio", label: "📋 Directorio Bettersport" },
+];
+
 export default function DataIntelligencePage() {
+  const { activeUser, loaded, isDemo } = useUser();
+  const { data: stats, loading: statsLoading, reload: reloadStats } = useResource<AdminStats | null>(
+    loaded && activeUser ? "/api/admin/stats" : null, null,
+  );
+
   const [activeTab, setActiveTab] = useState("intelligence");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiDestination, setAiDestination] = useState("ministerio_deporte");
-  const [aiState, setAiState] = useState<"idle" | "thinking" | "done">("idle");
+  const [aiState, setAiState] = useState<"idle" | "thinking" | "done" | "error">("idle");
   const [aiResult, setAiResult] = useState("");
-  const [exportProgress, setExportProgress] = useState<Record<string, number>>({});
+  const [aiEngine, setAiEngine] = useState<"claude" | "local" | null>(null);
+  const [aiError, setAiError] = useState("");
 
-  const handleSimulateExport = (name: string) => {
-    setExportProgress((prev) => ({ ...prev, [name]: 0 }));
-    let pct = 0;
-    const timer = setInterval(() => {
-      pct += Math.random() * 25 + 10;
-      if (pct >= 100) {
-        pct = 100;
-        clearInterval(timer);
-        setTimeout(
-          () => setExportProgress((prev) => ({ ...prev, [name]: -1 })),
-          600
-        );
-      }
-      setExportProgress((prev) => ({ ...prev, [name]: Math.min(pct, 100) }));
-    }, 200);
+  // Export filters (draft + applied)
+  const [countryFilter, setCountryFilter] = useState("");
+  const [sportFilter, setSportFilter] = useState("");
+  const [applied, setApplied] = useState<{ country: string; sport: string }>({ country: "", sport: "" });
+
+  const visibleTabs = TABS.filter((t) => !t.demoOnly || isDemo);
+
+  const filteredByCountry = useMemo(
+    () => (stats?.byCountry ?? []).filter((r) => !applied.country || r.country === applied.country),
+    [stats, applied.country],
+  );
+  const filteredBySport = useMemo(
+    () => (stats?.bySport ?? []).filter((r) => !applied.sport || r.sport === applied.sport),
+    [stats, applied.sport],
+  );
+  const selectedCount = applied.country
+    ? filteredByCountry.reduce((s, r) => s + r._count, 0)
+    : applied.sport
+      ? filteredBySport.reduce((s, r) => s + r._count, 0)
+      : (stats?.clubs ?? 0);
+
+  const growthData = useMemo(
+    () => (stats?.growth ?? []).map((g) => ({ month: g.month, clubes: g.clubs })),
+    [stats],
+  );
+  const radarData = useMemo(() => {
+    const e = stats?.esgAvg;
+    if (!e) return [];
+    return [
+      { pillar: "Ambiental", score: Math.round(e.environmental ?? 0) },
+      { pillar: "Social", score: Math.round(e.social ?? 0) },
+      { pillar: "Gobernanza", score: Math.round(e.governance ?? 0) },
+      { pillar: "Transparencia", score: Math.round(e.transparency ?? 0) },
+    ];
+  }, [stats]);
+
+  const stamp = () => new Date().toISOString().slice(0, 10);
+
+  const exportClubsCsv = () => {
+    if (!stats) return;
+    const rows: unknown[][] = [
+      ...filteredByCountry.map((r) => ["pais", r.country, r._count]),
+      ...filteredBySport.map((r) => ["deporte", r.sport, r._count]),
+    ];
+    downloadBlob(toCsv(["dimension", "valor", "clubes"], rows), `bettersport-clubes-${stamp()}.csv`, "text/csv;charset=utf-8");
+  };
+  const exportBrandsCsv = () => {
+    if (!stats) return;
+    const rows: unknown[][] = [
+      ["marcas_registradas", stats.brands],
+      ["proyectos_de_marca", stats.brandProjects],
+      ["inversion_total_usd", stats.brandInvestment],
+      ["leads_patrocinio", stats.sponsorLeads],
+    ];
+    downloadBlob(toCsv(["metrica", "valor"], rows), `bettersport-marcas-${stamp()}.csv`, "text/csv;charset=utf-8");
+  };
+  const exportFansCsv = () => {
+    if (!stats) return;
+    downloadBlob(toCsv(["metrica", "valor"], [["fans_registrados", stats.fans]]), `bettersport-fans-${stamp()}.csv`, "text/csv;charset=utf-8");
+  };
+  const exportJson = () => {
+    if (!stats) return;
+    downloadBlob(JSON.stringify(stats, null, 2), `bettersport-stats-${stamp()}.json`, "application/json");
+  };
+  const handleExport = (name: string) => {
+    if (name === "CSV") exportClubsCsv();
+    else if (name === "JSON") exportJson();
   };
 
-  const handleRunAI = () => {
-    if (!aiPrompt.trim()) return;
+  const handleRunAI = async () => {
+    const q = aiPrompt.trim();
+    if (!q) return;
     setAiState("thinking");
     setAiResult("");
-    setTimeout(() => {
-      setAiState("done");
-      setAiResult(
-        `**Análisis generado por Bettersport AI** — claude-sonnet-4\n\nBasándome en el dataset completo de ${new Date().getFullYear()}, he identificado los siguientes hallazgos clave:\n\n**Resumen ejecutivo:**\nEl ecosistema deportivo muestra una tendencia positiva con un crecimiento del 27% en scores ESG durante los últimos 12 meses. Los clubes con programas de sostenibilidad activos presentan un ROI reputacional promedio de 4.6x frente a 1.8x de los clubes sin programa.\n\n**Hallazgos principales:**\n→ 3 clubes con score ESG > 90 no tienen sponsor activo — oportunidad comercial inmediata\n→ Las iniciativas de deporte femenino generan 34% más engagement que el promedio\n→ Chile lidera LATAM en score ESG promedio con 78.4 pts\n→ La inversión en sostenibilidad creció USD 2.1M en el último trimestre\n\n**Recomendaciones:**\n1. Priorizar vinculación de clubes top-tier sin sponsor con marcas del sector energía\n2. Replicar modelo de reciclaje en estadio (mayor engagement registrado: 18,200 participantes)\n3. Desarrollar programa de incentivos para clubes con score entre 60-75 para impulsar mejora`
+    setAiError("");
+    try {
+      const destLabel = AI_DESTINATIONS.find((d) => d.value === aiDestination)?.label.replace(/^\S+\s/, "") ?? "";
+      const question = destLabel ? `${q}\n\n(Destinatario del reporte: ${destLabel})` : q;
+      const res = await apiSend<{ data?: { answer: string; engine: "claude" | "local" } }>(
+        "/api/strategy/agent", "POST", { question, step: 7 },
       );
-    }, 2200);
+      setAiResult(res.data?.answer ?? "");
+      setAiEngine(res.data?.engine ?? null);
+      setAiState("done");
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "No se pudo obtener respuesta");
+      setAiState("error");
+    }
   };
+
+  const projectsByStatus = stats?.projectsByStatus ?? [];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -592,13 +683,13 @@ export default function DataIntelligencePage() {
         </div>
         <h1 className="text-2xl font-bold text-slate-800">Data Intelligence Center</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Panel centralizado de datos, exportación, análisis IA y arquitectura del sistema
+          Panel centralizado de datos, exportación y asistente ESG
         </p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 flex-wrap mb-6 border-b border-slate-200 pb-0">
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -624,29 +715,29 @@ export default function DataIntelligencePage() {
             <KpiCard
               icon={<Building2 size={20} className="text-emerald-600" />}
               label="Total clubes"
-              value="1,247"
-              sub="12 países · 8 deportes"
+              value={stats ? fmtNum(stats.clubs) : "—"}
+              sub={stats ? `${stats.countries} países · ${stats.sports} deportes` : statsLoading ? "Cargando…" : "Sin datos"}
               color="bg-emerald-50"
             />
             <KpiCard
               icon={<Handshake size={20} className="text-teal-600" />}
-              label="Marcas activas"
-              value="183"
-              sub="6 industrias · USD 4.2M"
+              label="Marcas registradas"
+              value={stats ? fmtNum(stats.brands) : "—"}
+              sub={stats ? `${fmtNum(stats.brandProjects)} proyectos · USD ${fmtNum(stats.brandInvestment)}` : ""}
               color="bg-teal-50"
             />
             <KpiCard
               icon={<Users size={20} className="text-amber-600" />}
               label="Fans registrados"
-              value="94.2K"
-              sub="67.4% engagement ESG"
+              value={stats ? fmtNum(stats.fans) : "—"}
+              sub={stats ? `${fmtNum(stats.events)} eventos publicados` : ""}
               color="bg-amber-50"
             />
             <KpiCard
               icon={<TrendingUp size={20} className="text-violet-600" />}
               label="Score ESG promedio"
-              value="78.4"
-              sub="+3.2 pts vs temporada anterior"
+              value={stats ? fmtScore(stats.esgAvg.esgScore) : "—"}
+              sub={stats ? `${fmtNum(stats.projects)} proyectos ESG registrados` : ""}
               color="bg-violet-50"
             />
           </div>
@@ -659,18 +750,18 @@ export default function DataIntelligencePage() {
                 <div>
                   <p className="text-2xl mb-1">🏟️</p>
                   <p className="font-semibold text-slate-700">Clubes & Organizaciones</p>
-                  <p className="text-2xl font-bold text-emerald-600 font-mono mt-1">1,247</p>
+                  <p className="text-2xl font-bold text-emerald-600 font-mono mt-1">{stats ? fmtNum(stats.clubs) : "—"}</p>
                 </div>
                 <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium">Activo</span>
               </div>
               <div className="space-y-1.5 text-xs border-t border-slate-100 pt-3">
                 {[
-                  ["Países cubiertos", "12"],
-                  ["Deportes", "8"],
-                  ["Score ESG prom.", "78.4"],
-                  ["Iniciativas activas", "3,841"],
-                  ["KPIs reportados", "24,200"],
-                  ["Documentos verificados", "8,920"],
+                  ["Países cubiertos", stats ? fmtNum(stats.countries) : "—"],
+                  ["Deportes", stats ? fmtNum(stats.sports) : "—"],
+                  ["Score ESG prom.", stats ? fmtScore(stats.esgAvg.esgScore) : "—"],
+                  ["Proyectos ESG", stats ? fmtNum(stats.projects) : "—"],
+                  ["KPIs reportados", stats ? fmtNum(stats.kpis) : "—"],
+                  ["Documentos", stats ? fmtNum(stats.docs) : "—"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between">
                     <span className="text-slate-500">{k}</span>
@@ -679,8 +770,8 @@ export default function DataIntelligencePage() {
                 ))}
               </div>
               <div className="flex gap-2 mt-4">
-                <button className="btn-secondary text-xs py-1.5 px-3 flex-1">📤 Exportar</button>
-                <button className="btn-primary text-xs py-1.5 px-3 flex-1" onClick={() => setActiveTab("ai")}>🤖 Analizar</button>
+                <button className="btn-secondary text-xs py-1.5 px-3 flex-1" onClick={exportClubsCsv} disabled={!stats}>📤 Exportar CSV</button>
+                <button className="btn-primary text-xs py-1.5 px-3 flex-1" onClick={() => setActiveTab("ai")}>🤖 Consultar</button>
               </div>
             </div>
 
@@ -690,18 +781,15 @@ export default function DataIntelligencePage() {
                 <div>
                   <p className="text-2xl mb-1">🤝</p>
                   <p className="font-semibold text-slate-700">Marcas & Sponsors</p>
-                  <p className="text-2xl font-bold text-teal-600 font-mono mt-1">183</p>
+                  <p className="text-2xl font-bold text-teal-600 font-mono mt-1">{stats ? fmtNum(stats.brands) : "—"}</p>
                 </div>
                 <span className="text-xs px-2 py-1 rounded-full bg-teal-100 text-teal-700 font-medium">Activo</span>
               </div>
               <div className="space-y-1.5 text-xs border-t border-slate-100 pt-3">
                 {[
-                  ["Inversión total activa", "USD 4.2M"],
-                  ["Campañas activas", "341"],
-                  ["ROI reputacional prom.", "4.8x"],
-                  ["Engagement generado", "2.1M interac."],
-                  ["Clubs patrocinados", "892"],
-                  ["Reportes ESG enviados", "1,204"],
+                  ["Inversión total registrada", stats ? `USD ${fmtNum(stats.brandInvestment)}` : "—"],
+                  ["Proyectos de marca", stats ? fmtNum(stats.brandProjects) : "—"],
+                  ["Leads de patrocinio", stats ? fmtNum(stats.sponsorLeads) : "—"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between">
                     <span className="text-slate-500">{k}</span>
@@ -710,8 +798,8 @@ export default function DataIntelligencePage() {
                 ))}
               </div>
               <div className="flex gap-2 mt-4">
-                <button className="btn-secondary text-xs py-1.5 px-3 flex-1">📤 Exportar</button>
-                <button className="btn-primary text-xs py-1.5 px-3 flex-1" onClick={() => setActiveTab("ai")}>🤖 Analizar</button>
+                <button className="btn-secondary text-xs py-1.5 px-3 flex-1" onClick={exportBrandsCsv} disabled={!stats}>📤 Exportar CSV</button>
+                <button className="btn-primary text-xs py-1.5 px-3 flex-1" onClick={() => setActiveTab("ai")}>🤖 Consultar</button>
               </div>
             </div>
 
@@ -721,18 +809,14 @@ export default function DataIntelligencePage() {
                 <div>
                   <p className="text-2xl mb-1">👥</p>
                   <p className="font-semibold text-slate-700">Fans & Hinchas</p>
-                  <p className="text-2xl font-bold text-amber-600 font-mono mt-1">94.2K</p>
+                  <p className="text-2xl font-bold text-amber-600 font-mono mt-1">{stats ? fmtNum(stats.fans) : "—"}</p>
                 </div>
                 <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">Activo</span>
               </div>
               <div className="space-y-1.5 text-xs border-t border-slate-100 pt-3">
                 {[
-                  ["Participación en encuestas", "38,420"],
-                  ["Engagement ESG", "67.4%"],
-                  ["Preferencia marca sost.", "78%"],
-                  ["Asistencia a eventos", "412,000"],
-                  ["Votos en iniciativas", "142,000"],
-                  ["NPS promedio", "72 pts"],
+                  ["Fans registrados", stats ? fmtNum(stats.fans) : "—"],
+                  ["Eventos publicados", stats ? fmtNum(stats.events) : "—"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between">
                     <span className="text-slate-500">{k}</span>
@@ -741,58 +825,80 @@ export default function DataIntelligencePage() {
                 ))}
               </div>
               <div className="flex gap-2 mt-4">
-                <button className="btn-secondary text-xs py-1.5 px-3 flex-1">📤 Exportar</button>
-                <button className="btn-primary text-xs py-1.5 px-3 flex-1" onClick={() => setActiveTab("ai")}>🤖 Analizar</button>
+                <button className="btn-secondary text-xs py-1.5 px-3 flex-1" onClick={exportFansCsv} disabled={!stats}>📤 Exportar CSV</button>
+                <button className="btn-primary text-xs py-1.5 px-3 flex-1" onClick={() => setActiveTab("ai")}>🤖 Consultar</button>
               </div>
             </div>
           </div>
+
+          {/* Projects by status */}
+          {projectsByStatus.length > 0 && (
+            <div className="card p-5 mb-6">
+              <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-3">Proyectos ESG por estado</p>
+              <div className="flex flex-wrap gap-3">
+                {projectsByStatus.map((s) => (
+                  <div key={s.status} className="px-4 py-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <p className="text-lg font-bold text-slate-800">{fmtNum(s._count)}</p>
+                    <p className="text-xs text-slate-500">{PROJECT_STATUS_LABELS[s.status] ?? s.status}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div className="card p-5">
               <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">
-                Evolución registros mensuales — 2025
+                Clubes registrados por mes
               </p>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={monthlyGrowthData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="clubes" stroke="#10b981" strokeWidth={2} dot={false} name="Clubes" />
-                  <Line type="monotone" dataKey="marcas" stroke="#0ea5e9" strokeWidth={2} dot={false} name="Marcas" />
-                </LineChart>
-              </ResponsiveContainer>
+              {growthData.length === 0 ? (
+                <div className="h-[220px] flex items-center justify-center text-sm text-slate-400">Sin registros todavía</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <LineChart data={growthData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="clubes" stroke="#10b981" strokeWidth={2} dot={false} name="Clubes" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
             <div className="card p-5">
               <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">
-                Distribución ESG por pilar — Clubes activos
+                Promedio ESG por pilar — Clubes registrados
               </p>
-              <ResponsiveContainer width="100%" height={220}>
-                <RadarChart data={esgRadarData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="pillar" tick={{ fontSize: 11 }} />
-                  <Radar name="Score" dataKey="score" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
-                  <Tooltip />
-                </RadarChart>
-              </ResponsiveContainer>
+              {radarData.length === 0 ? (
+                <div className="h-[220px] flex items-center justify-center text-sm text-slate-400">Sin datos todavía</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={220}>
+                  <RadarChart data={radarData}>
+                    <PolarGrid />
+                    <PolarAngleAxis dataKey="pillar" tick={{ fontSize: 11 }} />
+                    <Radar name="Score" dataKey="score" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
+                    <Tooltip />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 
           {/* Data Flow Diagram */}
           <div className="card p-5">
             <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-5">
-              Flujo de datos — Captura → Enriquecimiento → IA → Output
+              Flujo de datos — Captura → Agregación → Asistente → Output
             </p>
             <div className="flex items-center gap-0 overflow-x-auto pb-2">
               {[
                 { icon: "🏟️", label: "Clubes", sub: "ESG + KPIs", color: "bg-emerald-50 border-emerald-200" },
-                { icon: "🤝", label: "Marcas", sub: "ROI + Campaigns", color: "bg-teal-50 border-teal-200" },
-                { icon: "👥", label: "Fans", sub: "Engage + NPS", color: "bg-amber-50 border-amber-200" },
+                { icon: "🤝", label: "Marcas", sub: "Proyectos + Leads", color: "bg-teal-50 border-teal-200" },
+                { icon: "👥", label: "Fans", sub: "Fan Zone", color: "bg-amber-50 border-amber-200" },
                 { icon: "🧠", label: "Data Layer", sub: "PostgreSQL", color: "bg-violet-50 border-violet-200" },
-                { icon: "🤖", label: "Claude AI", sub: "Insights + Cross", color: "bg-purple-50 border-purple-200" },
-                { icon: "📊", label: "Outputs", sub: "PDF · XLSX · PPT", color: "bg-emerald-50 border-emerald-200" },
+                { icon: "🤖", label: "Better Agent", sub: "Asistente ESG", color: "bg-purple-50 border-purple-200" },
+                { icon: "📊", label: "Outputs", sub: "CSV · JSON", color: "bg-emerald-50 border-emerald-200" },
               ].map((node, i, arr) => (
                 <div key={node.label} className="flex items-center">
                   <div className="flex flex-col items-center gap-1.5 min-w-[88px] text-center">
@@ -824,107 +930,120 @@ export default function DataIntelligencePage() {
               Filtros de exportación
             </p>
             <div className="flex flex-wrap gap-3">
-              {[
-                { label: "País", options: ["Todos los países", "Chile", "Colombia", "México", "Argentina", "USA"] },
-                { label: "Deporte", options: ["Todos los deportes", "Fútbol", "Rugby", "Tenis", "Basketball", "Volleyball"] },
-                { label: "Federación", options: ["Todas", "ANFP", "Fed. Rugby Chile", "FIVB Chile", "FIBA Chile"] },
-                { label: "Temporada", options: ["2026", "2025", "2024", "2023", "Histórico"] },
-                { label: "Fuente de datos", options: ["Clubes & Organizaciones", "Marcas & Sponsors", "Fans & Hinchas", "Dataset completo"] },
-                { label: "Ranking ESG", options: ["Todos", "Top 10%", "Top 25%", "Score > 80", "Score > 60"] },
-              ].map((f) => (
-                <div key={f.label} className="flex flex-col gap-1 min-w-[150px]">
-                  <label className="text-xs text-slate-500 font-medium">{f.label}</label>
-                  <select className="input-field text-sm py-1.5">
-                    {f.options.map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-              <div className="flex items-end">
-                <button className="btn-primary text-sm py-1.5 px-4 flex items-center gap-2">
+              <div className="flex flex-col gap-1 min-w-[180px]">
+                <label className="text-xs text-slate-500 font-medium">País</label>
+                <select className="input-field text-sm py-1.5" value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)}>
+                  <option value="">Todos los países</option>
+                  {(stats?.byCountry ?? []).map((r) => (
+                    <option key={r.country} value={r.country}>{r.country}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 min-w-[180px]">
+                <label className="text-xs text-slate-500 font-medium">Deporte</label>
+                <select className="input-field text-sm py-1.5" value={sportFilter} onChange={(e) => setSportFilter(e.target.value)}>
+                  <option value="">Todos los deportes</option>
+                  {(stats?.bySport ?? []).map((r) => (
+                    <option key={r.sport} value={r.sport}>{r.sport}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end gap-2">
+                <button
+                  className="btn-primary text-sm py-1.5 px-4 flex items-center gap-2"
+                  onClick={() => setApplied({ country: countryFilter, sport: sportFilter })}
+                >
                   <RefreshCw size={13} /> Aplicar filtros
                 </button>
+                {(applied.country || applied.sport) && (
+                  <button
+                    className="btn-secondary text-sm py-1.5 px-3"
+                    onClick={() => { setCountryFilter(""); setSportFilter(""); setApplied({ country: "", sport: "" }); }}
+                  >
+                    Limpiar
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
           {/* Results Summary */}
-          <div className="card p-4 mb-5 flex items-center justify-between">
+          <div className="card p-4 mb-5 flex items-center justify-between flex-wrap gap-2">
             <div className="text-sm text-slate-600">
-              Registros seleccionados:{" "}
-              <strong className="text-emerald-600 font-mono text-base">1,247</strong>
-              <span className="ml-4 text-xs text-slate-400">Chile · Todos los deportes · 2026 · Score &gt; 60</span>
+              Clubes seleccionados:{" "}
+              <strong className="text-emerald-600 font-mono text-base">{stats ? fmtNum(selectedCount) : "—"}</strong>
+              <span className="ml-4 text-xs text-slate-400">
+                {applied.country || "Todos los países"} · {applied.sport || "Todos los deportes"}
+              </span>
             </div>
-            <p className="font-mono text-xs text-slate-400">Última actualización: hace 3 min</p>
+            <button className="font-mono text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1" onClick={() => reloadStats()}>
+              <RefreshCw size={11} /> {statsLoading ? "Actualizando…" : "Actualizar"}
+            </button>
+          </div>
+
+          {/* Aggregate tables */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div className="card p-5">
+              <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-3">Clubes por país</p>
+              {filteredByCountry.length === 0 ? (
+                <p className="text-sm text-slate-400">Sin registros</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <tbody>
+                    {filteredByCountry.map((r) => (
+                      <tr key={r.country} className="border-b border-slate-50 last:border-0">
+                        <td className="py-1.5 text-slate-600">{r.country}</td>
+                        <td className="py-1.5 text-right font-semibold text-slate-800 font-mono">{fmtNum(r._count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <div className="card p-5">
+              <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-3">Clubes por deporte</p>
+              {filteredBySport.length === 0 ? (
+                <p className="text-sm text-slate-400">Sin registros</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <tbody>
+                    {filteredBySport.map((r) => (
+                      <tr key={r.sport} className="border-b border-slate-50 last:border-0">
+                        <td className="py-1.5 text-slate-600">{r.sport}</td>
+                        <td className="py-1.5 text-right font-semibold text-slate-800 font-mono">{fmtNum(r._count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
 
           {/* Export Format Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
-            {EXPORT_FORMATS.map((fmt) => {
-              const prog = exportProgress[fmt.name];
-              const done = prog === -1;
-              const running = typeof prog === "number" && prog >= 0 && prog < 100;
-
-              return (
-                <div key={fmt.name} className="card p-5 flex flex-col gap-3">
-                  <div className="text-2xl">{fmt.icon}</div>
-                  <div className="flex items-center justify-between">
-                    <p className="font-bold text-slate-700">{fmt.name}</p>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${fmt.tagColor}`}>{fmt.tag}</span>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">{fmt.desc}</p>
-                  <button
-                    className={`${fmt.btnClass} text-sm py-2 w-full`}
-                    onClick={() => handleSimulateExport(fmt.name)}
-                    disabled={running}
-                  >
-                    {done ? "✅ Descargado" : running ? "Generando..." : `Exportar ${fmt.name}`}
-                  </button>
-                  {running && (
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 transition-all duration-200 rounded-full"
-                        style={{ width: `${prog}%` }}
-                      />
-                    </div>
-                  )}
+            {EXPORT_FORMATS.map((fmt) => (
+              <div key={fmt.name} className="card p-5 flex flex-col gap-3">
+                <div className="text-2xl">{fmt.icon}</div>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-slate-700">{fmt.name}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${fmt.tagColor}`}>{fmt.tag}</span>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* API Snippet */}
-          <div className="card p-5 bg-slate-800">
-            <p className="font-mono text-xs text-slate-400 uppercase tracking-widest mb-3">
-              API Endpoint — Ejemplo de integración
-            </p>
-            <pre className="font-mono text-xs text-teal-300 leading-relaxed overflow-x-auto">
-              {`// GET Clubes con ESG Score > 80, Chile, 2026
-GET https://api.bettersport.app/v1/clubs
-  ?country=CL
-  &esg_min=80
-  &season=2026
-  &include=initiatives,sponsors,kpis
-  &format=json
-  Authorization: Bearer {API_KEY}
-
-// Respuesta:
-{
-  "total": 142,
-  "data": [
-    { "id": "club_001", "name": "Cox Rugby Club",
-      "esg_score": 94.2, "sport": "rugby",
-      "initiatives_count": 8, "sponsor_investment": 80000 }
-  ]
-}`}
-            </pre>
+                <p className="text-xs text-slate-500 leading-relaxed">{fmt.desc}</p>
+                <button
+                  className={`${fmt.btnClass} text-sm py-2 w-full`}
+                  onClick={() => handleExport(fmt.name)}
+                  disabled={!stats}
+                >
+                  Exportar {fmt.name}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {/* ══════════════════════════════════════
-          TAB 3: AI INSIGHTS
+          TAB 3: ASISTENTE ESG (Better Agent)
          ══════════════════════════════════════ */}
       {activeTab === "ai" && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-5">
@@ -936,21 +1055,25 @@ GET https://api.bettersport.app/v1/clubs
               <textarea
                 className="input-field w-full text-sm resize-none"
                 rows={5}
-                placeholder="Ej: ¿Cuáles son los 3 clubes con mejor retorno para un sponsor de energía renovable en Chile?"
+                placeholder="Ej: ¿Cómo priorizo los proyectos ESG de los clubes con menor puntaje ambiental?"
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
               />
               <div className="flex items-center justify-between mt-3">
-                <span className="font-mono text-xs text-slate-400">{aiPrompt.trim().split(/\s+/).filter(Boolean).length * 1.3 | 0} tokens</span>
+                <span className="font-mono text-xs text-slate-400">{aiPrompt.length}/1000</span>
                 <div className="flex gap-2">
                   <button
                     className="btn-secondary text-xs py-1.5 px-3"
-                    onClick={() => { setAiPrompt(""); setAiState("idle"); setAiResult(""); }}
+                    onClick={() => { setAiPrompt(""); setAiState("idle"); setAiResult(""); setAiError(""); }}
                   >
                     Limpiar
                   </button>
-                  <button className="btn-primary text-xs py-1.5 px-4 flex items-center gap-1.5" onClick={handleRunAI}>
-                    <Zap size={12} /> Analizar
+                  <button
+                    className="btn-primary text-xs py-1.5 px-4 flex items-center gap-1.5 disabled:opacity-60"
+                    onClick={handleRunAI}
+                    disabled={aiState === "thinking" || !aiPrompt.trim()}
+                  >
+                    <Zap size={12} /> Consultar
                   </button>
                 </div>
               </div>
@@ -960,14 +1083,7 @@ GET https://api.bettersport.app/v1/clubs
             <div className="card p-5">
               <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-3">Destinatario del reporte</p>
               <div className="space-y-1.5">
-                {[
-                  { value: "ministerio_deporte", label: "🏛️ Ministerio del Deporte" },
-                  { value: "ministerio_medio", label: "🌿 Ministerio del Medio Ambiente" },
-                  { value: "pacto_global", label: "🌐 Pacto Global ONU" },
-                  { value: "marca_sponsor", label: "💼 Marca Sponsor" },
-                  { value: "club", label: "🏟️ Club / Federación" },
-                  { value: "directorio", label: "📋 Directorio Bettersport" },
-                ].map((d) => (
+                {AI_DESTINATIONS.map((d) => (
                   <label
                     key={d.value}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm transition-colors ${
@@ -1008,36 +1124,32 @@ GET https://api.bettersport.app/v1/clubs
             </div>
           </div>
 
-          {/* Right Panel — AI Output */}
+          {/* Right Panel — Output */}
           <div className="card p-0 flex flex-col overflow-hidden min-h-[600px]">
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium">
                   <div className={`w-1.5 h-1.5 rounded-full ${aiState === "thinking" ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`} />
-                  Bettersport AI Insights
+                  Asistente ESG (Better Agent)
                 </div>
-                <span className="font-mono text-xs text-slate-400">claude-sonnet-4</span>
+                {aiState === "done" && aiEngine && (
+                  <span className="font-mono text-xs text-slate-400">{aiEngine === "claude" ? "motor: Claude" : "motor: guía local"}</span>
+                )}
               </div>
-              {aiState === "done" && (
-                <div className="flex gap-2">
-                  <button className="btn-secondary text-xs py-1 px-3">📥 PDF</button>
-                  <button className="btn-secondary text-xs py-1 px-3">📊 XLSX</button>
-                </div>
-              )}
             </div>
             <div className="flex-1 p-5 overflow-y-auto">
               {aiState === "idle" && (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-20">
                   <div className="text-5xl">🤖</div>
-                  <p className="font-semibold text-slate-700">Bettersport AI Insights</p>
+                  <p className="font-semibold text-slate-700">Asistente ESG (Better Agent)</p>
                   <p className="text-sm text-slate-400 max-w-xs">
-                    Escribe una consulta o selecciona un prompt sugerido para comenzar el análisis.
+                    Escribe una consulta sobre el proceso ESG o selecciona un prompt sugerido para comenzar.
                   </p>
                 </div>
               )}
               {aiState === "thinking" && (
                 <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
-                  <p className="font-mono text-xs text-slate-400">Analizando datos Bettersport...</p>
+                  <p className="font-mono text-xs text-slate-400">Consultando al Better Agent...</p>
                   <div className="flex gap-2">
                     {[0, 1, 2].map((i) => (
                       <div
@@ -1049,14 +1161,21 @@ GET https://api.bettersport.app/v1/clubs
                   </div>
                 </div>
               )}
+              {aiState === "error" && (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-20">
+                  <p className="font-semibold text-red-600">No se pudo obtener respuesta</p>
+                  <p className="text-sm text-slate-400 max-w-xs">{aiError}</p>
+                  <button className="btn-secondary text-xs py-1.5 px-3" onClick={handleRunAI}>Reintentar</button>
+                </div>
+              )}
               {aiState === "done" && (
                 <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap text-sm">
                   {aiResult.split("\n").map((line, i) => {
                     if (line.startsWith("**") && line.endsWith("**"))
                       return <p key={i} className="font-bold text-slate-800 mt-4 mb-1">{line.replace(/\*\*/g, "")}</p>;
-                    if (line.startsWith("→"))
-                      return <p key={i} className="flex gap-2"><span className="text-emerald-500 shrink-0">→</span>{line.slice(1).trim()}</p>;
-                    if (/^\d\./.test(line))
+                    if (line.startsWith("→") || line.startsWith("- ") || line.startsWith("• "))
+                      return <p key={i} className="flex gap-2"><span className="text-emerald-500 shrink-0">→</span>{line.replace(/^(→|-|•)\s*/, "")}</p>;
+                    if (/^\d+\./.test(line))
                       return <p key={i} className="text-slate-600 ml-2">{line}</p>;
                     return line ? <p key={i}>{line}</p> : <br key={i} />;
                   })}
@@ -1068,10 +1187,14 @@ GET https://api.bettersport.app/v1/clubs
       )}
 
       {/* ══════════════════════════════════════
+          TAB 4: REPORTE IA DEMO (solo demo)
+         ══════════════════════════════════════ */}
+      {/* ══════════════════════════════════════
           TAB 4: REPORTE IA DEMO
          ══════════════════════════════════════ */}
-      {activeTab === "report" && (
+      {isDemo && activeTab === "report" && (
         <div>
+          <ProposalBanner />
           {/* Report Header */}
           <div className="card p-5 mb-5 border-l-4 border-emerald-500">
             <div className="flex items-start justify-between mb-3">
@@ -1323,10 +1446,14 @@ GET https://api.bettersport.app/v1/clubs
       )}
 
       {/* ══════════════════════════════════════
+          TAB 5: DATA SCHEMA (solo demo)
+         ══════════════════════════════════════ */}
+      {/* ══════════════════════════════════════
           TAB 5: DATA SCHEMA
          ══════════════════════════════════════ */}
-      {activeTab === "schema" && (
+      {isDemo && activeTab === "schema" && (
         <div>
+          <ProposalBanner />
           <div className="flex items-center justify-between mb-5">
             <p className="text-sm text-slate-500">
               17 entidades principales · PostgreSQL · Relaciones y trazabilidad histórica
@@ -1344,10 +1471,14 @@ GET https://api.bettersport.app/v1/clubs
       )}
 
       {/* ══════════════════════════════════════
+          TAB 6: CRUCES ESTRATÉGICOS (solo demo)
+         ══════════════════════════════════════ */}
+      {/* ══════════════════════════════════════
           TAB 6: CRUCES ESTRATÉGICOS
          ══════════════════════════════════════ */}
-      {activeTab === "crosses" && (
+      {isDemo && activeTab === "crosses" && (
         <div>
+          <ProposalBanner />
           <p className="text-sm text-slate-500 mb-5">
             11 cruces clave que generan valor para sponsors, gobierno y clubes
           </p>
@@ -1386,10 +1517,14 @@ GET https://api.bettersport.app/v1/clubs
       )}
 
       {/* ══════════════════════════════════════
+          TAB 7: API REFERENCE (solo demo)
+         ══════════════════════════════════════ */}
+      {/* ══════════════════════════════════════
           TAB 7: API REFERENCE
          ══════════════════════════════════════ */}
-      {activeTab === "api" && (
+      {isDemo && activeTab === "api" && (
         <div>
+          <ProposalBanner />
           <p className="text-sm text-slate-500 mb-5">
             REST API v1 · Base URL: <code className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">https://api.bettersport.app/v1</code>
           </p>

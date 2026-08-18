@@ -13,27 +13,34 @@ import "server-only";
  */
 import type { StrategyDocument, StrategyInput } from "./types";
 
-const MODEL = "claude-sonnet-5";
-const API = "https://api.anthropic.com/v1/messages";
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
+const AGENT_MODEL = process.env.ANTHROPIC_AGENT_MODEL ?? MODEL;
+const API = `${(process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com").replace(/\/$/, "")}/v1/messages`;
 
 export function claudeAvailable() {
   return !!process.env.ANTHROPIC_API_KEY;
 }
 
-async function callClaude(system: string, user: string, maxTokens = 2000): Promise<string | null> {
+async function callClaude(system: string, user: string, maxTokens = 2000, opts: { model?: string; timeoutMs?: number } = {}): Promise<string | null> {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) return null;
   try {
     const res = await fetch(API, {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+      body: JSON.stringify({ model: opts.model ?? MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+      signal: AbortSignal.timeout(opts.timeoutMs ?? 45_000),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`[claude] HTTP ${res.status}: ${body.slice(0, 300)}`);
+      return null;
+    }
     const data = await res.json();
     const text = data?.content?.find((c: { type: string }) => c.type === "text")?.text;
     return typeof text === "string" ? text : null;
-  } catch {
+  } catch (e) {
+    console.error("[claude] request failed:", e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -45,22 +52,55 @@ Puedes reescribir: cover.executiveSummary, diagnosis.narrative, investment.narra
 Si una meta está marcada goalPreliminary=true debe seguir indicando explícitamente que es preliminar y sujeta a validación con datos.
 Responde ÚNICAMENTE con el JSON completo, sin comentarios ni markdown.`;
 
-/** Enriquece el documento con Claude. Devuelve el original si no está disponible o falla la validación. */
+/**
+ * Enriquece el documento con Claude — MERGE narrativo, nunca reemplazo:
+ * solo se copian los campos de redacción permitidos; cifras, GRI, indicadores,
+ * hitos y estructura provienen SIEMPRE del GRI engine (auditable).
+ */
 export async function enrichWithClaude(doc: StrategyDocument, input: StrategyInput): Promise<StrategyDocument> {
   const out = await callClaude(
     STRATEGY_SYSTEM,
     `INPUT DEL CLUB:\n${JSON.stringify(input)}\n\nDOCUMENTO A MEJORAR:\n${JSON.stringify(doc)}`,
-    6000,
+    8000,
+    { timeoutMs: 60_000 },
   );
   if (!out) return doc;
+  let parsed: Partial<StrategyDocument>;
   try {
-    const parsed = JSON.parse(out.replace(/^```json\s*|```\s*$/g, "")) as StrategyDocument;
-    // Validación mínima de estructura para no romper el renderer.
-    if (!parsed.cover || !parsed.pillars || !parsed.roadmap) return doc;
-    return { ...parsed, engine: "claude", version: doc.version, generatedAt: doc.generatedAt };
+    parsed = JSON.parse(out.replace(/^```json\s*|```\s*$/g, ""));
   } catch {
+    console.error("[claude] respuesta no es JSON válido; se conserva el documento del motor");
     return doc;
   }
+  if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.pillars)) return doc;
+
+  const merged: StrategyDocument = structuredClone(doc);
+  const s = (v: unknown, fallback: string) => (typeof v === "string" && v.trim().length > 20 ? v.trim() : fallback);
+
+  merged.cover.executiveSummary = s(parsed.cover?.executiveSummary, doc.cover.executiveSummary);
+  merged.diagnosis.narrative = s(parsed.diagnosis?.narrative, doc.diagnosis.narrative);
+  merged.investment.narrative = s(parsed.investment?.narrative, doc.investment.narrative);
+  if (Array.isArray(parsed.strategicAlignment) && parsed.strategicAlignment.length === doc.strategicAlignment.length) {
+    merged.strategicAlignment = doc.strategicAlignment.map((a, i) => ({ ...a, how: s(parsed.strategicAlignment![i]?.how, a.how) }));
+  }
+  if (Array.isArray(parsed.governance?.nextSteps) && parsed.governance!.nextSteps.every((x) => typeof x === "string")) {
+    merged.governance.nextSteps = parsed.governance!.nextSteps as string[];
+  }
+  // goalText por plan, emparejado por (pillar,key); una meta preliminar debe seguir diciéndolo.
+  const incoming = new Map<string, string>();
+  for (const pp of parsed.pillars as StrategyDocument["pillars"]) {
+    for (const pl of pp?.plans ?? []) if (pl?.pillar && pl?.key && typeof pl.goalText === "string") incoming.set(`${pl.pillar}:${pl.key}`, pl.goalText);
+  }
+  for (const pp of merged.pillars) {
+    for (const pl of pp.plans) {
+      const g = incoming.get(`${pl.pillar}:${pl.key}`);
+      if (!g || g.trim().length < 20) continue;
+      if (pl.goalPreliminary && !/preliminar/i.test(g)) continue; // no perder el marcado preliminar
+      pl.goalText = g.trim();
+    }
+  }
+  merged.engine = "claude";
+  return merged;
 }
 
 const AGENT_SYSTEM = `Eres "Better Agent", el asistente de proceso del Motor IA — Estrategia ESG de Bettersport.
@@ -103,6 +143,7 @@ export async function betterAgentAnswer(question: string, step: number, context:
     AGENT_SYSTEM,
     `Paso actual del usuario: ${STEP_NAMES[step] ?? step}.\nTipo de organización: ${context.orgType || "no indicado"}. Deporte: ${context.sport || "no indicado"}.\n\nPregunta: ${question}`,
     400,
+    { model: AGENT_MODEL, timeoutMs: 20_000 },
   );
   if (out) return { answer: out.trim(), engine: "claude" };
   return { answer: localAgentAnswer(question, step), engine: "local" };

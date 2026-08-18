@@ -46,11 +46,52 @@ export default function BrandsProjectsPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [editStatus, setEditStatus] = useState("Propuesta");
+  const [editProgress, setEditProgress] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  const openProject = (p: Project) => {
+    setSelectedProject(p);
+    setEditStatus(p.status);
+    setEditProgress(p.progress);
+  };
+
+  const handleSaveProject = async () => {
+    if (!selectedProject) return;
+    setSaving(true);
+    try {
+      await apiSend(`/api/brand-projects/${selectedProject.id}`, "PATCH", { status: editStatus, progress: editProgress });
+      await reload();
+      setSelectedProject(null);
+      toast.success("Proyecto actualizado");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!selectedProject) return;
+    if (!window.confirm(`¿Eliminar el proyecto "${selectedProject.project}"?`)) return;
+    setSaving(true);
+    try {
+      await apiSend(`/api/brand-projects/${selectedProject.id}`, "DELETE");
+      await reload();
+      setSelectedProject(null);
+      toast.success("Proyecto eliminado");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const filtered = filter === "Todos" ? projects : projects.filter((p) => p.category === filter);
   const totalInvestment = projects.reduce((s, p) => s + p.investment, 0);
   const totalReach = projects.reduce((s, p) => s + p.reach, 0);
   const activeCount = projects.filter((p) => p.status === "Activo").length;
+  const scoredProjects = projects.filter((p) => p.esgScore > 0);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -75,7 +116,7 @@ export default function BrandsProjectsPage() {
         status: "Propuesta",
         investment: Number(form.investment),
         reach: Number(form.reach),
-        esgScore: 75,
+        esgScore: 0,
         category: form.category,
         progress: 0,
         description: form.description.trim(),
@@ -113,7 +154,7 @@ export default function BrandsProjectsPage() {
           { label: "Inversión total", value: `$${(totalInvestment / 1000).toFixed(0)}K`, icon: <DollarSign size={16} />, color: "#10B981" },
           { label: "Proyectos activos", value: activeCount.toString(), icon: <Target size={16} />, color: "#3B82F6" },
           { label: "Alcance total", value: `${(totalReach / 1000).toFixed(1)}K`, icon: <Users size={16} />, color: "#8B5CF6" },
-          { label: "Score prom.", value: `${projects.length ? Math.round(projects.reduce((s: number, p: Project) => s + p.esgScore, 0) / projects.length) : 0}`, icon: <TrendingUp size={16} />, color: "#F59E0B" },
+          { label: "Score prom.", value: scoredProjects.length ? `${Math.round(scoredProjects.reduce((s: number, p: Project) => s + p.esgScore, 0) / scoredProjects.length)}` : "—", icon: <TrendingUp size={16} />, color: "#F59E0B" },
         ].map((s) => (
           <div key={s.label} className="card p-5 flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.color + "10" }}>
@@ -141,7 +182,7 @@ export default function BrandsProjectsPage() {
       {filtered.length === 0 && projects.length === 0 && (
         <div className="card p-10 text-center">
           <p className="text-sm font-medium text-slate-600">Aún no tienes proyectos de patrocinio.</p>
-          <p className="text-xs text-slate-400 mt-1.5">Crea tu primer proyecto con el botón &quot;Nuevo proyecto&quot; o explora el marketplace para patrocinar eventos.</p>
+          <p className="text-xs text-slate-400 mt-1.5">Crea tu primer proyecto con el botón &quot;Nueva propuesta&quot; o explora el marketplace para patrocinar eventos.</p>
         </div>
       )}
       {filtered.length === 0 && projects.length > 0 && (
@@ -155,7 +196,7 @@ export default function BrandsProjectsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {filtered.map((p, i) => (
           <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-            onClick={() => setSelectedProject(p)}
+            onClick={() => openProject(p)}
             className="card p-7 card-hover cursor-pointer group">
             <div className="flex items-start justify-between mb-3">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-100 to-teal-100 border border-slate-200 flex items-center justify-center font-bold text-teal-600 text-sm">{p.brand[0]}</div>
@@ -180,7 +221,7 @@ export default function BrandsProjectsPage() {
               </div>
               <div className="bg-slate-50 rounded-lg p-2.5">
                 <p className="text-xs text-slate-400 mb-0.5">ESG</p>
-                <p className="text-sm font-bold text-teal-600">{p.esgScore}</p>
+                <p className="text-sm font-bold text-teal-600">{p.esgScore > 0 ? p.esgScore : "—"}</p>
               </div>
             </div>
             <div className="mt-3 pt-3 flex items-center justify-between" style={{ borderTop: "1px solid #f1f5f9" }}>
@@ -215,19 +256,37 @@ export default function BrandsProjectsPage() {
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50">
                   <p className="text-xs text-slate-400">Score ESG</p>
-                  <p className="text-lg font-bold text-teal-600">{selectedProject.esgScore}/100</p>
+                  <p className="text-lg font-bold text-teal-600">{selectedProject.esgScore > 0 ? `${selectedProject.esgScore}/100` : "Pendiente"}</p>
                 </div>
               </div>
-              {selectedProject.progress > 0 && (
-                <div className="mb-6">
-                  <p className="text-xs text-slate-400 mb-2">Progreso del proyecto</p>
-                  <ProgressBar value={selectedProject.progress} showPercent={true} height={8} />
+              <div className="mb-6 space-y-4">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Estado</label>
+                  <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} className="input-field w-full">
+                    <option value="Propuesta">Propuesta</option>
+                    <option value="Evaluación">Evaluación</option>
+                    <option value="Activo">Activo</option>
+                  </select>
                 </div>
-              )}
-              <div className="flex gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs text-slate-400 uppercase tracking-wider">Progreso del proyecto</label>
+                    <span className="text-xs font-semibold text-slate-600">{editProgress}%</span>
+                  </div>
+                  <input type="range" min={0} max={100} step={1} value={editProgress} onChange={(e) => setEditProgress(Number(e.target.value))} className="w-full accent-teal-600" />
+                  <div className="mt-2">
+                    <ProgressBar value={editProgress} showPercent={false} height={8} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3 mb-6">
                 <span className="badge badge-green">{selectedProject.status}</span>
                 <span className="badge badge-cyan">{selectedProject.category}</span>
                 <span className="badge badge-purple">{(selectedProject.reach / 1000).toFixed(1)}K alcance</span>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={handleDeleteProject} disabled={saving} className="btn-secondary flex-1 text-red-600 disabled:opacity-50">Eliminar</button>
+                <button onClick={handleSaveProject} disabled={saving} className="btn-primary flex-1 disabled:opacity-50">{saving ? "Guardando…" : "Guardar"}</button>
               </div>
             </motion.div>
           </motion.div>

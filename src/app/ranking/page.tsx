@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Trophy, Building2, CalendarDays, Landmark, Info, BarChart3,
+  Trophy, Info, BarChart3,
   ArrowUpRight, ArrowDownRight, Minus, ShieldCheck, Medal,
-  Leaf, Users, Scale, Eye, X, ChevronDown, ChevronLeft, ChevronRight, ExternalLink,
+  Leaf, Users, Scale, Eye, X, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -14,25 +14,13 @@ import type { Club } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
 import { useResource } from "@/lib/useResource";
 
-const EMPTY: Club[] = [];
+type RankedClub = Club & { previousRanking?: number | null };
 
-/* ── Entity type config with Lucide icons ── */
-const entityTypes = ["Clubes", "Federaciones", "Eventos", "Venues / Recintos"] as const;
-type EntityType = typeof entityTypes[number];
-
-type EntityConfig = { icon: React.ElementType; color: string; placeholder: string };
-const entityTypeConfig: Record<EntityType, EntityConfig> = {
-  Clubes:            { icon: Trophy,      color: "#F59E0B", placeholder: "" },
-  Federaciones:      { icon: Building2,   color: "#06B6D4", placeholder: "El ranking de Federaciones estará disponible próximamente." },
-  Eventos:           { icon: CalendarDays,color: "#8B5CF6", placeholder: "El ranking de Eventos sostenibles estará disponible próximamente." },
-  "Venues / Recintos":{ icon: Landmark,   color: "#10B981", placeholder: "El ranking de Venues y Recintos estará disponible próximamente." },
-};
+const EMPTY: RankedClub[] = [];
 
 const countryFilters = ["Todos", "Chile", "Argentina", "España", "Colombia", "México", "Uruguay", "Perú"];
 const countryFlags: Record<string, string> = { Todos: "🌎", Chile: "🇨🇱", Argentina: "🇦🇷", España: "🇪🇸", Colombia: "🇨🇴", México: "🇲🇽", Uruguay: "🇺🇾", Perú: "🇵🇪" };
 const sportFilters   = ["Todos", "Fútbol", "Rugby", "Pádel", "Natación", "Tenis", "Atletismo"];
-const federationFilters = ["Todas", "ANFP", "RFEF", "AFA", "FEF", "FCF"];
-const seasons = ["2020/21", "2021/22", "2022/23", "2023/24", "2024/25"];
 
 const ponderacion = [
   { name: "Impacto ambiental", weight: 40, color: "#10B981", icon: Leaf },
@@ -47,7 +35,10 @@ const medals = [
   { place: 3, color: "#CD7F32", glow: "#CD7F3255", label: "Bronce",size: "normal" },
 ] as const;
 
-const getRankChange = (rank: number) => [0, 1, -1, 2, 0, -2, 1, 0][rank - 1] ?? 0;
+const csvCell = (v: string | number) => {
+  const str = String(v ?? "");
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+};
 
 /* ── Club team colors lookup ── */
 const TEAM_COLORS: Record<string, { bg: string; text: string; abbr?: string }> = {
@@ -158,19 +149,29 @@ function FilterSelect({ label, value, options, onChange, icon }: {
 export default function RankingPage() {
   const { activeUser, loaded } = useUser();
   const clubId = activeUser?.clubId ?? null;
-  const { data: clubs } = useResource<Club[]>(
+  const { data: clubs } = useResource<RankedClub[]>(
     loaded && activeUser ? "/api/clubs" : null, EMPTY,
   );
   const router = useRouter();
-  const [entityType, setEntityType] = useState<EntityType>("Clubes");
   const [countryFilter, setCountryFilter] = useState("Todos");
   const [sportFilter, setSportFilter] = useState("Todos");
-  const [federationFilter, setFederationFilter] = useState("Todas");
-  const [seasonIndex, setSeasonIndex] = useState(0);
   const [showMethodology, setShowMethodology] = useState(false);
-  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
+  const [selectedClub, setSelectedClub] = useState<RankedClub | null>(null);
 
-  const activeSeason = seasons[seasonIndex];
+  const exportCsv = () => {
+    const header = ["rank", "name", "country", "sport", "esgScore", "environmental", "social", "governance"];
+    const rows = filtered.map((c) => [c.ranking, c.name, c.country, c.sport, c.esgScore, c.environmental, c.social, c.governance]);
+    const csv = [header, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ranking-esg-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const filtered = clubs.filter((c) => {
     const matchCountry = countryFilter === "Todos" || c.country === countryFilter;
@@ -197,14 +198,8 @@ export default function RankingPage() {
           </div>
         </div>
 
-        {/* Right: Patrocinado + Metodología */}
+        {/* Right: Metodología */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span>Patrocinado por</span>
-            <div className="h-7 px-3 rounded-lg flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: "#E31E2D" }}>
-              Claro
-            </div>
-          </div>
           <motion.button
             onClick={() => setShowMethodology(!showMethodology)}
             whileHover={{ scale: 1.03 }}
@@ -238,64 +233,10 @@ export default function RankingPage() {
             onChange={setSportFilter}
             icon={<span className="text-slate-400">⚽</span>}
           />
-          <FilterSelect
-            label="Selecciona federación"
-            value={federationFilter}
-            options={federationFilters}
-            onChange={setFederationFilter}
-            icon={<span className="text-slate-400">🏛</span>}
-          />
-        </div>
-
-        {/* Row 2: season selector */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">Selecciona temporada</span>
-          <button
-            onClick={() => setSeasonIndex((i) => Math.max(0, i - 1))}
-            disabled={seasonIndex === 0}
-            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 transition-all disabled:opacity-30"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          {seasons.map((s, idx) => (
-            <motion.button
-              key={s}
-              onClick={() => setSeasonIndex(idx)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.96 }}
-              className="px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150"
-              style={seasonIndex === idx
-                ? { background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#fff", boxShadow: "0 4px 12px rgba(16,185,129,0.35)" }
-                : { background: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0" }
-              }
-            >
-              {s}
-            </motion.button>
-          ))}
-          <button
-            onClick={() => setSeasonIndex((i) => Math.min(seasons.length - 1, i + 1))}
-            disabled={seasonIndex === seasons.length - 1}
-            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 transition-all disabled:opacity-30"
-          >
-            <ChevronRight size={14} />
-          </button>
         </div>
       </div>
 
-      {/* ── Placeholder for non-club tabs ── */}
-      {entityType !== "Clubes" && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card p-16 text-center">
-          {(() => { const Icon = entityTypeConfig[entityType].icon; return (
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: entityTypeConfig[entityType].color + "18" }}>
-              <Icon size={26} style={{ color: entityTypeConfig[entityType].color }} />
-            </div>
-          ); })()}
-          <h3 className="text-lg font-bold text-slate-700 mb-2">{entityType}</h3>
-          <p className="text-slate-400 text-sm">{entityTypeConfig[entityType].placeholder}</p>
-        </motion.div>
-      )}
-
-      {entityType === "Clubes" && (<>
+      <>
 
         {/* ── Methodology ── */}
         <AnimatePresence>
@@ -324,8 +265,9 @@ export default function RankingPage() {
                 })}
               </div>
               <p className="text-xs text-slate-400 mt-4 leading-relaxed">
-                El puntaje se calcula automáticamente cada mes considerando evidencias documentadas, KPIs registrados en la plataforma
-                y verificaciones de terceros. Los criterios pueden ser auditados por cualquier club participante.
+                El puntaje ESG se calcula ponderando los cuatro pilares registrados por cada club (Ambiental 40%, Social 30%,
+                Gobernanza 20% y Transparencia 10%), más un bono por el progreso de sus proyectos ESG activos en la plataforma.
+                Se recalcula cada vez que un club actualiza sus proyectos.
               </p>
             </motion.div>
           )}
@@ -369,7 +311,7 @@ export default function RankingPage() {
                 <p className="text-xs text-slate-400">puntos ESG</p>
                 {isHero && (
                   <span className="text-xs font-semibold px-3 py-1 rounded-full mt-1" style={{ background: color + "18", color, border: `1px solid ${color}30` }}>
-                    Líder mundial
+                    1º del ranking
                   </span>
                 )}
               </motion.div>
@@ -416,7 +358,7 @@ export default function RankingPage() {
               Tabla completa
               <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">{filtered.length}</span>
             </h3>
-            <button className="text-xs font-semibold text-teal-600 hover:text-teal-700 transition-colors">Exportar</button>
+            <button onClick={exportCsv} disabled={filtered.length === 0} className="text-xs font-semibold text-teal-600 hover:text-teal-700 transition-colors disabled:opacity-40">Exportar</button>
           </div>
 
           {/* Table header */}
@@ -436,7 +378,7 @@ export default function RankingPage() {
 
           <div className="divide-y divide-slate-50">
             {filtered.map((club, i) => {
-              const change  = getRankChange(club.ranking);
+              const change: number | null = club.previousRanking ? club.previousRanking - club.ranking : null;
               const isMyClub = club.id === clubId;
               const medalColor = club.ranking === 1 ? "#F59E0B" : club.ranking === 2 ? "#94A3B8" : club.ranking === 3 ? "#CD7F32" : null;
               return (
@@ -520,11 +462,11 @@ export default function RankingPage() {
 
                   {/* Trend */}
                   <div className="text-right">
-                    {change > 0 ? (
+                    {change !== null && change > 0 ? (
                       <span className="inline-flex items-center gap-0.5 text-emerald-500 text-xs font-bold">
                         <ArrowUpRight size={13} />{change}
                       </span>
-                    ) : change < 0 ? (
+                    ) : change !== null && change < 0 ? (
                       <span className="inline-flex items-center gap-0.5 text-red-400 text-xs font-bold">
                         <ArrowDownRight size={13} />{Math.abs(change)}
                       </span>
@@ -538,11 +480,11 @@ export default function RankingPage() {
           </div>
         </motion.div>
 
-      </>)}
+      </>
 
       {/* ── Club detail modal ── */}
       <AnimatePresence>
-        {entityType === "Clubes" && selectedClub && (
+        {selectedClub && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

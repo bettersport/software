@@ -4,21 +4,37 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft, Building2, Users, Trophy, Leaf, Scale, Eye,
-  Zap, Gift, Star, BarChart3, CalendarDays, FileText,
-  TrendingUp, TrendingDown, Minus, CheckCircle2, Clock, AlertCircle,
-  MapPin, CalendarRange, Wallet, UserCheck, Target,
+  ArrowLeft, Building2, Users, Leaf, Scale, Eye,
+  Zap, CalendarDays,
+  TrendingUp, Minus, CheckCircle2, Clock,
 } from "lucide-react";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
 import {
   fanTiers, fanActions as defaultActions, fanRewards as defaultRewards,
 } from "@/lib/data";
 import { ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
 import { useResource } from "@/lib/useResource";
-import type { FanTierName, Club, Event, ESGProject, FanProfile } from "@/lib/types";
+import type { FanTierName, Club, FanAction, FanReward, KPI, Milestone } from "@/lib/types";
+
+type AdminClub = Club & { demo?: boolean; fanActions?: FanAction[] | null; fanRewards?: FanReward[] | null };
+type AdminProject = {
+  id: string; title: string; category: string; status: string; progress: number;
+  budget: number; spent: number; responsible: string; description: string;
+  milestones?: Milestone[] | null; kpis?: KPI[] | null;
+};
+type AdminEvent = {
+  id: string; title: string; sport: string; flag: string; country: string; description: string;
+  image?: string | null; budget: number; funded: number; daysLeft: number; audience?: number;
+  sealEsg?: boolean; status: string;
+};
+type AdminFan = { id: string; name: string; points: number; tier: string; actionsCompleted: number; badgesEarned: number };
+type AdminClubDetail = {
+  club: AdminClub;
+  projects: AdminProject[];
+  events: AdminEvent[];
+  fans: AdminFan[];
+  stats: { kpis: number; docs: number; totalFans: number; activeFans: number; participationRate: number; collectiveScore: number; tierDist: { tier: string; _count: number }[] };
+};
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -49,11 +65,6 @@ const eventStatusLabels: Record<string, { label: string; color: string }> = {
   closed:      { label: "Cerrado",        color: "#94A3B8" },
 };
 
-const esgTrendData = [
-  { mes: "Ene", score: 78 }, { mes: "Feb", score: 80 }, { mes: "Mar", score: 81 },
-  { mes: "Abr", score: 83 }, { mes: "May", score: 84 }, { mes: "Jun", score: 85.3 },
-];
-
 type Tab = "perfil" | "fanzone" | "eventos" | "esg";
 
 const TABS: { id: Tab; label: string; Icon: React.ElementType }[] = [
@@ -71,27 +82,25 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
   const { activeUser, loaded } = useUser();
   const [tab, setTab] = useState<Tab>("perfil");
 
-  const { data: club } = useResource<Club | null>(
-    loaded && activeUser ? `/api/clubs/${clubId}` : null, null,
+  const { data: detail } = useResource<AdminClubDetail | null>(
+    loaded && activeUser ? `/api/admin/clubs/${clubId}` : null, null,
   );
 
-  // Events, ESG projects and fans are club-scoped to the logged-in user's own
-  // club; there is no cross-club admin endpoint. These sections degrade to a
-  // graceful empty state derived from what the club object exposes.
-  const clubEvents: Event[]      = [];
-  const clubProjects: ESGProject[] = [];
-  const clubFans: FanProfile[]   = [];
+  const club = detail?.club ?? null;
+  const clubEvents: AdminEvent[]     = detail?.events ?? [];
+  const clubProjects: AdminProject[] = detail?.projects ?? [];
+  const clubFans: AdminFan[]         = detail?.fans ?? [];
 
-  // Fan zone catalogs fall back to the shared presentational defaults (no
-  // per-club fan-config endpoint is available to an admin viewing another club).
-  const fanZoneActions = defaultActions;
-  const fanZoneRewards = defaultRewards;
+  // Fan zone catalogs: the club's own configuration when set; sample defaults
+  // only for seeded demo clubs, otherwise empty (real clubs without config).
+  const fanZoneActions: FanAction[] = club?.fanActions ?? (club?.demo ? defaultActions : []);
+  const fanZoneRewards: FanReward[] = club?.fanRewards ?? (club?.demo ? defaultRewards : []);
 
   const fanZoneStats = {
-    totalFans:         clubFans.length,
-    activeFans:        clubFans.length,
-    participationRate: 0,
-    collectiveScore:   clubFans.reduce((s, f) => s + f.points, 0),
+    totalFans:         detail?.stats.totalFans ?? 0,
+    activeFans:        detail?.stats.activeFans ?? 0,
+    participationRate: detail?.stats.participationRate ?? 0,
+    collectiveScore:   detail?.stats.collectiveScore ?? 0,
   };
 
   if (!club) {
@@ -106,8 +115,9 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
 
   const tierCounts = fanTiers.map((t) => ({
     ...t,
-    count: clubFans.filter((f) => f.tier === t.name).length,
+    count: detail?.stats.tierDist.find((d) => d.tier === t.name)?._count ?? 0,
   }));
+  const tierOf = (tier: string) => tierConfig[(tier in tierConfig ? tier : "bronce") as FanTierName];
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -198,31 +208,26 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
             </div>
           </div>
 
-          {/* Right: ESG score + trend */}
+          {/* Right: ESG score + pillars */}
           <div className="col-span-2 space-y-4">
             <div className="card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-slate-900 text-sm">Score ESG — Evolución 2025</h3>
-                <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">+7.3 pts este año</span>
+                <h3 className="font-bold text-slate-900 text-sm">Score ESG actual</h3>
+                <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">{club.esgScore} / 100</span>
               </div>
-              <ResponsiveContainer width="100%" height={160}>
-                <AreaChart data={esgTrendData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
-                  <defs>
-                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#10B981" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}   />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[70, 100]} tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} width={30} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", fontSize: 12 }} />
-                  <Area type="monotone" dataKey="score" stroke="#10B981" strokeWidth={2.5} fill="url(#g1)" dot={{ fill: "#10B981", r: 3 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="card p-5">
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {[
+                  { label: "Proyectos ESG", value: clubProjects.length },
+                  { label: "KPIs",          value: detail?.stats.kpis ?? 0 },
+                  { label: "Documentos",    value: detail?.stats.docs ?? 0 },
+                  { label: "Eventos",       value: clubEvents.length },
+                ].map((s) => (
+                  <div key={s.label} className="text-center p-3 rounded-xl bg-slate-50">
+                    <p className="text-xl font-black text-slate-800">{s.value}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
               <h3 className="font-bold text-slate-900 text-sm mb-4">Dimensiones ESG</h3>
               <div className="space-y-3">
                 {[
@@ -287,11 +292,11 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
             <div className="card p-5">
               <h3 className="font-bold text-slate-900 text-sm mb-4">Top fans del club</h3>
               <div className="space-y-2">
-                {clubFans.slice(0, 5).sort((a, b) => b.points - a.points).map((fan, idx) => (
+                {[...clubFans].sort((a, b) => b.points - a.points).slice(0, 5).map((fan, idx) => (
                   <div key={fan.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
                     <span className="text-sm font-bold w-5 text-slate-400">#{idx + 1}</span>
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-white"
-                      style={{ background: `linear-gradient(135deg,${tierConfig[fan.tier as FanTierName].color},#0ea5e9)` }}>
+                      style={{ background: `linear-gradient(135deg,${tierOf(fan.tier).color},#0ea5e9)` }}>
                       {fan.name[0]}
                     </div>
                     <div className="flex-1">
@@ -300,8 +305,8 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-black text-teal-600">{fan.points.toLocaleString()} pts</p>
-                      <p className="text-[10px] font-semibold capitalize" style={{ color: tierConfig[fan.tier as FanTierName].color }}>
-                        {tierConfig[fan.tier as FanTierName].emoji} {fan.tier}
+                      <p className="text-[10px] font-semibold capitalize" style={{ color: tierOf(fan.tier).color }}>
+                        {tierOf(fan.tier).emoji} {fan.tier}
                       </p>
                     </div>
                   </div>
@@ -318,6 +323,7 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
                 <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">{fanZoneActions.length} acciones</span>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto">
+                {fanZoneActions.length === 0 && <p className="text-xs text-slate-400 py-4 text-center">Este club aún no configuró acciones.</p>}
                 {fanZoneActions.map((a) => (
                   <div key={a.id} className="flex items-center gap-3 p-2 rounded-xl bg-slate-50">
                     <span className="text-lg">{a.icon}</span>
@@ -339,6 +345,7 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
                 </span>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto">
+                {fanZoneRewards.length === 0 && <p className="text-xs text-slate-400 py-4 text-center">Este club aún no configuró recompensas.</p>}
                 {fanZoneRewards.map((r) => (
                   <div key={r.id} className="flex items-center gap-3 p-2 rounded-xl bg-slate-50">
                     <span className="text-lg">{r.icon}</span>
@@ -372,7 +379,7 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
           ) : (
             clubEvents.map((ev) => {
               const st = eventStatusLabels[ev.status] ?? { label: ev.status, color: "#94A3B8" };
-              const pct = Math.round((ev.funded / ev.budget) * 100);
+              const pct = ev.budget > 0 ? Math.round((ev.funded / ev.budget) * 100) : 0;
               return (
                 <div key={ev.id} className="card p-5">
                   <div className="flex items-start gap-4">
@@ -462,7 +469,9 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
             {clubProjects.map((proj) => {
               const sc = statusConfig[proj.status] ?? statusConfig.in_progress;
               const Icon = sc.Icon;
-              const spentPct = Math.round((proj.spent / proj.budget) * 100);
+              const spentPct = proj.budget > 0 ? Math.round((proj.spent / proj.budget) * 100) : 0;
+              const milestones = proj.milestones ?? [];
+              const projKpis = proj.kpis ?? [];
               return (
                 <div key={proj.id} className="card p-5">
                   <div className="flex items-start justify-between gap-3 mb-3">
@@ -500,16 +509,16 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
                     </div>
                     <div className="text-center p-2 rounded-lg bg-slate-50">
                       <p className="font-bold text-slate-800">
-                        {proj.milestones.filter((m) => m.completed).length}/{proj.milestones.length}
+                        {milestones.filter((m) => m.completed).length}/{milestones.length}
                       </p>
                       <p className="text-slate-400 mt-0.5">Hitos completos</p>
                     </div>
                   </div>
 
                   {/* KPIs */}
-                  {proj.kpis.length > 0 && (
+                  {projKpis.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
-                      {proj.kpis.map((kpi) => (
+                      {projKpis.map((kpi) => (
                         <div key={kpi.id} className="flex items-center justify-between p-2 rounded-lg bg-teal-50">
                           <span className="text-xs text-teal-700 font-medium truncate mr-2">{kpi.name}</span>
                           <span className="text-xs font-black text-teal-700 flex-shrink-0">

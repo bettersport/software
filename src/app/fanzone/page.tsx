@@ -6,7 +6,7 @@ import {
   Zap, Trophy, Gift, Star, CheckCircle2, Lock,
   ChevronRight, Users, TrendingUp, Award,
 } from "lucide-react";
-import { fanTiers, fanActions as defaultActions, fanRewards as defaultRewards, mockFans } from "@/lib/data";
+import { fanTiers, fanActions as defaultActions, fanRewards as defaultRewards } from "@/lib/data";
 import { useUser } from "@/lib/userContext";
 import { useResource, apiSend } from "@/lib/useResource";
 import type { FanTierName, FanActionCategory, FanAction, FanReward, FanProfile } from "@/lib/types";
@@ -32,13 +32,9 @@ function progressToNext(points: number, tierName: FanTierName) {
   return Math.min(100, Math.round((done / range) * 100));
 }
 
-/** Highest tier whose minimum points the fan has reached */
-function tierForPoints(points: number): FanTierName {
-  let current: FanTierName = fanTiers[0].name;
-  for (const t of fanTiers) {
-    if (points >= t.minPoints) current = t.name;
-  }
-  return current;
+const TIER_NAMES = fanTiers.map((t) => t.name);
+function asTier(name: string | undefined | null): FanTierName {
+  return (TIER_NAMES as string[]).includes(name ?? "") ? (name as FanTierName) : fanTiers[0].name;
 }
 
 const categoryConfig: Record<FanActionCategory, { label: string; color: string; bg: string }> = {
@@ -183,44 +179,77 @@ const REWARD_TABS = [
   { id: "badge",   label: "Badges" },
 ];
 
-const EMPTY_PROFILE: FanProfile = {
-  id: "", name: "", clubId: "", clubName: "", country: "", flag: "",
-  points: 0, tier: "bronce", actionsCompleted: 0, badgesEarned: 0,
-  rankingPosition: 0, joinedAt: "", completedActionIds: [], claimedRewardIds: [],
-};
+/** Shape returned by GET /api/fan-profile (server-computed points/tier). */
+interface ServerFanProfile {
+  id: string;
+  points: number;
+  tier: string;
+  badgesEarned: number;
+  completedActionIds: string[];
+  claimedRewardIds: string[];
+  joinedAt: string;
+  clubId?: string | null;
+}
+
+interface RankingRow {
+  id: string;
+  name: string;
+  points: number;
+  tier: string;
+  actionsCompleted: number;
+  badgesEarned: number;
+  rank: number;
+}
+interface RankingPayload {
+  top: RankingRow[];
+  me: RankingRow | null;
+  stats: { totalFans: number; activeFans: number; participationRate: number; collectiveScore: number };
+}
+
 const EMPTY_CONFIG: { actions: FanAction[] | null; rewards: FanReward[] | null } = {
   actions: null, rewards: null,
 };
+const EMPTY_RANKING: RankingPayload = {
+  top: [], me: null, stats: { totalFans: 0, activeFans: 0, participationRate: 0, collectiveScore: 0 },
+};
+const NO_ACTIONS: FanAction[] = [];
+const NO_REWARDS: FanReward[] = [];
 
 export default function FanZonePage() {
-  const { activeUser, loaded } = useUser();
+  const { activeUser, loaded, isDemo } = useUser();
   const [actionTab, setActionTab] = useState<string>("todos");
   const [rewardTab, setRewardTab] = useState<string>("todos");
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  // Fan progress (completed actions / claimed rewards) persisted per account
-  const { data: profile, setData: setProfile, reload } = useResource<FanProfile | null>(
+  // Fan progress (points/tier/completed/claimed) — computed and persisted server-side
+  const { data: profile, reload } = useResource<ServerFanProfile | null>(
     loaded && activeUser ? "/api/fan-profile" : null, null,
   );
 
-  // Club-specific fan zone config; fall back to the default catalogs when unset
+  // Club ranking + aggregate stats (real)
+  const { data: ranking, reload: reloadRanking } = useResource<RankingPayload>(
+    loaded && activeUser ? "/api/fan-ranking" : null, EMPTY_RANKING,
+  );
+
+  // Club-specific fan zone config. Demo accounts fall back to sample catalogs;
+  // real accounts see an empty state until their club publishes actions/rewards.
   const { data: config } = useResource(
     loaded && activeUser ? "/api/fan-config" : null, EMPTY_CONFIG,
   );
-  const fanActions = config.actions ?? defaultActions;
-  const fanRewards = config.rewards ?? defaultRewards;
+  const fanActions: FanAction[] = config.actions ?? (isDemo ? defaultActions : NO_ACTIONS);
+  const fanRewards: FanReward[] = config.rewards ?? (isDemo ? defaultRewards : NO_REWARDS);
+  const actionsConfigured = config.actions !== null || isDemo;
+  const rewardsConfigured = config.rewards !== null || isDemo;
 
   const completedIds = useMemo(() => profile?.completedActionIds ?? [], [profile]);
   const claimedIds   = useMemo(() => profile?.claimedRewardIds ?? [], [profile]);
   const completed = useMemo(() => new Set(completedIds), [completedIds]);
   const claimed   = useMemo(() => new Set(claimedIds), [claimedIds]);
 
-  // Points are derived from the fan's completed actions using the active catalog
-  const earnedPoints = useMemo(() => {
-    const pointsByAction = new Map(fanActions.map((a) => [a.id, a.points]));
-    return completedIds.reduce((acc, id) => acc + (pointsByAction.get(id) ?? 0), 0);
-  }, [fanActions, completedIds]);
+  const season = new Date().getFullYear();
+  const joinedYear = profile?.joinedAt ? String(new Date(profile.joinedAt).getFullYear()) : "—";
 
-  // Fan identity comes from the signed-in user; progress from the fetched profile
+  // Fan identity comes from the signed-in user; progress from the server profile
   const fan = useMemo<FanProfile>(() => ({
     id: activeUser?.id ?? "",
     name: activeUser?.name ?? "Fan",
@@ -229,15 +258,15 @@ export default function FanZonePage() {
     clubName: activeUser?.club || "Sin club",
     country: activeUser?.country ?? "",
     flag: "",
-    points: earnedPoints,
-    tier: tierForPoints(earnedPoints),
+    points: profile?.points ?? 0,
+    tier: asTier(profile?.tier),
     actionsCompleted: completedIds.length,
     badgesEarned: profile?.badgesEarned ?? 0,
-    rankingPosition: profile?.rankingPosition ?? 0,
-    joinedAt: profile?.joinedAt ?? "2026",
+    rankingPosition: ranking.me?.rank ?? 0,
+    joinedAt: joinedYear,
     completedActionIds: completedIds,
     claimedRewardIds: claimedIds,
-  }), [activeUser, earnedPoints, completedIds, claimedIds, profile]);
+  }), [activeUser, profile, completedIds, claimedIds, ranking.me, joinedYear]);
 
   const tier   = getTier(fan.tier);
   const next   = getNextTier(fan.tier);
@@ -246,30 +275,34 @@ export default function FanZonePage() {
   const visibleActions = fanActions.filter((a) => actionTab === "todos" || a.category === actionTab);
   const visibleRewards = fanRewards.filter((r) => rewardTab === "todos" || r.type === rewardTab);
 
-  const persist = (patch: {
-    completedActionIds: string[]; claimedRewardIds: string[];
-    points: number; tier: FanTierName; badgesEarned: number;
-  }) => {
-    apiSend("/api/fan-profile", "PATCH", patch).catch(() => reload());
+  const handleComplete = async (id: string) => {
+    if (completed.has(id) || busyId) return;
+    setBusyId(id);
+    try {
+      await apiSend("/api/fan-profile", "POST", { intent: "complete_action", actionId: id });
+      await reload();
+      reloadRanking();
+      toast.success("Acción registrada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo registrar la acción");
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const handleComplete = (id: string) => {
-    if (completed.has(id)) return;
-    const nextCompleted = [...completedIds, id];
-    const pointsByAction = new Map(fanActions.map((a) => [a.id, a.points]));
-    const nextPoints = nextCompleted.reduce((acc, cid) => acc + (pointsByAction.get(cid) ?? 0), 0);
-    const nextTier = tierForPoints(nextPoints);
-    setProfile((prev) => ({ ...(prev ?? EMPTY_PROFILE), completedActionIds: nextCompleted, points: nextPoints, tier: nextTier }));
-    toast.success("¡Acción registrada! Tus puntos serán confirmados pronto 🌱");
-    persist({ completedActionIds: nextCompleted, claimedRewardIds: claimedIds, points: nextPoints, tier: nextTier, badgesEarned: fan.badgesEarned });
-  };
-
-  const handleClaim = (id: string, pts: number) => {
-    if (claimed.has(id) || pts > fan.points) return;
-    const nextClaimed = [...claimedIds, id];
-    setProfile((prev) => ({ ...(prev ?? EMPTY_PROFILE), claimedRewardIds: nextClaimed }));
-    toast.success("¡Recompensa canjeada! Revisa tu correo para más detalles 🎁");
-    persist({ completedActionIds: completedIds, claimedRewardIds: nextClaimed, points: fan.points, tier: fan.tier, badgesEarned: fan.badgesEarned });
+  const handleClaim = async (id: string, pts: number) => {
+    if (claimed.has(id) || pts > fan.points || busyId) return;
+    setBusyId(id);
+    try {
+      await apiSend("/api/fan-profile", "POST", { intent: "claim_reward", rewardId: id });
+      await reload();
+      reloadRanking();
+      toast.success("Canje registrado. Tu club se pondrá en contacto.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo canjear la recompensa");
+    } finally {
+      setBusyId(null);
+    }
   };
 
   if (!loaded) return null;
@@ -286,7 +319,7 @@ export default function FanZonePage() {
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-50 border border-teal-200">
           <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-          <span className="text-xs font-semibold text-teal-700">Temporada 2025 activa</span>
+          <span className="text-xs font-semibold text-teal-700">Temporada {season} activa</span>
         </div>
       </div>
 
@@ -332,9 +365,9 @@ export default function FanZonePage() {
         <div className="lg:col-span-3 space-y-4">
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: <Users size={16} />,      label: "Fans en el club",  value: "1,284",  color: "#3B82F6" },
-              { icon: <TrendingUp size={16} />, label: "Participación",    value: "38.2%",  color: "#10B981" },
-              { icon: <Star size={16} />,       label: "Score colectivo",  value: "892K",   color: "#F59E0B" },
+              { icon: <Users size={16} />,      label: "Fans en el club",  value: ranking.stats.totalFans.toLocaleString(),  color: "#3B82F6" },
+              { icon: <TrendingUp size={16} />, label: "Participación",    value: `${ranking.stats.participationRate}%`,  color: "#10B981" },
+              { icon: <Star size={16} />,       label: "Score colectivo",  value: ranking.stats.collectiveScore.toLocaleString(),   color: "#F59E0B" },
             ].map((s) => (
               <div key={s.label} className="card p-4 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -352,14 +385,21 @@ export default function FanZonePage() {
           <div className="card overflow-hidden">
             <div className="px-5 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
               <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                <Trophy size={15} className="text-amber-500" /> Ranking de fans · Temporada 2025
+                <Trophy size={15} className="text-amber-500" /> Ranking de fans · Temporada {season}
               </p>
               <ChevronRight size={14} className="text-slate-400" />
             </div>
             <div className="divide-y divide-slate-50">
-              {mockFans.slice(0, 10).map((f, i) => {
-                const t   = getTier(f.tier);
-                const isMe = f.id === "f-hincha";
+              {ranking.top.length === 0 && (
+                <div className="px-5 py-10 text-center">
+                  <Trophy size={28} className="mx-auto text-slate-300 mb-2" />
+                  <p className="text-sm font-medium text-slate-600">Aún no hay fans en el ranking de tu club</p>
+                  <p className="text-xs text-slate-400 mt-1">Completa tu primera acción ESG para aparecer aquí.</p>
+                </div>
+              )}
+              {ranking.top.map((f, i) => {
+                const t   = getTier(asTier(f.tier));
+                const isMe = f.id === activeUser?.id;
                 return (
                   <motion.div
                     key={f.id}
@@ -370,10 +410,10 @@ export default function FanZonePage() {
                     style={isMe ? { backgroundColor: "rgba(16,185,129,0.05)" } : {}}
                   >
                     <div className="w-7 text-center flex-shrink-0">
-                      {i === 0 ? <span className="text-base">🥇</span>
-                      : i === 1 ? <span className="text-base">🥈</span>
-                      : i === 2 ? <span className="text-base">🥉</span>
-                      : <span className="text-xs font-mono text-slate-400">#{i + 1}</span>}
+                      {f.rank === 1 ? <span className="text-base">🥇</span>
+                      : f.rank === 2 ? <span className="text-base">🥈</span>
+                      : f.rank === 3 ? <span className="text-base">🥉</span>
+                      : <span className="text-xs font-mono text-slate-400">#{f.rank}</span>}
                     </div>
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black text-white flex-shrink-0"
                       style={{ background: `linear-gradient(135deg, ${t.color}, ${t.color}88)` }}>
@@ -428,6 +468,18 @@ export default function FanZonePage() {
             exit={{ opacity: 0, y: -4 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
           >
+            {!actionsConfigured && (
+              <div className="card p-10 text-center md:col-span-2 lg:col-span-3">
+                <Zap size={28} className="mx-auto text-slate-300 mb-2" />
+                <p className="text-sm font-medium text-slate-600">Tu club aún no ha publicado acciones</p>
+                <p className="text-xs text-slate-400 mt-1">Cuando tu club configure su Fan Zone, verás aquí las acciones ESG disponibles.</p>
+              </div>
+            )}
+            {actionsConfigured && visibleActions.length === 0 && (
+              <div className="card p-8 text-center md:col-span-2 lg:col-span-3">
+                <p className="text-sm text-slate-500">No hay acciones en esta categoría.</p>
+              </div>
+            )}
             {visibleActions.map((action, i) => {
               const done = completed.has(action.id);
               const cat  = categoryConfig[action.category];
@@ -462,9 +514,10 @@ export default function FanZonePage() {
                       </div>
                     ) : (
                       <button onClick={() => handleComplete(action.id)}
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition-all hover:scale-105"
+                        disabled={busyId === action.id}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition-all hover:scale-105 disabled:opacity-60"
                         style={{ background: "linear-gradient(135deg,#10B981,#06B6D4)" }}>
-                        Completar
+                        {busyId === action.id ? "Registrando..." : "Completar"}
                       </button>
                     )}
                   </div>
@@ -505,6 +558,18 @@ export default function FanZonePage() {
             exit={{ opacity: 0, y: -4 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
           >
+            {!rewardsConfigured && (
+              <div className="card p-10 text-center md:col-span-2 lg:col-span-4">
+                <Gift size={28} className="mx-auto text-slate-300 mb-2" />
+                <p className="text-sm font-medium text-slate-600">Tu club aún no ha publicado recompensas</p>
+                <p className="text-xs text-slate-400 mt-1">Cuando tu club configure su Fan Zone, podrás canjear tus puntos aquí.</p>
+              </div>
+            )}
+            {rewardsConfigured && visibleRewards.length === 0 && (
+              <div className="card p-8 text-center md:col-span-2 lg:col-span-4">
+                <p className="text-sm text-slate-500">No hay recompensas en esta categoría.</p>
+              </div>
+            )}
             {visibleRewards.map((reward, i) => {
               const isClaimed   = claimed.has(reward.id);
               const canAfford   = fan.points >= reward.points;
@@ -559,10 +624,11 @@ export default function FanZonePage() {
                     ) : (
                       <button
                         onClick={() => handleClaim(reward.id, reward.points)}
-                        className="w-full text-xs font-semibold py-2 rounded-lg text-white transition-all hover:scale-105"
+                        disabled={busyId === reward.id}
+                        className="w-full text-xs font-semibold py-2 rounded-lg text-white transition-all hover:scale-105 disabled:opacity-60"
                         style={{ background: isBadge ? "linear-gradient(135deg,#F59E0B,#EF4444)" : "linear-gradient(135deg,#10B981,#06B6D4)" }}
                       >
-                        {isBadge ? "Obtener badge" : "Canjear ahora"}
+                        {busyId === reward.id ? "Procesando..." : isBadge ? "Obtener badge" : "Canjear ahora"}
                       </button>
                     )}
                   </div>

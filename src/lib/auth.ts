@@ -26,8 +26,8 @@ export function verifyPassword(plain: string, hash: string) {
 
 // ── Session (JWT in httpOnly cookie) ──────────────────────────────────────────
 
-export async function createSession(userId: string) {
-  const token = await new SignJWT({ userId })
+export async function createSession(userId: string, role?: string) {
+  const token = await new SignJWT({ userId, ...(role ? { role } : {}) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE}s`)
@@ -73,6 +73,7 @@ export interface SessionUser {
   club?: string | null;
   clubId?: string | null;
   demo: boolean;
+  notificationPrefs?: Record<string, boolean> | null;
 }
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
@@ -94,6 +95,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     club: user.club?.name ?? user.org ?? null,
     clubId: user.clubId,
     demo: user.demo,
+    notificationPrefs: (user.notificationPrefs as Record<string, boolean> | null) ?? null,
   };
 }
 

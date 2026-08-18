@@ -43,7 +43,7 @@ interface NavItem {
   roles?: UserRole[]; // qué roles ven este item (vacío = todos)
 }
 
-const allRoles: UserRole[] = ["admin", "club", "brand", "solucion"];
+const allRoles: UserRole[] = ["admin", "club", "brand", "solucion", "manager", "auditor"];
 
 const navItems: NavItem[] = [
   {
@@ -70,7 +70,7 @@ const navItems: NavItem[] = [
   {
     label: "Proyectos de alto impacto",
     icon: <ShoppingBag size={18} />,
-    roles: ["admin", "club", "brand", "solucion"],
+    roles: allRoles,
     children: [
       { label: "Proyectos sostenibles", href: "/marketplace", icon: <ShoppingBag size={15} /> },
       { label: "Mis eventos", href: "/marketplace/my-events", icon: <FileText size={15} />, roles: ["club", "admin"] },
@@ -89,7 +89,7 @@ const navItems: NavItem[] = [
   {
     label: "Gestión ESG",
     icon: <Leaf size={18} />,
-    roles: ["admin", "club"],
+    roles: ["admin", "club", "manager", "auditor"],
     children: [
       { label: "Mis proyectos", href: "/esg/projects", icon: <Lightbulb size={15} /> },
       { label: "KPIs e indicadores", href: "/esg/kpis", icon: <BarChart3 size={15} /> },
@@ -156,13 +156,6 @@ const navItems: NavItem[] = [
   },
 ];
 
-const partners = [
-  { name: "Claro", initials: "CL" },
-  { name: "Rugby CL", initials: "RC" },
-  { name: "ESPN", initials: "ES" },
-  { name: "VTR", initials: "VT" },
-];
-
 interface SidebarProps {
   collapsed?: boolean;
   onToggle?: () => void;
@@ -174,7 +167,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
   const pathname = usePathname();
   const { activeUser } = useUser();
   const role = activeUser?.role ?? "club";
-  const [openMenus, setOpenMenus] = useState<string[]>(["Ranking", "Marketplace", "Marcas"]);
+  const [openMenus, setOpenMenus] = useState<string[]>(["Ranking", "Proyectos de alto impacto", "Marcas"]);
 
   // Auto-close drawer on mobile when navigating
   useEffect(() => {
@@ -252,25 +245,6 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
           />
         ))}
       </nav>
-
-      {/* Partners */}
-      {!collapsed && (
-        <div className="flex-shrink-0 p-4" style={{ borderTop: "1px solid #E2E8F0" }}>
-          <p className="text-[11px] mb-2.5 font-medium uppercase tracking-wider" style={{ color: "#94A3B8" }}>Partners</p>
-          <div className="flex items-center gap-1.5">
-            {partners.map((p) => (
-              <div
-                key={p.name}
-                className="h-7 px-2.5 rounded-md flex items-center justify-center text-[10px] font-semibold"
-                style={{ backgroundColor: "#F1F5F9", color: "#64748B" }}
-                title={p.name}
-              >
-                {p.initials}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </aside>
   );
 }

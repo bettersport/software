@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Leaf, Recycle, BookOpen, Users, Bike, Star,
@@ -12,9 +12,12 @@ import { solutionCategoryLabels } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import type { SolutionProvider } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
-import { useResource } from "@/lib/useResource";
+import { useResource, apiSend } from "@/lib/useResource";
+import toast from "react-hot-toast";
 
-const EMPTY: SolutionProvider[] = [];
+type Provider = SolutionProvider & { website?: string | null; isEmpresaB?: boolean };
+
+const EMPTY: Provider[] = [];
 
 /* ─── Category icon map (Lucide) ─── */
 const categoryIcons: Record<string, React.ElementType> = {
@@ -120,16 +123,37 @@ function ClubBadge({ name, initials }: { name: string; initials: string }) {
 /* ─── Main page ─── */
 export default function SolutionsPage() {
   const { activeUser, loaded } = useUser();
-  const { data: providers } = useResource<SolutionProvider[]>(
+  const { data: providers } = useResource<Provider[]>(
     loaded && activeUser ? "/api/solutions" : null, EMPTY,
   );
 
   const [country, setCountry] = useState("Todos los países");
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<"list" | "grid">("list");
-  const [selected, setSelected] = useState<SolutionProvider | null>(null);
+  const [selected, setSelected] = useState<Provider | null>(null);
   const [search, setSearch] = useState("");
   const [onlyEmpresaB, setOnlyEmpresaB] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactMessage, setContactMessage] = useState("");
+  const [sendingContact, setSendingContact] = useState(false);
+
+  useEffect(() => { setContactOpen(false); setContactMessage(""); }, [selected]);
+  const openContact = () => { setContactMessage(""); setContactOpen(true); };
+  const sendContact = async () => {
+    if (!selected) return;
+    if (!contactMessage.trim()) { toast.error("Escribe un mensaje para el proveedor"); return; }
+    setSendingContact(true);
+    try {
+      await apiSend("/api/solution-contacts", "POST", { providerId: selected.id, message: contactMessage.trim() });
+      toast.success("Mensaje enviado al proveedor");
+      setContactOpen(false);
+      setContactMessage("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo enviar el mensaje");
+    } finally {
+      setSendingContact(false);
+    }
+  };
 
   const filtered = providers.filter((p) => {
     const matchCountry = country === "Todos los países" || p.country === country;
@@ -138,9 +162,10 @@ export default function SolutionsPage() {
       !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase());
-    const matchEmpresaB = !onlyEmpresaB || !!(p as { isEmpresaB?: boolean }).isEmpresaB;
+    const matchEmpresaB = !onlyEmpresaB || !!p.isEmpresaB;
     return matchCountry && matchCat && matchSearch && matchEmpresaB;
   });
+  const maxProjects = Math.max(1, ...filtered.map((p) => p.projectsCount));
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -323,7 +348,7 @@ export default function SolutionsPage() {
                       <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-slate-100">
                         <motion.div
                           initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((p.projectsCount / 55) * 100, 100)}%` }}
+                          animate={{ width: `${Math.min((p.projectsCount / maxProjects) * 100, 100)}%` }}
                           transition={{ delay: i * 0.04 + 0.2, duration: 0.6, ease: "easeOut" }}
                           className="h-full rounded-full"
                           style={{ background: `linear-gradient(90deg, ${catColor}, ${catColor}88)` }}
@@ -413,7 +438,7 @@ export default function SolutionsPage() {
                       <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
-                          animate={{ width: `${Math.min((p.projectsCount / 55) * 100, 100)}%` }}
+                          animate={{ width: `${Math.min((p.projectsCount / maxProjects) * 100, 100)}%` }}
                           transition={{ delay: i * 0.05 + 0.3, duration: 0.7, ease: "easeOut" }}
                           className="h-full rounded-full"
                           style={{ background: `linear-gradient(90deg, ${p.color}, ${catColor})` }}
@@ -554,17 +579,40 @@ export default function SolutionsPage() {
                       background: `linear-gradient(135deg, ${selected.color}, ${categoryColors[selected.category] ?? selected.color}cc)`,
                       boxShadow: `0 4px 14px ${selected.color}40`,
                     }}
+                    onClick={openContact}
                   >
                     <Phone size={14} /> Contactar
                   </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-                  >
-                    <Globe size={14} /> Web <ExternalLink size={11} className="text-slate-400" />
-                  </motion.button>
+                  {selected.website && (
+                    <motion.a
+                      href={selected.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                    >
+                      <Globe size={14} /> Web <ExternalLink size={11} className="text-slate-400" />
+                    </motion.a>
+                  )}
                 </div>
+
+                {contactOpen && (
+                  <div className="mt-2 p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mensaje para {selected.name}</p>
+                    <textarea
+                      rows={4}
+                      value={contactMessage}
+                      onChange={(e) => setContactMessage(e.target.value)}
+                      placeholder="Cuéntale al proveedor qué necesitas y cómo pueden contactarte..."
+                      className="w-full text-sm rounded-lg border border-slate-200 bg-white p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-200"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setContactOpen(false)} disabled={sendingContact} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-50">Cancelar</button>
+                      <button onClick={sendContact} disabled={sendingContact} className="px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ backgroundColor: selected.color }}>{sendingContact ? "Enviando…" : "Enviar mensaje"}</button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

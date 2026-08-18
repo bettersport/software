@@ -148,6 +148,8 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [cfg, setCfg] = useState<BrandConfig>(EMPTY_CONFIG);
 
   const set = <K extends keyof BrandConfig>(key: K, val: BrandConfig[K]) =>
@@ -160,17 +162,22 @@ export default function OnboardingPage() {
     }));
 
   const finish = async () => {
+    setSaving(true);
+    setSaveError(null);
     try {
       await apiSend("/api/brand-config", "PUT", cfg);
-    } catch {
-      /* keep going to the success screen even if the save hiccups */
+      setDone(true);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "No se pudo guardar la configuración");
+    } finally {
+      setSaving(false);
     }
-    setDone(true);
   };
 
   const goToDashboard = () => router.push("/dashboard");
+  const goToSources = () => router.push("/brands/config");
 
-  if (done) return <SuccessScreen onGo={goToDashboard} />;
+  if (done) return <SuccessScreen onGo={goToDashboard} onSources={goToSources} />;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#F8FAFC" }}>
@@ -263,13 +270,22 @@ export default function OnboardingPage() {
                 Continuar <ArrowRight size={14} />
               </button>
             ) : (
-              <button
-                className="h-10 px-5 rounded-xl font-semibold text-white flex items-center gap-2 text-sm"
-                style={{ background: "linear-gradient(135deg, #10B981, #059669)", boxShadow: "0 4px 16px rgba(16,185,129,0.3)" }}
-                onClick={finish}
-              >
-                Activar dashboard <CheckCircle2 size={14} />
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                {saveError && (
+                  <div className="flex items-center gap-3 text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: "rgba(239,68,68,0.08)", color: "#B91C1C", border: "1px solid rgba(239,68,68,0.25)" }}>
+                    <span>{saveError}</span>
+                    <button onClick={finish} disabled={saving} className="font-semibold underline disabled:opacity-50">Reintentar</button>
+                  </div>
+                )}
+                <button
+                  className="h-10 px-5 rounded-xl font-semibold text-white flex items-center gap-2 text-sm disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #10B981, #059669)", boxShadow: "0 4px 16px rgba(16,185,129,0.3)" }}
+                  onClick={finish}
+                  disabled={saving}
+                >
+                  {saving ? "Guardando…" : "Activar dashboard"} <CheckCircle2 size={14} />
+                </button>
+              </div>
             )}
           </div>
         </main>
@@ -523,7 +539,7 @@ function Step5({ cfg, onEdit }: { cfg: BrandConfig; onEdit: (step: number) => vo
 
 // ── Success ──────────────────────────────────────────────────────────────────
 
-function SuccessScreen({ onGo }: { onGo: () => void }) {
+function SuccessScreen({ onGo, onSources }: { onGo: () => void; onSources: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#F8FAFC" }}>
       <motion.div
@@ -539,19 +555,18 @@ function SuccessScreen({ onGo }: { onGo: () => void }) {
         </div>
         <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">¡Dashboard activado!</h2>
         <p className="text-slate-500 leading-relaxed mb-8">
-          Tu panel de ROI de patrocinio está configurado y listo. En las próximas horas comenzarás a ver datos según las fuentes que conectaste.
+          Tu configuración quedó guardada. Conecta tus fuentes desde Configuración para empezar a recibir datos.
         </p>
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-2 gap-3 mb-8">
           {[
-            { icon: "📊", label: "Ver dashboard",   sub: "Revisa tus primeros datos" },
-            { icon: "🔌", label: "Agregar fuentes",  sub: "Conecta más canales" },
-            { icon: "📤", label: "Exportar reporte", sub: "PDF o CSV listo" },
+            { icon: "📊", label: "Ver dashboard",   sub: "Revisa tu panel de patrocinio", onClick: onGo },
+            { icon: "🔌", label: "Agregar fuentes",  sub: "Configura tus canales", onClick: onSources },
           ].map((c) => (
-            <div key={c.label} className="card p-4 text-left">
+            <button key={c.label} type="button" onClick={c.onClick} className="card p-4 text-left card-hover cursor-pointer">
               <div className="text-2xl mb-2">{c.icon}</div>
               <p className="text-sm font-semibold text-slate-900">{c.label}</p>
               <p className="text-xs text-slate-400 mt-1">{c.sub}</p>
-            </div>
+            </button>
           ))}
         </div>
         <button

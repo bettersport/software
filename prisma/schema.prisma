@@ -55,6 +55,7 @@ model User {
   /// For brand/solution accounts: organization name (clubs use the Club relation).
   org          String?
   demo         Boolean  @default(false)
+  notificationPrefs Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -67,6 +68,8 @@ model User {
   brandProjects BrandProject[]
   sponsorLeads SponsorLead[]
   notifications Notification[]
+  sponsorRequests  SponsorRequest[]  @relation("sponsorRequests")
+  solutionContacts SolutionContact[] @relation("solutionContacts")
 }
 
 model Club {
@@ -86,6 +89,16 @@ model Club {
   founded       Int
   description   String?
   demo          Boolean @default(false)
+  /// Puntajes base (sin bonus de proyectos) — el score visible = base + bonus recalculado en servidor.
+  baseEnvironmental Float?
+  baseSocial        Float?
+  baseGovernance    Float?
+  /// Ranking del período anterior, para mostrar el Δ real.
+  previousRanking Int?
+  banner        String?
+  region        String?
+  website       String?
+  createdAt     DateTime @default(now())
   /// Per-club Fan Zone configuration (custom actions / rewards). Null = default set.
   fanActions    Json?
   fanRewards    Json?
@@ -151,6 +164,9 @@ model Document {
   size       String
   version    String   @default("v1.0")
   uploadedBy String
+  uploadedById String?
+  storageKey String?
+  mimeType   String?
   uploadedAt DateTime @default(now())
 
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -200,6 +216,7 @@ model ClubEvent {
   esgObjectives     String[]
   status            String   @default("upcoming")
   participants      Int      @default(0)
+  description       String   @default("")
   createdAt         DateTime @default(now())
 
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -258,6 +275,8 @@ model SolutionProvider {
   verified            Boolean  @default(false)
   featured            Boolean  @default(false)
   tags                String[]
+  website             String?
+  isEmpresaB          Boolean  @default(false)
   /// Seeded showcase data — hidden from real (non-demo) accounts.
   demo                Boolean  @default(false)
 }
@@ -464,4 +483,42 @@ model SportFramework {
   framework   String
   summary     String  @default("")
   active      Boolean @default(true)
+}
+
+/// Solicitud de patrocinio desde el marketplace (marca → evento/club).
+model SponsorRequest {
+  id        String   @id @default(cuid())
+  eventId   String
+  message   String   @default("")
+  amount    Float?
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  requester   User   @relation("sponsorRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String
+
+  @@index([eventId])
+}
+
+/// Contacto a un proveedor de soluciones desde el directorio.
+model SolutionContact {
+  id         String   @id @default(cuid())
+  providerId String
+  message    String   @default("")
+  createdAt  DateTime @default(now())
+
+  requester   User   @relation("solutionContacts", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String
+
+  @@index([providerId])
+}
+
+/// Historial de valores de un KPI (para tendencia y evolución reales).
+model KpiHistory {
+  id         String   @id @default(cuid())
+  kpiId      String
+  value      Float
+  recordedAt DateTime @default(now())
+
+  @@index([kpiId])
 }

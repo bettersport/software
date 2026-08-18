@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Correo o contraseña incorrectos" }, { status: 401 });
   }
 
-  await createSession(user.id);
+  await createSession(user.id, user.role);
   const me = await getCurrentUser();
 
   // Brands without a saved config still need onboarding.

@@ -8,14 +8,15 @@ import {
   FileText, TrendingDown, BarChart2,
 } from "lucide-react";
 import { StatCard, ProgressBar, SectionHeader } from "@/components/ui";
-import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
+import { categoryLabels, categoryColors, categoryIcons, fanTiers } from "@/lib/data";
 import { useResource } from "@/lib/useResource";
 import { computeClubScore } from "@/lib/scoring";
 import { useMemo } from "react";
-import type { Club, ESGProject, Event as EventT } from "@/lib/types";
+import type { Club, ESGProject, Event as EventT, FanProfile } from "@/lib/types";
 import { getStatusColor, getStatusLabel, cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -25,18 +26,39 @@ import {
 const NO_PROJECTS: ESGProject[] = [];
 const NO_CLUBS: Club[] = [];
 const NO_EVENTS: EventT[] = [];
+
+type BrandProjectT = { id: string; brand: string; project: string; status: string; investment: number };
+type SponsorLeadT = { id: string; brand: string; stage: string; amount: number };
+type NotifT = { id: string; type: string; title: string; message: string; read: boolean; createdAt?: string };
+type AdminStats = {
+  clubs: number; events: number; brandInvestment: number;
+  esgAvg: { esgScore: number | null } | null;
+  growth: { month: string; clubs: number }[];
+};
+const NO_BRAND_PROJECTS: BrandProjectT[] = [];
+const NO_LEADS: SponsorLeadT[] = [];
+const NO_NOTIFS: NotifT[] = [];
+
+const fmtMoney = (n: number) => `$${Math.round(n).toLocaleString()}`;
+const relativeTime = (iso?: string) => {
+  if (!iso) return "";
+  const h = Math.floor((Date.now() - new Date(iso).getTime()) / 3_600_000);
+  if (h < 1) return "Hace un momento";
+  if (h < 24) return `Hace ${h}h`;
+  return `Hace ${Math.floor(h / 24)}d`;
+};
 const FALLBACK_CLUB: Club = {
   id: "", name: "Mi organización", sport: "—", country: "—", flag: "",
   esgScore: 0, ranking: 0, environmental: 0, social: 0, governance: 0,
   transparency: 0, members: 0, founded: new Date().getFullYear(),
 };
 
-// Static compliance scores per club (replaces Math.random())
+// Demo-only compliance scores per club (shown only to demo auditors)
 const clubComplianceScores: Record<string, number> = {
   c1: 97, c2: 92, c3: 88, c4: 85, c5: 82, c6: 78, c7: 75, c8: 71, c9: 68, c10: 65,
 };
 
-// Static brand collaboration data (replaces Math.random())
+// Demo-only brand collaboration data
 const brandCollabProgress = [72, 88, 55, 91];
 const brandCollabInvested = [32, 48, 28, 41];
 
@@ -59,17 +81,6 @@ const progressData = [
   { month: "Ago", score: 85 },
 ];
 
-const platformGrowthData = [
-  { month: "Ene", clubs: 180, events: 42 },
-  { month: "Feb", clubs: 195, events: 56 },
-  { month: "Mar", clubs: 210, events: 61 },
-  { month: "Abr", clubs: 230, events: 73 },
-  { month: "May", clubs: 248, events: 82 },
-  { month: "Jun", clubs: 260, events: 88 },
-  { month: "Jul", clubs: 272, events: 94 },
-  { month: "Ago", clubs: 280, events: 101 },
-];
-
 const investmentData = [
   { category: "Ambiental", invested: 45000, roi: 320 },
   { category: "Social", invested: 32000, roi: 280 },
@@ -83,14 +94,6 @@ const sportsPieData = [
   { name: "Tenis", value: 20, color: "#F59E0B" },
 ];
 
-const recommendedEvents = [
-  { id: "e1", name: "Copa Verde Santiago 2025", sport: "Fútbol", country: "Chile", flag: "🇨🇱", esgScore: 88, budget: 45000 },
-  { id: "e2", name: "Marathón Patagonia Eco", sport: "Atletismo", country: "Chile", flag: "🇨🇱", esgScore: 92, budget: 28000 },
-  { id: "e3", name: "Rugby Sustentable BCN", sport: "Rugby", country: "España", flag: "🇪🇸", esgScore: 85, budget: 62000 },
-  { id: "e4", name: "Tenis Inclusivo Open", sport: "Tenis", country: "Argentina", flag: "🇦🇷", esgScore: 80, budget: 35000 },
-  { id: "e5", name: "Torneo Pádel Ecológico", sport: "Pádel", country: "Chile", flag: "🇨🇱", esgScore: 77, budget: 19000 },
-];
-
 const alerts = [
   { type: "warning", msg: "KPI Consumo hídrico supera el límite mensual", time: "Hace 5h" },
   { type: "success", msg: "Proyecto 'Inclusión Social' alcanzó hito mensual", time: "Hace 1d" },
@@ -102,12 +105,7 @@ const welcomeAlerts = [
   { type: "info", msg: "Crea tu primer proyecto ESG para comenzar a construir tu puntaje.", time: "Ahora" },
 ];
 
-const adminAlerts = [
-  { type: "warning", msg: "3 clubes con KPIs atrasados esta semana", time: "Hace 2h" },
-  { type: "success", msg: "Plataforma alcanzó 280 clubes registrados", time: "Hace 6h" },
-  { type: "info", msg: "12 nuevos eventos publicados en marketplace", time: "Hace 1d" },
-];
-
+// Demo-only auditor alerts
 const auditorAlerts = [
   { type: "warning", msg: "Club Deportivo Alavés — evidencia pendiente en 2 KPIs", time: "Hace 3h" },
   { type: "info", msg: "FC Barcelona completó auditoría Q3 satisfactoriamente", time: "Hace 1d" },
@@ -153,10 +151,18 @@ export default function DashboardPage() {
   const { data: projects } = useResource<ESGProject[]>(loaded && activeUser ? "/api/projects" : null, NO_PROJECTS);
   const { data: clubs } = useResource<Club[]>(loaded && activeUser ? "/api/clubs" : null, NO_CLUBS);
   const { data: rawEvents } = useResource<EventT[]>(loaded && activeUser ? "/api/events" : null, NO_EVENTS);
+  const { data: notifications } = useResource<NotifT[]>(loaded && activeUser ? "/api/notifications" : null, NO_NOTIFS);
+  const { data: adminStats } = useResource<AdminStats | null>(loaded && activeUser && role === "admin" ? "/api/admin/stats" : null, null);
+  const { data: brandProjects } = useResource<BrandProjectT[]>(loaded && activeUser && role === "brand" ? "/api/brand-projects" : null, NO_BRAND_PROJECTS);
+  const { data: leads } = useResource<SponsorLeadT[]>(
+    loaded && activeUser && (role === "brand" || role === "club" || role === "manager") ? "/api/sponsor-leads" : null, NO_LEADS,
+  );
+  const { data: fanProfile } = useResource<FanProfile | null>(loaded && activeUser && role === "hincha" ? "/api/fan-profile" : null, null);
+  const router = useRouter();
 
   const myClubBase = useMemo(() => clubs.find((c) => c.id === clubId), [clubs, clubId]);
   const liveClub = useMemo(() => (myClubBase ? computeClubScore(myClubBase, projects) : null), [myClubBase, projects]);
-  const myClub = liveClub ?? clubs[3] ?? FALLBACK_CLUB;
+  const myClub = liveClub ?? FALLBACK_CLUB;
   const events = useMemo(() => rawEvents.map((e) => ({ ...e, remaining: e.budget - e.funded })), [rawEvents]);
 
   if (!loaded) return null;
@@ -172,8 +178,25 @@ export default function DashboardPage() {
     { subject: "Social", value: liveClub?.social ?? 0 },
     { subject: "Gobernanza", value: liveClub?.governance ?? 0 },
     { subject: "Transparencia", value: liveClub?.transparency ?? 0 },
-    { subject: "Innovación", value: 0 },
   ];
+
+  // Real notifications → alert rows for the "Alertas y avisos" panel.
+  const notifAlerts = notifications.slice(0, 5).map((n) => ({
+    type: n.type === "error" ? "warning" : n.type,
+    msg: n.title ? `${n.title}: ${n.message}` : n.message,
+    time: relativeTime(n.createdAt),
+  }));
+  const panelAlerts = role === "admin"
+    ? notifAlerts
+    : notifAlerts.length > 0 ? notifAlerts : isDemo ? alerts : projects.length === 0 ? welcomeAlerts : [];
+
+  // Real per-role figures.
+  const activeBrandProjects = brandProjects.filter((p) => p.status === "Activo").length;
+  const brandInvestmentTotal = brandProjects.reduce((a, p) => a + (Number(p.investment) || 0), 0);
+  const closedSponsorships = leads.filter((l) => l.stage === "Cierre").reduce((a, l) => a + (Number(l.amount) || 0), 0);
+  const fanTier = fanTiers.find((t) => t.name === fanProfile?.tier) ?? fanTiers[0];
+  const growth = adminStats?.growth ?? [];
+  const recommendedEvents = [...events].sort((a, b) => b.budget - a.budget).slice(0, 5);
 
   const roleSubtitle: Record<string, string> = {
     admin:    "Panel de administración · Vista global de la plataforma",
@@ -189,10 +212,10 @@ export default function DashboardPage() {
   const statCards: Record<string, React.ReactNode> = {
     admin: (
       <>
-        <StatCard title="Clubes registrados" value="280" subtitle="en la plataforma" icon={<Building2 size={20} />} trend={{ value: 12, label: "este mes" }} color="green" delay={0} />
-        <StatCard title="Eventos activos" value="101" subtitle="en marketplace" icon={<ShoppingBag size={20} />} trend={{ value: 8, label: "nuevos" }} color="cyan" delay={0.1} />
-        <StatCard title="Revenue YTD" value="$1.2M" subtitle="ingresos totales" icon={<DollarSign size={20} />} trend={{ value: 24, label: "vs año anterior" }} color="purple" delay={0.2} />
-        <StatCard title="Prom. ESG global" value="76.4" subtitle="/ 100 puntos" icon={<Leaf size={20} />} trend={{ value: 4.1, label: "vs trimestre" }} color="orange" delay={0.3} />
+        <StatCard title="Clubes registrados" value={adminStats ? adminStats.clubs : "—"} subtitle="en la plataforma" icon={<Building2 size={20} />} color="green" delay={0} />
+        <StatCard title="Eventos activos" value={adminStats ? adminStats.events : "—"} subtitle="en marketplace" icon={<ShoppingBag size={20} />} color="cyan" delay={0.1} />
+        <StatCard title="Inversión de marcas" value={adminStats ? fmtMoney(adminStats.brandInvestment) : "—"} subtitle="en proyectos de marca" icon={<DollarSign size={20} />} color="purple" delay={0.2} />
+        <StatCard title="Prom. ESG global" value={adminStats?.esgAvg?.esgScore != null ? adminStats.esgAvg.esgScore.toFixed(1) : "—"} subtitle="/ 100 puntos" icon={<Leaf size={20} />} color="orange" delay={0.3} />
       </>
     ),
     club: isDemo ? (
@@ -205,9 +228,9 @@ export default function DashboardPage() {
     ) : (
       <>
         <StatCard title="Puntaje ESG" value={(liveClub?.esgScore ?? 0).toFixed(1)} subtitle="/ 100 puntos" icon={<Leaf size={20} />} color="green" delay={0} />
-        <StatCard title="Posición ranking" value="—" subtitle="aún sin ranking" icon={<Trophy size={20} />} color="orange" delay={0.1} />
+        <StatCard title="Posición ranking" value={liveClub && liveClub.ranking > 0 ? `#${liveClub.ranking}` : "—"} subtitle={liveClub && liveClub.ranking > 0 ? `de ${clubs.length} clubes` : "aún sin ranking"} icon={<Trophy size={20} />} color="orange" delay={0.1} />
         <StatCard title="Proyectos activos" value={activeProjects.length} subtitle="en ejecución" icon={<Target size={20} />} color="cyan" delay={0.2} />
-        <StatCard title="Patrocinios" value="$0" subtitle="financiados este año" icon={<TrendingUp size={20} />} color="purple" delay={0.3} />
+        <StatCard title="Patrocinios" value={fmtMoney(closedSponsorships)} subtitle="cerrados con marcas" icon={<TrendingUp size={20} />} color="purple" delay={0.3} />
       </>
     ),
     brand: isDemo ? (
@@ -219,10 +242,10 @@ export default function DashboardPage() {
       </>
     ) : (
       <>
-        <StatCard title="Patrocinios activos" value="0" subtitle="colaboraciones" icon={<Briefcase size={20} />} color="green" delay={0} />
-        <StatCard title="Inversión total" value="$0" subtitle="este año" icon={<DollarSign size={20} />} color="cyan" delay={0.1} />
+        <StatCard title="Patrocinios activos" value={activeBrandProjects} subtitle="colaboraciones" icon={<Briefcase size={20} />} color="green" delay={0} />
+        <StatCard title="Inversión total" value={fmtMoney(brandInvestmentTotal)} subtitle="en mis proyectos" icon={<DollarSign size={20} />} color="cyan" delay={0.1} />
         <StatCard title="ROI promedio" value="—" subtitle="sin datos aún" icon={<TrendingUp size={20} />} color="purple" delay={0.2} />
-        <StatCard title="Clubes patrocinados" value="0" subtitle="en la red" icon={<Building2 size={20} />} color="orange" delay={0.3} />
+        <StatCard title="Clubes patrocinados" value="—" subtitle="sin datos aún" icon={<Building2 size={20} />} color="orange" delay={0.3} />
       </>
     ),
     solucion: isDemo ? (
@@ -234,9 +257,9 @@ export default function DashboardPage() {
       </>
     ) : (
       <>
-        <StatCard title="Soluciones activas" value="0" subtitle="en clubes" icon={<Wrench size={20} />} color="orange" delay={0} />
-        <StatCard title="Clubes cliente" value="0" subtitle="en la red" icon={<Building2 size={20} />} color="green" delay={0.1} />
-        <StatCard title="Revenue YTD" value="$0" subtitle="facturado" icon={<DollarSign size={20} />} color="cyan" delay={0.2} />
+        <StatCard title="Soluciones activas" value={0} subtitle="aún sin implementaciones registradas" icon={<Wrench size={20} />} color="orange" delay={0} />
+        <StatCard title="Clubes cliente" value={0} subtitle="aún sin clubes vinculados" icon={<Building2 size={20} />} color="green" delay={0.1} />
+        <StatCard title="Revenue YTD" value="—" subtitle="sin datos aún" icon={<DollarSign size={20} />} color="cyan" delay={0.2} />
         <StatCard title="Valoración" value="—" subtitle="sin valoraciones aún" icon={<Star size={20} />} color="purple" delay={0.3} />
       </>
     ),
@@ -249,10 +272,10 @@ export default function DashboardPage() {
       </>
     ) : (
       <>
-        <StatCard title="Puntos fan" value="0" subtitle="acumulados" icon={<Star size={20} />} color="purple" delay={0} />
-        <StatCard title="Nivel" value="Bronce" subtitle="Fan Zone" icon={<Trophy size={20} />} color="orange" delay={0.1} />
-        <StatCard title="Acciones ESG" value="0" subtitle="completadas" icon={<Zap size={20} />} color="green" delay={0.2} />
-        <StatCard title="Recompensas" value="0" subtitle="canjeadas" icon={<CheckCircle size={20} />} color="cyan" delay={0.3} />
+        <StatCard title="Puntos fan" value={(fanProfile?.points ?? 0).toLocaleString()} subtitle="acumulados" icon={<Star size={20} />} color="purple" delay={0} />
+        <StatCard title="Nivel" value={fanTier.label} subtitle="Fan Zone" icon={<Trophy size={20} />} color="orange" delay={0.1} />
+        <StatCard title="Acciones ESG" value={fanProfile?.completedActionIds?.length ?? 0} subtitle="completadas" icon={<Zap size={20} />} color="green" delay={0.2} />
+        <StatCard title="Recompensas" value={fanProfile?.claimedRewardIds?.length ?? 0} subtitle="canjeadas" icon={<CheckCircle size={20} />} color="cyan" delay={0.3} />
       </>
     ),
   };
@@ -292,7 +315,7 @@ export default function DashboardPage() {
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all"
                 style={{ backgroundColor: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.3)", color: "#3B82F6" }}
-                onClick={() => {}}
+                onClick={() => router.push("/brands/projects")}
               >
                 <FileText size={15} /> Solicitar Reporte Patrocinado
               </motion.button>
@@ -301,7 +324,7 @@ export default function DashboardPage() {
                 whileTap={{ scale: 0.97 }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all"
                 style={{ backgroundColor: "rgba(139,92,246,0.08)", borderColor: "rgba(139,92,246,0.3)", color: "#8B5CF6" }}
-                onClick={() => {}}
+                onClick={() => router.push("/brands/config")}
               >
                 <BarChart2 size={15} /> Performance Marketing
               </motion.button>
@@ -319,9 +342,11 @@ export default function DashboardPage() {
       )}
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        {statCards[role] || statCards.club}
-      </div>
+      {!(role === "auditor" && !isDemo) && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          {statCards[role] || statCards.club}
+        </div>
+      )}
 
       {/* ── New club accounts with no ESG data yet ── */}
       {(role === "club" || role === "manager") && !isDemo && !hasClubData && (
@@ -423,24 +448,32 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8">
           <div className="flex items-center justify-between mb-5">
             <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Crecimiento de la plataforma</h3>
-            <span className="badge badge-green">2024</span>
+            <span className="badge badge-green">{growth.length >= 2 ? `${growth.length} meses` : "En construcción"}</span>
           </div>
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={platformGrowthData}>
-              <defs>
-                <linearGradient id="colorClubs" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
-              <Area type="monotone" dataKey="clubs" name="Clubes" stroke="#3B82F6" strokeWidth={2} fill="url(#colorClubs)" />
-              <Area type="monotone" dataKey="events" name="Eventos" stroke="#10B981" strokeWidth={2} fill="none" strokeDasharray="5 5" />
-            </AreaChart>
-          </ResponsiveContainer>
+          {growth.length >= 2 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={growth}>
+                <defs>
+                  <linearGradient id="colorClubs" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
+                <Area type="monotone" dataKey="clubs" name="Clubes nuevos" stroke="#3B82F6" strokeWidth={2} fill="url(#colorClubs)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center" style={{ height: 260 }}>
+              <p className="text-sm font-medium" style={{ color: "#64748B" }}>Historial en construcción</p>
+              <p className="text-xs mt-1.5 max-w-xs" style={{ color: "#94A3B8" }}>
+                El crecimiento mensual de clubes se mostrará cuando existan al menos dos meses de registros.
+              </p>
+            </div>
+          )}
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8">
@@ -571,8 +604,13 @@ export default function DashboardPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card p-8">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Eventos recomendados para patrocinio</h3>
-              <span className="badge badge-green">Por ESG score</span>
+              <span className="badge badge-green">Por presupuesto</span>
             </div>
+            {recommendedEvents.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-sm" style={{ color: "#94A3B8" }}>Aún no hay eventos publicados en el marketplace.</p>
+              </div>
+            )}
             <div className="space-y-3">
               {recommendedEvents.map((event) => (
                 <Link key={event.id} href="/marketplace"
@@ -581,12 +619,12 @@ export default function DashboardPage() {
                 >
                   <span className="text-lg">{event.flag}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#0f172a" }}>{event.name}</p>
+                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#0f172a" }}>{event.title}</p>
                     <p className="text-xs" style={{ color: "#94a3b8" }}>{event.country} · {event.sport}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold" style={{ color: "#10B981" }}>{event.esgScore}</p>
-                    <p className="text-xs" style={{ color: "#94a3b8" }}>ESG score</p>
+                    <p className="text-sm font-bold" style={{ color: "#10B981" }}>{fmtMoney(event.budget)}</p>
+                    <p className="text-xs" style={{ color: "#94a3b8" }}>presupuesto</p>
                   </div>
                   <ArrowUpRight size={14} className="text-slate-300 group-hover:text-teal-500 transition-colors flex-shrink-0" />
                 </Link>
@@ -597,8 +635,25 @@ export default function DashboardPage() {
       </div>
       )}
 
-      {/* ── Auditor charts ── */}
-      {role === "auditor" && (
+      {/* ── Auditor (real accounts): no audit records yet ── */}
+      {role === "auditor" && !isDemo && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#EFF6FF" }}>
+            <ClipboardCheck size={24} style={{ color: "#3B82F6" }} />
+          </div>
+          <h3 className="font-bold text-lg" style={{ color: "#0F172A" }}>Sin registros de auditoría aún</h3>
+          <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#64748B" }}>
+            Cuando los clubes registren proyectos, KPIs y documentación verificable, aquí verás su cumplimiento y las alertas de auditoría.
+          </p>
+          <Link href="/ranking" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl text-sm font-semibold text-slate-600"
+            style={{ backgroundColor: "#F1F5F9" }}>
+            <Trophy size={15} /> Ver ranking de clubes
+          </Link>
+        </motion.div>
+      )}
+
+      {/* ── Auditor charts (demo sample) ── */}
+      {role === "auditor" && isDemo && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-7">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8 lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
@@ -705,8 +760,11 @@ export default function DashboardPage() {
               </div>
               Alertas y avisos
             </h3>
+            {panelAlerts.length === 0 && (
+              <p className="text-sm text-center py-4" style={{ color: "#94A3B8" }}>Sin avisos por ahora.</p>
+            )}
             <div className="space-y-5">
-              {(role === "admin" ? adminAlerts : isDemo ? alerts : welcomeAlerts).map((alert, i) => (
+              {panelAlerts.map((alert, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="mt-0.5 flex-shrink-0">
                     {alert.type === "warning" && <AlertTriangle size={16} className="text-amber-400" />}
@@ -761,8 +819,8 @@ export default function DashboardPage() {
       </div>
       )}
 
-      {/* ── Auditor alerts ── */}
-      {role === "auditor" && (
+      {/* ── Auditor alerts (demo sample) ── */}
+      {role === "auditor" && isDemo && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card p-8">
           <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#0F172A" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#FFF7ED" }}>

@@ -74,6 +74,7 @@ export interface ProposedProject {
 }
 
 export interface ChallengePlan {
+  id?: string;
   pillar: Pillar;
   key: string;
   label: string;

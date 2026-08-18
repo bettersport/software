@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Send, Bell, Upload, ImageIcon } from "lucide-react";
+import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Upload, Pencil } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
 import { useResource, apiSend } from "@/lib/useResource";
@@ -19,6 +19,7 @@ interface ClubEvent {
   esgObjectives: string[];
   status: string;
   participants: number;
+  description?: string | null;
   sponsorLogo?: string | null;
   mediaPartnerLogo?: string | null;
   createdAt?: string;
@@ -43,7 +44,9 @@ const ESG_OBJECTIVES = [
   "Equidad de Género",
   "Educación Ambiental",
 ];
-const emptyForm = { title: "", date: "", location: "", sport: "Fútbol", role: "Organizador", sponsorLogo: "", mediaPartnerLogo: "", esgObjectives: [] as string[] };
+const STATUSES = ["upcoming", "active", "completed"] as const;
+const emptyForm = { title: "", date: "", location: "", sport: "Fútbol", role: "Organizador", sponsorLogo: "", mediaPartnerLogo: "", esgObjectives: [] as string[], description: "" };
+const emptyEdit = { title: "", date: "", location: "", sport: "Fútbol", status: "upcoming", participants: "0", description: "", esgObjectives: [] as string[] };
 
 /* ── Logo upload helper ── */
 function LogoUpload({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -104,8 +107,9 @@ export default function MyEventsPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [sponsorUpdateEvent, setSponsorUpdateEvent] = useState<string | null>(null);
-  const [sponsorMessage, setSponsorMessage] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState(emptyEdit);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const createEvent = async () => {
     if (!form.title.trim() || !form.date || !form.location.trim()) {
@@ -122,6 +126,7 @@ export default function MyEventsPage() {
         esgObjectives: form.esgObjectives,
         sponsorLogo: form.sponsorLogo,
         mediaPartnerLogo: form.mediaPartnerLogo,
+        description: form.description,
         status: "upcoming",
         participants: 0,
       });
@@ -144,14 +149,46 @@ export default function MyEventsPage() {
     }
   };
 
-  const sendSponsorUpdate = (eventId: string) => {
-    if (!sponsorMessage.trim()) {
-      toast.error("Escribe un mensaje para los sponsors");
+  const openEdit = (event: ClubEvent) => {
+    setEditingId(event.id);
+    setEditForm({
+      title: event.title,
+      date: event.date,
+      location: event.location,
+      sport: event.sport,
+      status: event.status,
+      participants: String(event.participants ?? 0),
+      description: event.description ?? "",
+      esgObjectives: event.esgObjectives ?? [],
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    if (!editForm.title.trim() || !editForm.date || !editForm.location.trim()) {
+      toast.error("Completa todos los campos requeridos");
       return;
     }
-    setSponsorUpdateEvent(null);
-    setSponsorMessage("");
-    toast.success("Actualización ESG enviada a los sponsors");
+    setSavingEdit(true);
+    try {
+      await apiSend(`/api/my-events/${editingId}`, "PATCH", {
+        title: editForm.title.trim(),
+        date: editForm.date,
+        location: editForm.location.trim(),
+        sport: editForm.sport,
+        status: editForm.status,
+        participants: Math.max(0, parseInt(editForm.participants, 10) || 0),
+        description: editForm.description,
+        esgObjectives: editForm.esgObjectives,
+      });
+      await reload();
+      setEditingId(null);
+      toast.success("Evento actualizado");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo actualizar el evento");
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   return (
@@ -213,10 +250,12 @@ export default function MyEventsPage() {
                 {isOpen && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-100">
                     <div className="p-6 space-y-5">
-                      <p className="text-sm text-slate-400 leading-relaxed">Evento creado desde la plataforma BetterSport.</p>
+                      <p className={event.description?.trim() ? "text-sm text-slate-600 leading-relaxed" : "text-sm text-slate-400 italic leading-relaxed"}>
+                        {event.description?.trim() || "Sin descripción"}
+                      </p>
                       <div className="grid grid-cols-2 gap-3">
                         {[
-                          { label: "Categoría ESG", value: event.esgObjectives[0] || "Ambiental" },
+                          { label: "Categoría ESG", value: event.esgObjectives.length ? event.esgObjectives.join(", ") : "Sin objetivo ESG" },
                           { label: "Deporte", value: event.sport },
                           { label: "Participantes", value: event.participants?.toLocaleString() || "N/A" },
                           { label: "Días restantes", value: event.daysLeft?.toString() || "N/A" },
@@ -228,14 +267,9 @@ export default function MyEventsPage() {
                         ))}
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        <button
-                          className="flex items-center gap-1.5 text-xs py-1.5 px-3 rounded-xl font-semibold transition-all"
-                          style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}
-                          onClick={(e) => { e.stopPropagation(); setSponsorUpdateEvent(event.id); setSponsorMessage(""); }}
-                        >
-                          <Bell size={13} /> Actualizar Sponsor
+                        <button className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5" onClick={() => openEdit(event)}>
+                          <Pencil size={12} /> Gestionar
                         </button>
-                        <button className="btn-secondary text-xs py-1.5 px-3" onClick={() => toast.success("Gestión del evento próximamente")}>Gestionar</button>
                         <button className="btn-ghost text-xs py-1.5 px-3" onClick={() => deleteEvent(event.id)}>Eliminar</button>
                       </div>
                     </div>
@@ -253,54 +287,91 @@ export default function MyEventsPage() {
         )}
       </div>
 
-      {/* Sponsor update modal */}
+      {/* Edit event modal */}
       <Portal>
         <AnimatePresence>
-          {sponsorUpdateEvent && (
+          {editingId && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-              onClick={() => setSponsorUpdateEvent(null)}>
+              onClick={() => setEditingId(null)}>
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                className="card w-full max-w-lg p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+                className="card w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}>
-                      <Bell size={18} className="text-slate-900" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>Actualizar Sponsor</h3>
-                      <p className="text-xs text-slate-400">Se enviará una notificación a las marcas patrocinadoras</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setSponsorUpdateEvent(null)} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+                  <h3 className="font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>Gestionar evento</h3>
+                  <button onClick={() => setEditingId(null)} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
                     <X size={18} className="text-slate-400" />
                   </button>
                 </div>
-                <div className="p-4 rounded-xl" style={{ backgroundColor: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                  <p className="text-xs font-semibold text-teal-700 mb-1">Destinatarios</p>
-                  <p className="text-xs text-slate-500">
-                    Todos los sponsors del evento
-                  </p>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Nombre del evento *</label>
+                  <input type="text" className="input-field w-full"
+                    value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Fecha *</label>
+                    <input type="date" className="input-field w-full"
+                      value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Estado</label>
+                    <select className="input-field w-full" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
+                      {STATUSES.map((st) => <option key={st} value={st}>{statusConfig[st].label}</option>)}
+                    </select>
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Actualización ESG *</label>
-                  <textarea
-                    rows={4}
-                    className="input-field w-full resize-none"
-                    placeholder="Ej: Hemos alcanzado una reducción del 30% en emisiones CO2 este trimestre. Adjuntamos el informe actualizado..."
-                    value={sponsorMessage}
-                    onChange={(e) => setSponsorMessage(e.target.value)}
-                  />
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Ubicación *</label>
+                  <input type="text" placeholder="Ciudad, País" className="input-field w-full"
+                    value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
                 </div>
-                <div className="flex gap-3 pt-1">
-                  <button
-                    className="flex-1 h-11 rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}
-                    onClick={() => sendSponsorUpdate(sponsorUpdateEvent)}
-                  >
-                    <Send size={16} /> Enviar notificación
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Deporte</label>
+                    <select className="input-field w-full" value={editForm.sport} onChange={(e) => setEditForm({ ...editForm, sport: e.target.value })}>
+                      {SPORTS.map((sp) => <option key={sp}>{sp}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Participantes</label>
+                    <input type="number" min="0" className="input-field w-full"
+                      value={editForm.participants} onChange={(e) => setEditForm({ ...editForm, participants: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Descripción</label>
+                  <textarea rows={3} className="input-field w-full resize-none" placeholder="Describe el evento, su alcance y su impacto"
+                    value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-2 uppercase tracking-wider">Objetivos ESG vinculados</label>
+                  <div className="flex flex-wrap gap-2">
+                    {ESG_OBJECTIVES.map((obj) => {
+                      const active = editForm.esgObjectives.includes(obj);
+                      return (
+                        <button
+                          key={obj}
+                          type="button"
+                          onClick={() => setEditForm((f) => ({
+                            ...f,
+                            esgObjectives: active ? f.esgObjectives.filter((o) => o !== obj) : [...f.esgObjectives, obj],
+                          }))}
+                          className="text-xs px-3 py-1.5 rounded-full font-semibold border transition-all"
+                          style={active
+                            ? { backgroundColor: "#10B981", color: "#fff", borderColor: "#10B981" }
+                            : { backgroundColor: "#f8fafc", color: "#64748b", borderColor: "#e2e8f0" }}
+                        >
+                          {obj}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button className="btn-primary flex-1" onClick={saveEdit} disabled={savingEdit}>
+                    {savingEdit ? "Guardando..." : "Guardar cambios"}
                   </button>
-                  <button className="btn-secondary" onClick={() => setSponsorUpdateEvent(null)}>Cancelar</button>
+                  <button className="btn-secondary" onClick={() => setEditingId(null)}>Cancelar</button>
                 </div>
               </motion.div>
             </motion.div>
@@ -351,6 +422,11 @@ export default function MyEventsPage() {
                       {ROLES.map((r) => <option key={r}>{r}</option>)}
                     </select>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Descripción</label>
+                  <textarea rows={3} className="input-field w-full resize-none" placeholder="Describe el evento, su alcance y su impacto"
+                    value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
                 </div>
                 {/* ESG Objectives */}
                 <div>

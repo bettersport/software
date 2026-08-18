@@ -31,6 +31,7 @@ export async function PATCH(req: Request, { params }: Params) {
       }),
       ...(b.status !== undefined && { status: String(b.status) }),
       ...(b.participants !== undefined && { participants: Number(b.participants) }),
+      ...(b.description !== undefined && { description: String(b.description).slice(0, 4000) }),
     },
   });
   return json(event);

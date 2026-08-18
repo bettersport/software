@@ -338,8 +338,8 @@ export default function BrandConfigPage() {
         {/* ── FUENTES ── */}
         {tab === "fuentes" && (
           <div className="space-y-5">
-            <h2 className="text-lg font-bold text-slate-900">Fuentes de datos</h2>
-            <p className="text-sm text-slate-500">Selecciona los canales que alimentarán los indicadores del dashboard.</p>
+            <h2 className="text-lg font-bold text-slate-900">Fuentes previstas</h2>
+            <p className="text-sm text-slate-500">Selecciona los canales que planeas conectar. Las integraciones estarán disponibles próximamente; tu selección queda guardada.</p>
             <div className="grid grid-cols-2 gap-3">
               {DATA_SOURCES.map(({ id, label, desc, Icon }) => {
                 const active = cfg.dataSources.includes(id);
@@ -361,7 +361,10 @@ export default function BrandConfigPage() {
                       <Icon size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-900">{label}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-900">{label}</p>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">Próximamente</span>
+                      </div>
                       <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
                     </div>
                     <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
@@ -380,6 +383,7 @@ export default function BrandConfigPage() {
           <div className="space-y-5">
             <h2 className="text-lg font-bold text-slate-900">KPIs del dashboard</h2>
             <p className="text-sm text-slate-500">Activa los indicadores que quieres visualizar. Puedes cambiarlos en cualquier momento.</p>
+            <p className="text-xs px-3 py-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">Los KPIs mostrarán datos cuando conectes una fuente.</p>
             <div className="space-y-6">
               {(["visibilidad","engagement","reputacion","conversion"] as const).map((cat) => (
                 <div key={cat}>

@@ -211,7 +211,7 @@ export function buildPlans(input: StrategyInput, griRows: GriRow[], framework: F
     const maturity = maturityOf(c);
     const goal = c.goalText?.trim() ? { text: c.goalText.trim(), preliminary: maturity !== "con_linea_base", requiresBaseline: maturity !== "con_linea_base" } : smartGoal(c, gri, input, maturity);
     const plan: ChallengePlan = {
-      pillar: c.pillar, key: c.key, label: c.label, maturity,
+      id: c.id, pillar: c.pillar, key: c.key, label: c.label, maturity,
       griStandard: c.griStandard || gri?.griStandard || "GRI (por definir)",
       griTitle: c.griTitle || gri?.griTitle || "",
       indicators: c.indicators.length ? c.indicators : gri?.indicators ?? [],
@@ -225,6 +225,8 @@ export function buildPlans(input: StrategyInput, griRows: GriRow[], framework: F
     };
     if (input.alignGlobal && framework) {
       plan.globalAlignment = `Esta meta se alinea con ${framework.framework} (${framework.organism}).`;
+    } else if (input.alignGlobal && input.globalBody) {
+      plan.globalAlignment = `Esta meta se declara alineada con los lineamientos de ${input.globalBody}.`;
     }
     return plan;
   });
@@ -296,7 +298,11 @@ export function generateStrategyDocument(input: StrategyInput, griRows: GriRow[]
     methodology, pillars, roadmap,
     investment: { declaredTotal, currency, byPillar, byYear, narrative: declaredTotal ? `Presupuesto declarado de ${fmt(declaredTotal, currency)} distribuido en el período; los desafíos sin presupuesto se estiman por nivel de inversión.` : "No hay presupuesto declarado; cada iniciativa indica un nivel de inversión estimado (bajo/medio/alto) para orientar la decisión." },
     strategicAlignment: objectives,
-    globalAlignment: input.alignGlobal && framework ? { organism: framework.organism, framework: framework.framework, links: plans.map((p) => `${p.label} → ${framework.framework}`) } : null,
+    globalAlignment: input.alignGlobal && framework
+      ? { organism: framework.organism, framework: framework.framework, links: plans.map((p) => `${p.label} → ${framework.framework}`) }
+      : input.alignGlobal && input.globalBody
+        ? { organism: input.globalBody, framework: "Lineamientos de sostenibilidad del organismo (marco detallado no integrado aún)", links: plans.map((p) => `${p.label} → ${input.globalBody}`) }
+        : null,
     governance: { reviewFrequency: input.reviewFrequency, owner: input.respName || "Responsable ESG designado", cadence: [`Revisión ${input.reviewFrequency} de avances por meta`, "Reporte anual al directorio", "Actualización de la estrategia al cierre de cada año"], nextSteps },
   };
 }

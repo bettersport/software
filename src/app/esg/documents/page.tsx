@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Upload, Download, Trash2, Eye, Filter, Plus, Search, FileSpreadsheet, Image } from "lucide-react";
+import { FileText, Upload, Trash2, FileLock2, Search, FileSpreadsheet, Image } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
 import { useResource, apiSend } from "@/lib/useResource";
@@ -17,7 +17,8 @@ const fileIcons: Record<string, React.ReactNode> = {
   doc: <FileText size={20} className="text-blue-300" />,
 };
 
-const categories = ["Todos", "Política ESG", "Ambiental", "Social", "Gobernanza", "Certificaciones", "Financiero"];
+const categories = ["Todos", "Política ESG", "Ambiental", "Social", "Gobernanza", "Certificaciones", "Financiero", "Sin categoría"];
+const uploadCategories = categories.filter((c) => c !== "Todos");
 
 const EMPTY: Document[] = [];
 
@@ -29,11 +30,10 @@ export default function DocumentsPage() {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("Todos");
   const [dragging, setDragging] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState("Sin categoría");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const files = Array.from(input.files ?? []);
+  const uploadFiles = async (files: File[]) => {
     if (!files.length) return;
     try {
       for (const file of files) {
@@ -42,9 +42,8 @@ export default function DocumentsPage() {
         await apiSend("/api/documents", "POST", {
           name: file.name,
           type,
-          category: "Sin categor\u00eda",
+          category: uploadCategory,
           size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          uploadedBy: "Marta Gonz\u00e1lez",
           version: "v1.0",
         });
       }
@@ -53,6 +52,11 @@ export default function DocumentsPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo subir el documento");
     }
+  };
+
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    await uploadFiles(Array.from(input.files ?? []));
     input.value = "";
   };
 
@@ -65,26 +69,7 @@ export default function DocumentsPage() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (!files.length) return;
-    try {
-      for (const file of files) {
-        const ext = file.name.split(".").pop()?.toLowerCase() || "doc";
-        const type = ["pdf"].includes(ext) ? "pdf" : ["xlsx", "xls", "csv"].includes(ext) ? "xls" : ["jpg", "png", "jpeg", "zip"].includes(ext) ? "img" : "doc";
-        await apiSend("/api/documents", "POST", {
-          name: file.name,
-          type,
-          category: "Sin categoría",
-          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          uploadedBy: "Marta González",
-          version: "v1.0",
-        });
-      }
-      await reload();
-      toast.success(`${files.length} archivo(s) subido(s) correctamente`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo subir el documento");
-    }
+    await uploadFiles(Array.from(e.dataTransfer.files));
   };
 
   const deleteDoc = async (id: string) => {
@@ -113,24 +98,36 @@ export default function DocumentsPage() {
         }
       />
 
-      {/* Drop zone */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={handleDrop}
-        className={cn(
-          "border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer",
-          dragging ? "border-emerald-400 bg-teal-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-        )}
-      >
-        <Upload size={32} className={cn("mx-auto mb-3", dragging ? "text-teal-600" : "text-slate-300")} />
-        <p className="text-sm font-medium text-slate-600">
-          {dragging ? "Suelta aquí los archivos" : "Arrastra archivos o haz clic para subir"}
-        </p>
-        <p className="text-xs text-slate-300 mt-1">PDF, XLS, XLSX, PNG, JPG, ZIP — máx. 50MB por archivo</p>
-      </motion.div>
+      {/* Drop zone + category */}
+      <div className="flex flex-col md:flex-row gap-4 items-stretch">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            "flex-1 border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 cursor-pointer",
+            dragging ? "border-emerald-400 bg-teal-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+          )}
+        >
+          <Upload size={32} className={cn("mx-auto mb-3", dragging ? "text-teal-600" : "text-slate-300")} />
+          <p className="text-sm font-medium text-slate-600">
+            {dragging ? "Suelta aquí los archivos" : "Arrastra archivos o haz clic para subir"}
+          </p>
+          <p className="text-xs text-slate-300 mt-1">PDF, XLS, XLSX, PNG, JPG, ZIP — máx. 50MB por archivo</p>
+        </motion.div>
+        <div className="card p-5 md:w-64 flex flex-col justify-center">
+          <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Categoría del documento</label>
+          <select className="input-field" value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value)}>
+            {uploadCategories.map((c) => (
+              <option key={c} value={c} style={{ backgroundColor: "#fff" }}>{c}</option>
+            ))}
+          </select>
+          <p className="text-xs text-slate-400 mt-2">Se aplicará a los archivos que subas a continuación.</p>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -212,11 +209,12 @@ export default function DocumentsPage() {
                   <span className="badge-blue text-xs">{doc.version}</span>
                   <span className="text-xs text-slate-300">{new Date(doc.uploadedAt).toLocaleDateString("es-CL")}</span>
                   <div className="flex items-center gap-1">
-                    <button className="btn-ghost p-1.5" onClick={() => toast.success(`Descargando ${doc.name}`)}>
-                      <Download size={14} />
-                    </button>
-                    <button className="btn-ghost p-1.5" onClick={() => toast.success(`Visualizando ${doc.name}`)}>
-                      <Eye size={14} />
+                    <button
+                      className="btn-ghost p-1.5 opacity-50 cursor-not-allowed"
+                      title="Almacenamiento de archivos aún no habilitado"
+                      onClick={() => toast.error("Almacenamiento de archivos aún no habilitado")}
+                    >
+                      <FileLock2 size={14} />
                     </button>
                     <button
                       className="p-1.5 rounded-lg hover:bg-red-500/15 text-slate-300 hover:text-red-400 transition-colors"

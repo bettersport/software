@@ -1,8 +1,7 @@
 import prisma from "@/lib/prisma";
-import { withUser, json, badRequest } from "@/lib/server-data";
+import { withUser, json, badRequest, requireClubWriter } from "@/lib/server-data";
 import { maturityOf } from "@/lib/strategy/engine";
 
-const CAN = ["club", "admin", "manager"];
 const include = { challenges: { include: { documents: true }, orderBy: { createdAt: "asc" as const } } };
 
 /** GET: la estrategia más reciente del club (borrador o generada), o null. */
@@ -22,14 +21,15 @@ export async function GET() {
 export async function POST() {
   const ctx = await withUser();
   if ("res" in ctx) return ctx.res;
-  if (!CAN.includes(ctx.user.role)) return badRequest("Sin permisos para crear estrategias");
-  if (!ctx.user.clubId) return badRequest("La cuenta no tiene un club asociado");
+  const denied = requireClubWriter(ctx.user);
+  if (denied) return denied;
+  const clubId = ctx.user.clubId!; // garantizado por requireClubWriter
 
-  const club = await prisma.club.findUnique({ where: { id: ctx.user.clubId } });
-  const last = await prisma.esgStrategy.findFirst({ where: { clubId: ctx.user.clubId }, orderBy: { version: "desc" } });
+  const club = await prisma.club.findUnique({ where: { id: clubId } });
+  const last = await prisma.esgStrategy.findFirst({ where: { clubId }, orderBy: { version: "desc" } });
   const s = await prisma.esgStrategy.create({
     data: {
-      clubId: ctx.user.clubId,
+      clubId,
       version: (last?.version ?? 0) + 1,
       orgName: club?.name ?? "",
       sport: club?.sport && club.sport !== "—" ? club.sport : "",
@@ -50,6 +50,8 @@ export async function POST() {
 export async function PATCH(req: Request) {
   const ctx = await withUser();
   if ("res" in ctx) return ctx.res;
+  const denied = requireClubWriter(ctx.user);
+  if (denied) return denied;
   const b = await req.json().catch(() => ({}));
   if (!b.id) return badRequest("Falta id");
   const existing = await prisma.esgStrategy.findUnique({ where: { id: String(b.id) } });
@@ -71,7 +73,9 @@ export async function PATCH(req: Request) {
 
   if (Array.isArray(b.challenges)) {
     // Sync: mantener ids existentes, crear nuevos, borrar los quitados.
-    const incoming = b.challenges as Array<Record<string, unknown>>;
+    // Seguridad: un id que no pertenezca a ESTA estrategia se ignora (no IDOR).
+    const owned = new Set((await prisma.strategyChallenge.findMany({ where: { strategyId: existing.id }, select: { id: true } })).map((c) => c.id));
+    const incoming = (b.challenges as Array<Record<string, unknown>>).map((c) => (c.id && !owned.has(String(c.id)) ? { ...c, id: undefined } : c));
     const keepIds = incoming.map((c) => c.id).filter(Boolean) as string[];
     await prisma.strategyChallenge.deleteMany({ where: { strategyId: existing.id, id: { notIn: keepIds } } });
     for (const c of incoming) {

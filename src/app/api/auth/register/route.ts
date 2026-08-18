@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     include: { club: true },
   });
 
-  await createSession(user.id);
+  await createSession(user.id, user.role);
   const me = await getCurrentUser();
   return NextResponse.json({ user: me }, { status: 201 });
 }

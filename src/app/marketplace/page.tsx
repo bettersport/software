@@ -3,18 +3,20 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Lightbulb, Search, Filter, ArrowUpRight, Heart, Users,
-  Calendar, DollarSign, ChevronDown, Star, CheckCircle,
+  Lightbulb, Search, Filter, Users,
+  Calendar, DollarSign, ChevronDown, CheckCircle,
 } from "lucide-react";
 import { SectionHeader, ProgressBar, Tabs } from "@/components/ui";
 import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
 import { getStatusLabel, getStatusColor, cn } from "@/lib/utils";
 import type { Event } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
-import { useResource } from "@/lib/useResource";
+import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
 const EMPTY: Event[] = [];
+interface SponsorRequest { id: string; eventId: string; status: string }
+const EMPTY_REQUESTS: SponsorRequest[] = [];
 
 const categoryTabs = [
   { label: "Todos", value: "all" },
@@ -76,6 +78,9 @@ export default function MarketplacePage() {
   const { data: rawEvents } = useResource<Event[]>(
     loaded && activeUser ? "/api/events" : null, EMPTY,
   );
+  const { data: myRequests, reload: reloadRequests } = useResource<SponsorRequest[]>(
+    loaded && activeUser ? "/api/sponsor-requests" : null, EMPTY_REQUESTS,
+  );
 
   // The DB doesn't store `remaining`; derive it from budget - funded.
   const events = useMemo(
@@ -87,9 +92,15 @@ export default function MarketplacePage() {
   const [search, setSearch] = useState("");
   const [sportFilter, setSportFilter] = useState("Todos");
   const [countryFilter, setCountryFilter] = useState("Todos");
-  const [saved, setSaved] = useState<string[]>([]);
+  const [minBudget, setMinBudget] = useState("");
+  const [minAudience, setMinAudience] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [requestedIds, setRequestedIds] = useState<string[]>([]);
+  const [sendingId, setSendingId] = useState<string | null>(null);
+
+  const isRequested = (eventId: string) =>
+    requestedIds.includes(eventId) || myRequests.some((r) => r.eventId === eventId && r.status === "pending");
 
   const filtered = events.filter((e) => {
     const matchCat = activeCategory === "all" || e.category === activeCategory;
@@ -97,15 +108,26 @@ export default function MarketplacePage() {
       e.clubName.toLowerCase().includes(search.toLowerCase());
     const matchSport = sportFilter === "Todos" || e.sport === sportFilter;
     const matchCountry = countryFilter === "Todos" || e.country === countryFilter;
-    return matchCat && matchSearch && matchSport && matchCountry;
+    const minB = parseFloat(minBudget);
+    const minA = parseFloat(minAudience);
+    const matchBudget = Number.isNaN(minB) || e.budget >= minB;
+    const matchAudience = Number.isNaN(minA) || e.audience >= minA;
+    return matchCat && matchSearch && matchSport && matchCountry && matchBudget && matchAudience;
   });
 
-  const toggleSave = (id: string) => {
-    setSaved((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
-  };
-
-  const handleSponsor = (event: Event) => {
-    toast.success(`¡Solicitud de patrocinio enviada para "${event.title}"!`, { duration: 3000 });
+  const handleSponsor = async (event: Event) => {
+    if (isRequested(event.id) || sendingId) return;
+    setSendingId(event.id);
+    try {
+      await apiSend("/api/sponsor-requests", "POST", { eventId: event.id, message: "" });
+      setRequestedIds((prev) => [...prev, event.id]);
+      toast.success("Solicitud enviada al club", { duration: 3000 });
+      reloadRequests();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo enviar la solicitud");
+    } finally {
+      setSendingId(null);
+    }
   };
 
   return (
@@ -164,11 +186,11 @@ export default function MarketplacePage() {
               </div>
               <div>
                 <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2">Presupuesto mínimo</label>
-                <input type="number" className="input-field" placeholder="0" />
+                <input type="number" min="0" className="input-field" placeholder="0" value={minBudget} onChange={(e) => setMinBudget(e.target.value)} />
               </div>
               <div>
                 <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2">Audiencia mínima</label>
-                <input type="number" className="input-field" placeholder="0" />
+                <input type="number" min="0" className="input-field" placeholder="0" value={minAudience} onChange={(e) => setMinAudience(e.target.value)} />
               </div>
             </div>
           </motion.div>
@@ -214,15 +236,6 @@ export default function MarketplacePage() {
                     <CheckCircle size={11} /> ESG ✓
                   </div>
                 )}
-
-                {/* Save button */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); toggleSave(event.id); }}
-                  className="absolute bottom-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all"
-                  style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-                >
-                  <Heart size={14} className={saved.includes(event.id) ? "text-red-400 fill-red-400" : "text-slate-900"} />
-                </button>
 
                 {/* Country badge */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", color: "#0f172a" }}>
@@ -283,9 +296,10 @@ export default function MarketplacePage() {
                 <div className="flex gap-2 mt-auto">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleSponsor(event); }}
-                    className="btn-primary flex-1 justify-center"
+                    disabled={isRequested(event.id) || sendingId === event.id}
+                    className="btn-primary flex-1 justify-center disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Sponsorear ahora
+                    {isRequested(event.id) ? "Solicitud enviada" : sendingId === event.id ? "Enviando..." : "Sponsorear ahora"}
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
@@ -374,8 +388,12 @@ export default function MarketplacePage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button onClick={() => { handleSponsor(selectedEvent); setSelectedEvent(null); }} className="btn-primary flex-1 justify-center py-3">
-                    Sponsorear ahora
+                  <button
+                    onClick={async () => { await handleSponsor(selectedEvent); setSelectedEvent(null); }}
+                    disabled={isRequested(selectedEvent.id) || sendingId === selectedEvent.id}
+                    className="btn-primary flex-1 justify-center py-3 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isRequested(selectedEvent.id) ? "Solicitud enviada" : sendingId === selectedEvent.id ? "Enviando..." : "Sponsorear ahora"}
                   </button>
                   <button onClick={() => setSelectedEvent(null)} className="btn-secondary px-5">
                     Cerrar

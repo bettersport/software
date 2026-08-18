@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Save, Edit2, X, Check,
-  Zap, Gift, ChevronDown, ChevronUp, AlertCircle, CheckCircle2,
+  Zap, Gift, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, Sparkles,
 } from "lucide-react";
 import type { FanAction, FanReward, FanActionCategory, FanRewardType } from "@/lib/types";
 import { fanActions as defaultActions, fanRewards as defaultRewards } from "@/lib/data";
@@ -332,7 +332,7 @@ function RewardForm({ initial, onSave, onClose }: RewardFormProps) {
 type Tab = "actions" | "rewards";
 
 export default function FanZoneConfigPage() {
-  const { activeUser, loaded } = useUser();
+  const { activeUser, loaded, isDemo } = useUser();
 
   const { data: config } = useResource(
     loaded && activeUser ? "/api/fan-config" : null, EMPTY_CONFIG,
@@ -350,11 +350,24 @@ export default function FanZoneConfigPage() {
   // Confirm delete
   const [deleteTarget, setDeleteTarget] = useState<{ type: "action" | "reward"; id: string } | null>(null);
 
-  // Seed the editable lists from the fetched config, falling back to defaults
+  // Seed the editable lists from the fetched config. Real accounts start EMPTY when unconfigured;
+  // only demo accounts auto-load the sample template.
   useEffect(() => {
-    setActions((config.actions ?? defaultActions).map((a) => ({ ...a })));
-    setRewards((config.rewards ?? defaultRewards).map((r) => ({ ...r })));
-  }, [config]);
+    const fallbackActions: FanAction[] = isDemo ? defaultActions : [];
+    const fallbackRewards: FanReward[] = isDemo ? defaultRewards : [];
+    setActions((config.actions ?? fallbackActions).map((a) => ({ ...a })));
+    setRewards((config.rewards ?? fallbackRewards).map((r) => ({ ...r })));
+  }, [config, isDemo]);
+
+  const isUnconfigured = config.actions === null && config.rewards === null;
+  const isEmpty = actions.length === 0 && rewards.length === 0;
+
+  // Load the suggested template into local state — still requires "Publicar cambios".
+  const loadTemplate = () => {
+    setActions(defaultActions.map((a) => ({ ...a })));
+    setRewards(defaultRewards.map((r) => ({ ...r })));
+    toast.success("Plantilla cargada — recuerda publicar");
+  };
 
   const handleSaveAll = async () => {
     try {
@@ -374,13 +387,13 @@ export default function FanZoneConfigPage() {
       : [...prev, a]
     );
     setActionModal({ open: false });
-    toast.success("Acción guardada");
+    toast.success("Cambio aplicado — recuerda publicar");
   };
 
   const deleteAction = (id: string) => {
     setActions((prev) => prev.filter((x) => x.id !== id));
     setDeleteTarget(null);
-    toast.success("Acción eliminada");
+    toast.success("Cambio aplicado — recuerda publicar");
   };
 
   // Rewards CRUD
@@ -390,13 +403,13 @@ export default function FanZoneConfigPage() {
       : [...prev, r]
     );
     setRewardModal({ open: false });
-    toast.success("Recompensa guardada");
+    toast.success("Cambio aplicado — recuerda publicar");
   };
 
   const deleteReward = (id: string) => {
     setRewards((prev) => prev.filter((x) => x.id !== id));
     setDeleteTarget(null);
-    toast.success("Recompensa eliminada");
+    toast.success("Cambio aplicado — recuerda publicar");
   };
 
   // Stats
@@ -457,10 +470,31 @@ export default function FanZoneConfigPage() {
           style={{ backgroundColor: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.15)" }}>
           <AlertCircle size={16} className="text-indigo-500 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-indigo-700">
-            Los cambios se aplican al instante. Haz clic en <strong>Publicar cambios</strong> cuando termines
-            para que los fans de tu club los vean la próxima vez que abran la Fan Zone.
+            Los cambios se guardan cuando haces clic en <strong>Publicar cambios</strong>. Los fans de tu club
+            los verán la próxima vez que abran la Fan Zone.
           </p>
         </div>
+
+        {/* Template suggestion for unconfigured accounts */}
+        {isUnconfigured && isEmpty && (
+          <div className="card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                <Sparkles size={16} className="text-teal-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Tu Fan Zone aún no tiene acciones ni recompensas</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Puedes crearlas desde cero o partir de una plantilla sugerida y ajustarla antes de publicar.
+                </p>
+              </div>
+            </div>
+            <button onClick={loadTemplate}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-colors flex-shrink-0">
+              <Sparkles size={14} /> Usar plantilla sugerida
+            </button>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">

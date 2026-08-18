@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       esgObjectives: Array.isArray(b.esgObjectives) ? b.esgObjectives.map(String) : [],
       status: String(b.status ?? "upcoming"),
       participants: Number(b.participants ?? 0),
+      description: String(b.description ?? "").slice(0, 4000),
       ownerId: ctx.user.id,
     },
   });

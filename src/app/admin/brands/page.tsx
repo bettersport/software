@@ -1,18 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Globe, BarChart3, Users, Tv, FileText, ClipboardList,
   Check, Save, CheckCircle2, AlertCircle, ChevronDown, ChevronUp,
   Building2, Edit3,
 } from "lucide-react";
-import type { BrandConfig, DataSource, SponsorshipObjective, BrandKPI, Club, User } from "@/lib/types";
+import type { BrandConfig, DataSource, SponsorshipObjective, BrandKPI } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
-import { useResource } from "@/lib/useResource";
+import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
-const EMPTY_CLUBS: Club[] = [];
+type BrandUser = {
+  id: string;
+  name: string;
+  email: string;
+  country?: string | null;
+  org?: string | null;
+  demo?: boolean;
+  createdAt?: string;
+  brandConfig?: (Partial<BrandConfig> & { kpis?: unknown }) | null;
+  _count?: { brandProjects: number };
+};
+
+const EMPTY_USERS: BrandUser[] = [];
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +107,17 @@ function toggle<T>(arr: T[], item: T): T[] {
   return arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item];
 }
 
-function storageKey(userId: string) { return `bettersport_brand_config_${userId}`; }
+function normalizeConfig(raw: BrandUser["brandConfig"]): BrandConfig {
+  if (!raw) return EMPTY_CONFIG;
+  const kpis = Array.isArray(raw.kpis) && raw.kpis.length ? (raw.kpis as BrandKPI[]) : DEFAULT_KPIS;
+  return {
+    brandName: raw.brandName ?? "", industry: raw.industry ?? "", country: raw.country ?? "", website: raw.website ?? "",
+    objectives: (raw.objectives ?? []) as SponsorshipObjective[],
+    sponsorshipName: raw.sponsorshipName ?? "", sponsorshipType: raw.sponsorshipType ?? "",
+    startDate: raw.startDate ?? "", endDate: raw.endDate ?? "", budget: raw.budget ?? "", territory: raw.territory ?? "",
+    sports: raw.sports ?? [], dataSources: (raw.dataSources ?? []) as DataSource[], kpis,
+  };
+}
 
 function completionOf(cfg: BrandConfig) {
   return [
@@ -136,19 +158,25 @@ function ToggleSwitch({ on, onClick }: { on: boolean; onClick: () => void }) {
 // ── brand config form ─────────────────────────────────────────────────────────
 
 function BrandForm({
-  cfg, setCfg, onSave,
+  cfg, setCfg, onSave, readOnly = false, saving = false,
 }: {
   cfg: BrandConfig;
   setCfg: React.Dispatch<React.SetStateAction<BrandConfig>>;
   onSave: () => void;
+  readOnly?: boolean;
+  saving?: boolean;
 }) {
   const [tab, setTab] = useState("perfil");
 
-  const set = <K extends keyof BrandConfig>(k: K, v: BrandConfig[K]) =>
+  const set = <K extends keyof BrandConfig>(k: K, v: BrandConfig[K]) => {
+    if (readOnly) return;
     setCfg((c) => ({ ...c, [k]: v }));
+  };
 
-  const toggleKPI = (id: string) =>
+  const toggleKPI = (id: string) => {
+    if (readOnly) return;
     setCfg((c) => ({ ...c, kpis: c.kpis.map((k) => k.id === id ? { ...k, enabled: !k.enabled } : k) }));
+  };
 
   return (
     <div className="space-y-4">
@@ -165,7 +193,7 @@ function BrandForm({
         ))}
       </div>
 
-      <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100">
+      <fieldset disabled={readOnly} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 disabled:opacity-80">
 
         {/* PERFIL */}
         {tab === "perfil" && (
@@ -308,15 +336,19 @@ function BrandForm({
             ))}
           </div>
         )}
-      </div>
+      </fieldset>
 
-      <div className="flex justify-end">
-        <button onClick={onSave}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: "linear-gradient(135deg,#10B981,#059669)" }}>
-          <Save size={14} /> Guardar cambios
-        </button>
-      </div>
+      {readOnly ? (
+        <p className="text-xs text-slate-400 text-right">Vista de solo lectura: solo la cuenta de la marca puede editar su configuración.</p>
+      ) : (
+        <div className="flex justify-end">
+          <button onClick={onSave} disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg,#10B981,#059669)" }}>
+            <Save size={14} /> {saving ? "Guardando…" : "Guardar cambios"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -326,20 +358,46 @@ function BrandForm({
 export default function AdminBrandsPage() {
   const { activeUser, loaded } = useUser();
 
-  // Brand accounts/configs have no admin list endpoint yet. `/api/clubs` is the
-  // only admin-visible directory the API exposes; brand rows therefore degrade
-  // to an empty state until a brand-accounts endpoint exists.
-  useResource<Club[]>(loaded && activeUser ? "/api/clubs" : null, EMPTY_CLUBS);
-  const brandUsers: User[] = [];
+  const { data: brandUsers, loading, reload } = useResource<BrandUser[]>(
+    loaded && activeUser ? "/api/admin/brands" : null, EMPTY_USERS,
+  );
 
   const [configs, setConfigs] = useState<Record<string, BrandConfig>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (userId: string) => {
+  // Seed local editable configs from the fetched brand users
+  useEffect(() => {
+    if (!brandUsers.length) return;
+    setConfigs((prev) => {
+      const next = { ...prev };
+      for (const u of brandUsers) {
+        if (!next[u.id]) next[u.id] = normalizeConfig(u.brandConfig);
+      }
+      return next;
+    });
+  }, [brandUsers]);
+
+  const handleSave = async (userId: string) => {
     const cfg = configs[userId];
     if (!cfg) return;
-    toast.success("Configuración guardada correctamente");
+    if (userId !== activeUser?.id) {
+      toast.error("Solo la cuenta de la marca puede editar su configuración");
+      return;
+    }
+    setSaving(true);
+    try {
+      await apiSend("/api/brand-config", "PUT", cfg);
+      await reload();
+      toast.success("Configuración guardada correctamente");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar la configuración");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const completeCount = brandUsers.filter((u) => u.brandConfig && u.brandConfig.brandName).length;
 
   const setUserCfg = (userId: string, cfg: BrandConfig) => {
     setConfigs((prev) => ({ ...prev, [userId]: cfg }));
@@ -360,9 +418,9 @@ export default function AdminBrandsPage() {
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Marcas registradas",       value: brandUsers.length,                              color: "#3B82F6" },
-          { label: "Configuraciones completas", value: Object.values(configs).filter((c) => completionOf(c) === 4).length, color: "#10B981" },
-          { label: "Pendientes de completar",   value: Object.values(configs).filter((c) => completionOf(c) < 4).length,  color: "#F59E0B" },
+          { label: "Marcas registradas",       value: brandUsers.length,                     color: "#3B82F6" },
+          { label: "Configuraciones completas", value: completeCount,                         color: "#10B981" },
+          { label: "Pendientes de completar",   value: brandUsers.length - completeCount,     color: "#F59E0B" },
         ].map((s) => (
           <div key={s.label} className="card p-5 relative overflow-hidden">
             <div className="absolute left-0 top-0 w-1 h-full rounded-l" style={{ backgroundColor: s.color }} />
@@ -377,7 +435,7 @@ export default function AdminBrandsPage() {
         {brandUsers.length === 0 && (
           <div className="card p-10 text-center text-slate-400">
             <Building2 size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No hay cuentas de marca disponibles todavía.</p>
+            <p className="text-sm">{loading ? "Cargando cuentas de marca…" : "No hay cuentas de marca registradas todavía."}</p>
           </div>
         )}
         {brandUsers.map((user) => {
@@ -386,6 +444,7 @@ export default function AdminBrandsPage() {
           const done  = completionOf(cfg);
           const total = TABS.length;
           const isOpen = expanded === user.id;
+          const isMine = user.id === activeUser?.id;
 
           return (
             <motion.div
@@ -409,6 +468,7 @@ export default function AdminBrandsPage() {
                   <p className="text-sm font-bold text-slate-900">{user.name}</p>
                   <p className="text-xs text-slate-400">
                     {user.email} · {cfg.brandName || <span className="text-amber-500">Sin nombre de marca</span>}
+                    {typeof user._count?.brandProjects === "number" && <> · {user._count.brandProjects} proyecto{user._count.brandProjects === 1 ? "" : "s"}</>}
                   </p>
                 </div>
 
@@ -455,7 +515,7 @@ export default function AdminBrandsPage() {
                         style={{ backgroundColor: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.15)" }}>
                         <Building2 size={16} className="text-indigo-500 flex-shrink-0" />
                         <p className="text-xs text-indigo-600">
-                          Editando configuración de <strong>{user.name}</strong> ({user.email}) · {user.club}
+                          {isMine ? "Editando" : "Viendo"} configuración de <strong>{user.name}</strong> ({user.email}){user.org ? ` · ${user.org}` : ""}{user.country ? ` · ${user.country}` : ""}
                         </p>
                       </div>
 
@@ -466,6 +526,8 @@ export default function AdminBrandsPage() {
                           setUserCfg(user.id, next);
                         }}
                         onSave={() => handleSave(user.id)}
+                        readOnly={!isMine}
+                        saving={saving}
                       />
                     </div>
                   </motion.div>

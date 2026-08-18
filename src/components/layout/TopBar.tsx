@@ -14,11 +14,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
-import { useResource } from "@/lib/useResource";
+import { useResource, apiSend } from "@/lib/useResource";
 import { useRouter } from "next/navigation";
 
 type Notif = { id: string; type: string; title: string; message: string; read: boolean; createdAt?: string };
 const NO_NOTIFS: Notif[] = [];
+
+const relativeTime = (iso?: string) => {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const h = Math.floor(diff / 3_600_000);
+  if (h < 1) return "Hace un momento";
+  if (h < 24) return `Hace ${h}h`;
+  return `Hace ${Math.floor(h / 24)}d`;
+};
 
 
 
@@ -28,6 +37,8 @@ const roleConfig: Record<string, { label: string; badge: string; color: string }
   brand:   { label: "Marca",         badge: "badge-cyan",   color: "#06B6D4" },
   manager: { label: "Consultor ESG", badge: "badge-orange", color: "#F59E0B" },
   auditor: { label: "Auditor ESG",   badge: "badge-blue",   color: "#3B82F6" },
+  solucion: { label: "Proveedor de soluciones", badge: "badge-orange", color: "#F97316" },
+  hincha:  { label: "Hincha",        badge: "badge-purple", color: "#EC4899" },
 };
 
 export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
@@ -36,7 +47,7 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
   const [showNotifs, setShowNotifs] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const [search, setSearch] = useState("");
-  const { data: notifications } = useResource<Notif[]>(loaded && activeUser ? "/api/notifications" : null, NO_NOTIFS);
+  const { data: notifications, reload: reloadNotifs } = useResource<Notif[]>(loaded && activeUser ? "/api/notifications" : null, NO_NOTIFS);
 
   const role = roleConfig[activeUser?.role ?? "club"] ?? roleConfig.club;
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -47,13 +58,19 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
     router.push("/login");
   };
 
-  const relativeTime = (iso?: string) => {
-    if (!iso) return "";
-    const diff = Date.now() - new Date(iso).getTime();
-    const h = Math.floor(diff / 3_600_000);
-    if (h < 1) return "Hace un momento";
-    if (h < 24) return `Hace ${h}h`;
-    return `Hace ${Math.floor(h / 24)}d`;
+  const markRead = async (ids?: string[]) => {
+    try {
+      await apiSend("/api/notifications", "PATCH", ids ? { ids } : {});
+      await reloadNotifs();
+    } catch {
+      /* keep current state */
+    }
+  };
+
+  const submitSearch = () => {
+    const q = search.trim();
+    if (!q) return;
+    router.push(`/esg/projects?q=${encodeURIComponent(q)}`);
   };
 
   const notifTypeColors: Record<string, string> = {
@@ -89,6 +106,7 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
             placeholder="Buscar proyectos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") submitSearch(); }}
             className="input-field pl-9 h-9"
           />
         </div>
@@ -120,12 +138,27 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
               >
                 <div className="p-4 flex items-center justify-between" style={{ borderBottom: "1px solid #f1f5f9" }}>
                   <span className="font-semibold text-sm" style={{ color: "#0f172a" }}>Notificaciones</span>
-                  <span className="badge badge-green text-xs">{unreadCount} nuevas</span>
+                  <div className="flex items-center gap-2">
+                    <span className="badge badge-green text-xs">{unreadCount} nuevas</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => markRead()}
+                        className="text-xs font-medium hover:underline"
+                        style={{ color: "#3B82F6" }}
+                      >
+                        Marcar todas como leídas
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 && (
+                    <p className="p-6 text-center text-xs" style={{ color: "#94a3b8" }}>No tienes notificaciones.</p>
+                  )}
                   {notifications.map((notif) => (
                     <div
                       key={notif.id}
+                      onClick={() => { if (!notif.read) markRead([notif.id]); }}
                       className={cn(
                         "p-4 hover:bg-slate-50 transition-colors cursor-pointer",
                         !notif.read && "bg-slate-50/50"
@@ -142,11 +175,6 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                       </div>
                     </div>
                   ))}
-                </div>
-                <div className="p-3 text-center">
-                  <button className="text-xs font-medium transition-colors" style={{ color: "#3B82F6" }}>
-                    Ver todas las notificaciones
-                  </button>
                 </div>
               </motion.div>
             )}
@@ -195,11 +223,15 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                 {[
                   { icon: <User size={14} />, label: "Mi perfil", href: "/club/profile" },
                   { icon: <Settings size={14} />, label: "Configuración", href: "/club/settings" },
-                  { icon: <UserCircle2 size={14} />, label: "Cambiar perfil", href: "/login" },
+                  { icon: <UserCircle2 size={14} />, label: "Cambiar de cuenta", href: "/login", switchAccount: true },
                 ].map((item) => (
                   <button
                     key={item.label}
-                    onClick={() => { setShowUser(false); router.push(item.href); }}
+                    onClick={async () => {
+                      setShowUser(false);
+                      if (item.switchAccount) { await logout(); }
+                      router.push(item.href);
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-sm transition-colors"
                     style={{ color: "#64748b" }}
                   >

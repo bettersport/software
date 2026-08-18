@@ -7,7 +7,8 @@ import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ChevronDown, S
 import Link from "next/link";
 import type { UserRole } from "@/lib/types";
 
-/** Seeded demo accounts for the quick-access panel (all share the demo password). */
+/** Panel de acceso rápido demo — SOLO se muestra si NEXT_PUBLIC_ENABLE_DEMO=true (nunca por defecto en producción). */
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_ENABLE_DEMO === "true";
 const DEMO_PASSWORD = "demo1234";
 type DemoAccount = { id: string; name: string; email: string; role: UserRole };
 const DEMO_ACCOUNTS: DemoAccount[] = [
@@ -186,7 +187,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 <div className="flex justify-end mt-2">
-                  <button type="button" className="text-xs text-teal-600 hover:text-teal-500 transition-colors">
+                  <button type="button" onClick={() => setError("Recuperación de contraseña: escríbenos a soporte@bettersport.cl y la restablecemos por ti.")} className="text-xs text-teal-600 hover:text-teal-500 transition-colors">
                     ¿Olvidaste tu contraseña?
                   </button>
                 </div>
@@ -219,7 +220,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* ── Demo Profiles ── */}
+          {/* ── Demo Profiles (solo con NEXT_PUBLIC_ENABLE_DEMO=true) ── */}
+          {DEMO_ENABLED && (
           <div className="mt-6">
             <button
               onClick={() => setShowDemo(!showDemo)}
@@ -295,6 +297,7 @@ export default function LoginPage() {
               )}
             </AnimatePresence>
           </div>
+          )}
         </motion.div>
       </div>
     </div>

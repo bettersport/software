@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { withUser, json, badRequest } from "@/lib/server-data";
+import { withUser, json, badRequest, requireClubWriter, notify } from "@/lib/server-data";
 import { generateStrategyDocument, type GriRow, type FrameworkRow } from "@/lib/strategy/engine";
 import { enrichWithClaude, claudeAvailable } from "@/lib/strategy/claude";
 import type { StrategyInput, ChallengeInput } from "@/lib/strategy/types";
@@ -8,16 +8,19 @@ import type { StrategyInput, ChallengeInput } from "@/lib/strategy/types";
 export async function POST(req: Request) {
   const ctx = await withUser();
   if ("res" in ctx) return ctx.res;
+  const denied = requireClubWriter(ctx.user);
+  if (denied) return denied;
   const b = await req.json().catch(() => ({}));
   const s = await prisma.esgStrategy.findUnique({ where: { id: String(b.id ?? "") }, include: { challenges: { include: { documents: true } } } });
   if (!s || s.clubId !== ctx.user.clubId) return badRequest("Estrategia no encontrada");
   if (!s.vigenciaInicio || !s.vigenciaFin) return badRequest("Falta el período de vigencia (Paso 1)");
   if (!s.challenges.length) return badRequest("Selecciona al menos un desafío ESG (Paso 2)");
 
-  const [griRows, fw] = await Promise.all([
-    prisma.griMapping.findMany({ where: { active: true } }),
-    s.alignGlobal && s.sport ? prisma.sportFramework.findFirst({ where: { active: true, sport: { equals: s.sport, mode: "insensitive" } } }) : null,
-  ]);
+  const griRows = await prisma.griMapping.findMany({ where: { active: true } });
+  let fw = s.alignGlobal && s.sport ? await prisma.sportFramework.findFirst({ where: { active: true, sport: { equals: s.sport, mode: "insensitive" } } }) : null;
+  if (s.alignGlobal && !fw && s.globalBody) {
+    fw = await prisma.sportFramework.findFirst({ where: { active: true, organism: { equals: s.globalBody, mode: "insensitive" } } });
+  }
 
   const input: StrategyInput = {
     orgName: s.orgName, sport: s.sport, orgType: s.orgType,
@@ -41,8 +44,10 @@ export async function POST(req: Request) {
   if (claudeAvailable()) doc = await enrichWithClaude(doc, input);
 
   // Persistir metas/hitos/proyectos por desafío para trazabilidad + maturity scores.
+  const ownIds = new Set(s.challenges.map((c) => c.id));
   for (const p of doc.pillars.flatMap((pp) => pp.plans)) {
-    const ch = s.challenges.find((c) => c.key === p.key && c.pillar === p.pillar);
+    // Emparejar por id (único); fallback a (key,pillar) solo si el plan no trae id.
+    const ch = (p.id && ownIds.has(p.id)) ? s.challenges.find((c) => c.id === p.id) : s.challenges.find((c) => c.key === p.key && c.pillar === p.pillar);
     if (!ch) continue;
     await prisma.strategyChallenge.update({
       where: { id: ch.id },
@@ -58,5 +63,6 @@ export async function POST(req: Request) {
     data: { generatedDoc: doc as object, generatedAt: new Date(), maturityScores: doc.diagnosis.maturity as object, status: "generated", currentStep: 7, globalBody: fw?.organism ?? s.globalBody },
     include: { challenges: { include: { documents: true }, orderBy: { createdAt: "asc" } } },
   });
+  await notify(ctx.user.id, { type: "success", title: "Estrategia ESG generada", message: `Tu estrategia ${s.vigenciaInicio}–${s.vigenciaFin} está lista. Revísala y conviértela en proyectos.` });
   return json(updated);
 }

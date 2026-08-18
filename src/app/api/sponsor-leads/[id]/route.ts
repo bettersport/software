@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { withUser, json, badRequest } from "@/lib/server-data";
+import { withUser, json, badRequest, notify } from "@/lib/server-data";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -26,6 +26,7 @@ export async function PATCH(req: Request, { params }: Params) {
       ...(b.color !== undefined && { color: String(b.color) }),
     },
   });
+  if (b.stage === "Cierre") await notify(ctx.user.id, { type: "success", title: "Patrocinio cerrado", message: `${lead.brand} pasó a Cierre en tu pipeline de sponsorship.` });
   return json(lead);
 }
 

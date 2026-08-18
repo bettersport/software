@@ -5,22 +5,34 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Building2, MapPin, Users, Star, Camera, Edit3, Trophy, TreePine, Zap, Recycle, X, Save, Upload, ImageIcon } from "lucide-react";
 import { ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
-import { useResource } from "@/lib/useResource";
+import { useResource, apiSend } from "@/lib/useResource";
 import type { Club } from "@/lib/types";
 import toast from "react-hot-toast";
 
-const DEFAULT_DESC =
-  "Club deportivo comprometido con la sostenibilidad y los valores del deporte responsable. Trabajamos para integrar la gestión ESG en cada aspecto de nuestra organización.";
+/** Placeholder shown when the club has no description yet — never rendered as real content. */
+const DESC_PLACEHOLDER = "Añade una descripción de tu club";
+
+/** Club with the profile fields the API exposes (region/banner) that the shared type omits. */
+type ClubProfile = Club & { region?: string | null; banner?: string | null };
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function ClubProfilePage() {
-  const { activeUser, loaded } = useUser();
+  const { activeUser, loaded, isDemo } = useUser();
   const clubId = activeUser?.clubId ?? null;
-  const { data: fetchedClub } = useResource<Club | null>(
+  const { data: fetchedClub } = useResource<ClubProfile | null>(
     loaded && clubId ? `/api/clubs/${clubId}` : null, null,
   );
 
   // Local editable copy of the club, seeded from the fetched club
-  const [club, setClub] = useState<Club | null>(null);
+  const [club, setClub] = useState<ClubProfile | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
@@ -28,74 +40,128 @@ export default function ClubProfilePage() {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
-    description: DEFAULT_DESC,
+    description: "",
     country: "",
     region: "",
     sport: "",
   });
+  const [saving, setSaving] = useState(false);
 
   // Sync the local copy + form when the fetched club arrives
   useEffect(() => {
     if (!fetchedClub) return;
     setClub(fetchedClub);
-    setEditForm((prev) => ({
-      ...prev,
+    setBannerUrl(fetchedClub.banner ?? null);
+    setAvatarUrl(fetchedClub.logo ?? null);
+    setEditForm({
       name: fetchedClub.name,
-      description: fetchedClub.description || DEFAULT_DESC,
+      description: fetchedClub.description ?? "",
       country: fetchedClub.country,
+      region: fetchedClub.region ?? "",
       sport: fetchedClub.sport,
-    }));
+    });
   }, [fetchedClub]);
-
-  const hasData = (club?.esgScore ?? 0) > 0;
 
   // File refs
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("La imagen no puede superar 5MB");
-        return;
-      }
-      const url = URL.createObjectURL(file);
-      setBannerUrl(url);
+    e.target.value = "";
+    if (!file || !clubId) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("La imagen no puede superar 2MB");
+      return;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const { data: updated } = await apiSend<{ data: ClubProfile }>(`/api/clubs/${clubId}`, "PATCH", { banner: dataUrl });
+      const banner = updated?.banner ?? dataUrl;
+      setBannerUrl(banner);
+      setClub((prev) => (prev ? { ...prev, banner } : prev));
       toast.success("Banner actualizado correctamente");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar el banner");
     }
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRemoveBanner = async () => {
+    if (!clubId) return;
+    try {
+      await apiSend(`/api/clubs/${clubId}`, "PATCH", { banner: null });
+      setBannerUrl(null);
+      setClub((prev) => (prev ? { ...prev, banner: null } : prev));
+      toast.success("Banner eliminado");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo eliminar el banner");
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("La imagen no puede superar 2MB");
-        return;
-      }
-      const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
+    e.target.value = "";
+    if (!file || !clubId) return;
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error("La imagen no puede superar 1MB");
+      return;
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const { data: updated } = await apiSend<{ data: ClubProfile }>(`/api/clubs/${clubId}`, "PATCH", { logo: dataUrl });
+      const logo = updated?.logo ?? dataUrl;
+      setAvatarUrl(logo);
+      setClub((prev) => (prev ? { ...prev, logo } : prev));
       toast.success("Foto de perfil actualizada");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar la foto de perfil");
     }
   };
 
-  const handleSaveProfile = () => {
-    // No user/club-update endpoint yet — update local state only.
-    setClub((prev) =>
-      prev
-        ? { ...prev, name: editForm.name, description: editForm.description, country: editForm.country, sport: editForm.sport }
-        : prev,
-    );
-    setEditing(false);
-    toast.success("Perfil actualizado correctamente");
+  const handleSaveProfile = async () => {
+    if (!clubId) return;
+    if (!editForm.name.trim()) {
+      toast.error("El nombre del club es obligatorio");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        name: editForm.name.trim(),
+        description: editForm.description.trim(),
+        country: editForm.country.trim(),
+        sport: editForm.sport.trim(),
+        region: editForm.region.trim(),
+      };
+      const { data: updated } = await apiSend<{ data: ClubProfile }>(`/api/clubs/${clubId}`, "PATCH", payload);
+      setClub((prev) => {
+        const base = prev ?? updated ?? null;
+        if (!base) return base;
+        return {
+          ...base,
+          name: updated?.name ?? payload.name,
+          description: (updated ? updated.description : payload.description) || undefined,
+          country: updated?.country ?? payload.country,
+          sport: updated?.sport ?? payload.sport,
+          region: (updated ? updated.region : payload.region) || null,
+        };
+      });
+      setEditForm(payload);
+      setEditing(false);
+      toast.success("Perfil actualizado correctamente");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar el perfil");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancelEdit = () => {
     setEditForm({
       name: club?.name ?? "",
-      description: club?.description || DEFAULT_DESC,
+      description: club?.description ?? "",
       country: club?.country ?? "",
-      region: editForm.region,
+      region: club?.region ?? "",
       sport: club?.sport ?? "",
     });
     setEditing(false);
@@ -127,7 +193,7 @@ export default function ClubProfilePage() {
           </button>
           {bannerUrl && (
             <button
-              onClick={() => { setBannerUrl(null); toast.success("Banner eliminado"); }}
+              onClick={handleRemoveBanner}
               className="absolute top-3 right-40 p-1.5 bg-red-500/80 hover:bg-red-500 rounded-lg transition-colors text-white"
             >
               <X size={14} />
@@ -169,8 +235,8 @@ export default function ClubProfilePage() {
                 <button onClick={handleCancelEdit} className="btn-secondary flex items-center gap-2">
                   <X size={14} /> Cancelar
                 </button>
-                <button onClick={handleSaveProfile} className="btn-primary flex items-center gap-2">
-                  <Save size={14} /> Guardar
+                <button onClick={handleSaveProfile} disabled={saving} className="btn-primary flex items-center gap-2 disabled:opacity-60">
+                  <Save size={14} /> {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
             ) : (
@@ -227,13 +293,20 @@ export default function ClubProfilePage() {
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     rows={3}
                     className="input-field resize-none"
+                    placeholder={DESC_PLACEHOLDER}
                   />
                 </div>
               </motion.div>
             ) : (
-              <motion.p key="description" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-500 leading-relaxed">
-                {club?.description || DEFAULT_DESC}
-              </motion.p>
+              club?.description ? (
+                <motion.p key="description" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-500 leading-relaxed">
+                  {club.description}
+                </motion.p>
+              ) : (
+                <motion.p key="description-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-400 italic leading-relaxed">
+                  {DESC_PLACEHOLDER}
+                </motion.p>
+              )
             )}
           </AnimatePresence>
         </div>
@@ -257,7 +330,6 @@ export default function ClubProfilePage() {
             </div>
             <div>
               <p className="text-2xl font-black text-gradient">{club?.esgScore ?? 0}/100</p>
-              {hasData && <p className="text-xs text-teal-600 font-semibold">↑ +3.2 vs trimestre anterior</p>}
               <p className="text-xs text-slate-400 mt-1">{(club?.ranking ?? 0) > 0 ? `Ranking: #${club?.ranking} nacional` : "Aún sin posición en el ranking"}</p>
             </div>
           </div>
@@ -278,11 +350,11 @@ export default function ClubProfilePage() {
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-7">
           <h3 className="font-semibold text-slate-800 text-sm mb-4 flex items-center gap-2"><Trophy size={16} className="text-amber-400" /> Logros & Certificaciones</h3>
-          {!hasData && (
+          {!isDemo && (
             <p className="text-sm text-slate-400 py-6 text-center">Aún no tienes logros ni certificaciones. Se mostrarán aquí a medida que tu club avance en su gestión ESG.</p>
           )}
           <div className="space-y-3">
-            {(hasData ? [
+            {(isDemo ? [
               { icon: <TreePine size={16} className="text-teal-600" />, title: "Club Verde Certificado", year: "2024", color: "#10B981" },
               { icon: <Zap size={16} className="text-amber-400" />, title: "100% Energía Renovable", year: "2023", color: "#F59E0B" },
               { icon: <Recycle size={16} className="text-teal-600" />, title: "Cero Residuos Estadio", year: "2024", color: "#06B6D4" },

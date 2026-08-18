@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings, User, Bell, Shield, Palette, ChevronRight, Check } from "lucide-react";
+import { Settings, User, Bell, Shield, ChevronRight, Check } from "lucide-react";
 import { useUser } from "@/lib/userContext";
+import { apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
 
 const sections = [
   { id: "perfil", label: "Perfil de usuario", icon: <User size={16} /> },
   { id: "notificaciones", label: "Notificaciones", icon: <Bell size={16} /> },
   { id: "seguridad", label: "Seguridad", icon: <Shield size={16} /> },
-  { id: "apariencia", label: "Apariencia", icon: <Palette size={16} /> },
 ];
 
 const notificationDefaults = [
@@ -30,22 +30,40 @@ const roleLabel: Record<string, string> = {
   auditor: "Auditor ESG",
 };
 
+type NotificationPrefs = Record<string, boolean>;
+
+/** Merge stored prefs (may be null / partial) over the defaults. */
+function prefsToList(prefs: NotificationPrefs | null | undefined) {
+  return notificationDefaults.map((n) => ({
+    ...n,
+    enabled: prefs && typeof prefs[n.id] === "boolean" ? prefs[n.id] : n.enabled,
+  }));
+}
+
 export default function ClubSettingsPage() {
-  const { activeUser } = useUser();
+  const { activeUser, refresh } = useUser();
+  // The shared User type does not expose notificationPrefs yet; /api/auth/me does return it.
+  const storedPrefs = (activeUser as (typeof activeUser & { notificationPrefs?: NotificationPrefs | null }) | null)?.notificationPrefs ?? null;
   const [active, setActive] = useState("perfil");
   const [saved, setSaved] = useState(false);
-  const [notifications, setNotifications] = useState(notificationDefaults);
+  const [saving, setSaving] = useState(false);
+  const [notifications, setNotifications] = useState(() => prefsToList(storedPrefs));
+
+  // Org is editable only for accounts without a club (brand/solucion); club users edit it in "Perfil del club".
+  const orgLocked = Boolean(activeUser?.clubId);
 
   // Controlled profile fields
   const [nameVal, setNameVal] = useState(activeUser?.name ?? "");
-  const [emailVal, setEmailVal] = useState(activeUser?.email ?? "");
+  const [countryVal, setCountryVal] = useState(activeUser?.country ?? "");
   const [clubVal, setClubVal] = useState(activeUser?.club || "");
 
   // Sync fields once the authenticated user loads
   useEffect(() => {
     setNameVal(activeUser?.name ?? "");
-    setEmailVal(activeUser?.email ?? "");
+    setCountryVal(activeUser?.country ?? "");
     setClubVal(activeUser?.club || "");
+    setNotifications(prefsToList(storedPrefs));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeUser?.id]);
 
   // Controlled security fields
@@ -59,29 +77,57 @@ export default function ClubSettingsPage() {
     );
   };
 
-  const handleSave = () => {
-    if (active === "perfil") {
-      if (!nameVal.trim() || !emailVal.trim()) {
-        toast.error("El nombre y el email son obligatorios");
-        return;
-      }
-      // No user-update endpoint yet — local state already holds the edited values.
-    } else if (active === "seguridad") {
-      if (!currentPwd || !newPwd || !confirmPwd) {
-        toast.error("Completa todos los campos de contraseña");
-        return;
-      }
-      if (newPwd !== confirmPwd) {
-        toast.error("Las contraseñas no coinciden");
-        return;
-      }
-      setCurrentPwd("");
-      setNewPwd("");
-      setConfirmPwd("");
-    }
+  const flashSaved = () => {
     setSaved(true);
-    toast.success("Configuración guardada");
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (active === "perfil") {
+        if (!nameVal.trim()) {
+          toast.error("El nombre es obligatorio");
+          return;
+        }
+        const body: Record<string, unknown> = { name: nameVal.trim(), country: countryVal.trim() };
+        if (!orgLocked) body.org = clubVal.trim();
+        await apiSend("/api/auth/me", "PATCH", body);
+        await refresh();
+        toast.success("Perfil actualizado");
+        flashSaved();
+      } else if (active === "seguridad") {
+        if (!currentPwd || !newPwd || !confirmPwd) {
+          toast.error("Completa todos los campos de contraseña");
+          return;
+        }
+        if (newPwd.length < 8) {
+          toast.error("La nueva contraseña debe tener al menos 8 caracteres");
+          return;
+        }
+        if (newPwd !== confirmPwd) {
+          toast.error("Las contraseñas no coinciden");
+          return;
+        }
+        await apiSend("/api/auth/password", "POST", { currentPassword: currentPwd, newPassword: newPwd });
+        setCurrentPwd("");
+        setNewPwd("");
+        setConfirmPwd("");
+        toast.success("Contraseña actualizada");
+        flashSaved();
+      } else if (active === "notificaciones") {
+        const notificationPrefs: NotificationPrefs = Object.fromEntries(notifications.map((n) => [n.id, n.enabled]));
+        await apiSend("/api/auth/me", "PATCH", { notificationPrefs });
+        await refresh();
+        toast.success("Preferencias de notificaciones guardadas");
+        flashSaved();
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo guardar la configuración");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -119,7 +165,12 @@ export default function ClubSettingsPage() {
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Email</label>
-                <input type="email" value={emailVal} onChange={(e) => setEmailVal(e.target.value)} className="input-field w-full" />
+                <input type="email" value={activeUser?.email ?? ""} className="input-field w-full opacity-60 cursor-not-allowed" readOnly />
+                <p className="text-xs text-slate-400 mt-1.5">El email es tu identificador de acceso y no se puede modificar desde aquí.</p>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">País</label>
+                <input type="text" value={countryVal} onChange={(e) => setCountryVal(e.target.value)} className="input-field w-full" placeholder="ej. Chile" />
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Cargo</label>
@@ -127,7 +178,16 @@ export default function ClubSettingsPage() {
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Organización</label>
-                <input type="text" value={clubVal} onChange={(e) => setClubVal(e.target.value)} className="input-field w-full" />
+                <input
+                  type="text"
+                  value={clubVal}
+                  onChange={(e) => setClubVal(e.target.value)}
+                  className={`input-field w-full ${orgLocked ? "opacity-60 cursor-not-allowed" : ""}`}
+                  readOnly={orgLocked}
+                />
+                {orgLocked && (
+                  <p className="text-xs text-slate-400 mt-1.5">El nombre del club se edita desde &quot;Perfil del club&quot;.</p>
+                )}
               </div>
             </>
           )}
@@ -173,18 +233,9 @@ export default function ClubSettingsPage() {
             </>
           )}
 
-          {active === "apariencia" && (
-            <div className="text-center py-10">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
-                <Settings size={24} className="text-slate-300" />
-              </div>
-              <p className="text-slate-400 text-sm">Esta sección estará disponible próximamente</p>
-            </div>
-          )}
-
           <div className="pt-2 flex justify-end">
-            <button onClick={handleSave} className={`btn-primary flex items-center gap-2 ${saved ? "bg-teal-600" : ""}`}>
-              {saved ? <><Check size={16} /> Guardado</> : "Guardar cambios"}
+            <button onClick={handleSave} disabled={saving} className={`btn-primary flex items-center gap-2 disabled:opacity-60 ${saved ? "bg-teal-600" : ""}`}>
+              {saved ? <><Check size={16} /> Guardado</> : saving ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
         </motion.div>

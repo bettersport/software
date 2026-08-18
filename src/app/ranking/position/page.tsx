@@ -30,9 +30,6 @@ export default function RankingPositionPage() {
   const { data: myClub } = useResource<Club | null>(
     loaded && clubId ? `/api/clubs/${clubId}` : null, null,
   );
-  const prevPos = evolutionData[evolutionData.length - 2].posicion;
-  const trend = prevPos - (myClub?.ranking ?? prevPos);
-
   // Wait for the session to load to avoid flashing the demo view for real accounts
   if (!loaded) return null;
 
@@ -61,6 +58,9 @@ export default function RankingPositionPage() {
       </div>
     );
   }
+
+  const prevPos = evolutionData[evolutionData.length - 2].posicion;
+  const trend = prevPos - (myClub?.ranking ?? prevPos);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">

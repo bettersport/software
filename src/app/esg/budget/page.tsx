@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Plus, TrendingUp, TrendingDown, DollarSign, X, Handshake, BarChart2, ChevronRight } from "lucide-react";
+import { Wallet, Plus, TrendingUp, TrendingDown, DollarSign, X, Handshake, BarChart2, ChevronRight, Trash2 } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
 import { useUser } from "@/lib/userContext";
 import { useResource, apiSend } from "@/lib/useResource";
@@ -25,6 +25,8 @@ function Portal({ children }: { children: React.ReactNode }) {
 }
 
 const emptyGasto = { projectId: "", amount: "", description: "" };
+const emptyLead = { brand: "", category: "", amount: "" };
+const LEAD_COLORS = ["#EF4444", "#EC4899", "#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#06B6D4"];
 
 /* ── Sponsorship mock data ── */
 const quarterlyData = [
@@ -57,9 +59,6 @@ const stageColors: Record<PipelineStage, string> = {
 const NO_LEADS: SponsorLead[] = [];
 const NO_PROJECTS: ESGProject[] = [];
 
-// Zeroed quarterly series for accounts without sponsorship history (stable reference).
-const EMPTY_QUARTERLY = quarterlyData.map((q) => ({ ...q, presupuesto: 0, cerrado: 0 }));
-
 export default function BudgetPage() {
   const { isDemo, activeUser, loaded } = useUser();
   const { data: projects, setData: setProjects, reload: reloadProjects } = useResource<ESGProject[]>(
@@ -71,6 +70,9 @@ export default function BudgetPage() {
   const [activeTab, setActiveTab] = useState<"presupuesto" | "sponsorship">("presupuesto");
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyGasto);
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [leadForm, setLeadForm] = useState(emptyLead);
+  const [savingLead, setSavingLead] = useState(false);
 
   const totalBudget = projects.reduce((acc, p) => acc + p.budget, 0);
   const totalSpent = projects.reduce((acc, p) => acc + p.spent, 0);
@@ -129,9 +131,46 @@ export default function BudgetPage() {
     }
   };
 
-  const quarterly = isDemo ? quarterlyData : EMPTY_QUARTERLY;
-  const totalSponsorBudget = quarterly.reduce((a, q) => a + q.presupuesto, 0);
-  const totalSponsorClosed = quarterly.reduce((a, q) => a + q.cerrado, 0);
+  const handleCreateLead = async () => {
+    if (!leadForm.brand.trim()) { toast.error("Ingresa el nombre de la marca"); return; }
+    if (!leadForm.category.trim()) { toast.error("Ingresa la categoría"); return; }
+    const amount = parseFloat(leadForm.amount) || 0;
+    if (amount < 0) { toast.error("Ingresa un monto válido"); return; }
+    setSavingLead(true);
+    try {
+      await apiSend("/api/sponsor-leads", "POST", {
+        brand: leadForm.brand.trim(),
+        category: leadForm.category.trim(),
+        amount,
+        color: LEAD_COLORS[leads.length % LEAD_COLORS.length],
+      });
+      await reloadLeads();
+      setLeadForm(emptyLead);
+      setShowLeadModal(false);
+      toast.success("Marca agregada al pipeline");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo crear la marca");
+    } finally {
+      setSavingLead(false);
+    }
+  };
+
+  const deleteLead = async (lead: SponsorLead) => {
+    if (!confirm(`¿Eliminar "${lead.brand}" del pipeline?`)) return;
+    try {
+      await apiSend(`/api/sponsor-leads/${lead.id}`, "DELETE");
+      await reloadLeads();
+      toast.success("Marca eliminada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar la marca");
+    }
+  };
+
+  // Demo: serie trimestral ilustrativa. Real: montos calculados desde los leads.
+  const totalSponsorBudget = isDemo ? quarterlyData.reduce((a, q) => a + q.presupuesto, 0) : null;
+  const totalSponsorClosed = isDemo
+    ? quarterlyData.reduce((a, q) => a + q.cerrado, 0)
+    : leads.filter((l) => l.stage === "Cierre").reduce((a, l) => a + l.amount, 0);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -144,7 +183,11 @@ export default function BudgetPage() {
             <button className="btn-primary flex items-center gap-2" onClick={() => setShowModal(true)}>
               <Plus size={16} /> Registrar gasto
             </button>
-          ) : undefined
+          ) : (
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowLeadModal(true)}>
+              <Plus size={16} /> Nueva marca
+            </button>
+          )
         }
       />
 
@@ -275,15 +318,16 @@ export default function BudgetPage() {
           {/* Sponsor summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { label: "Presupuesto Sponsorship Anual", value: `$${totalSponsorBudget.toLocaleString()}`, color: "#8B5CF6", icon: <BarChart2 size={18} /> },
-              { label: "Cerrado / Firmado", value: `$${totalSponsorClosed.toLocaleString()}`, color: "#10B981", icon: <TrendingUp size={18} /> },
-              { label: "Pipeline activo", value: `$${leads.filter(l => l.stage !== "Sin contacto").reduce((a, l) => a + l.amount, 0).toLocaleString()}`, color: "#F59E0B", icon: <Handshake size={18} /> },
+              { label: "Presupuesto Sponsorship Anual", value: totalSponsorBudget === null ? "—" : `$${totalSponsorBudget.toLocaleString()}`, sub: totalSponsorBudget === null ? "Define tu meta al crear leads" : undefined, color: "#8B5CF6", icon: <BarChart2 size={18} /> },
+              { label: "Cerrado / Firmado", value: `$${totalSponsorClosed.toLocaleString()}`, sub: undefined, color: "#10B981", icon: <TrendingUp size={18} /> },
+              { label: "Pipeline activo", value: `$${leads.filter(l => l.stage !== "Sin contacto").reduce((a, l) => a + l.amount, 0).toLocaleString()}`, sub: undefined, color: "#F59E0B", icon: <Handshake size={18} /> },
             ].map((s, i) => (
               <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="card p-6">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs text-slate-400 uppercase tracking-wider leading-tight">{s.label}</p>
                     <p className="text-2xl font-bold mt-1.5" style={{ color: s.color }}>{s.value}</p>
+                    {s.sub && <p className="text-xs text-slate-400 mt-1">{s.sub}</p>}
                   </div>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.color + "18", color: s.color, border: `1px solid ${s.color}30` }}>
                     {s.icon}
@@ -293,11 +337,12 @@ export default function BudgetPage() {
             ))}
           </div>
 
-          {/* Quarterly chart */}
+          {/* Quarterly chart (sample data, demo accounts only) */}
+          {isDemo ? (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-7">
             <h3 className="font-semibold text-slate-800 text-sm mb-4">Presupuesto Sponsorship Anual y por Quarter</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={quarterly}>
+              <BarChart data={quarterlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="q" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -308,6 +353,15 @@ export default function BudgetPage() {
               </BarChart>
             </ResponsiveContainer>
           </motion.div>
+          ) : (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-7">
+            <h3 className="font-semibold text-slate-800 text-sm mb-2">Sponsorship cerrado</h3>
+            <p className="text-3xl font-bold" style={{ color: "#10B981" }}>${totalSponsorClosed.toLocaleString()}</p>
+            <p className="text-xs text-slate-400 mt-1">
+              Suma de las marcas en etapa &quot;Cierre&quot; ({leads.filter((l) => l.stage === "Cierre").length} de {leads.length}). El presupuesto anual se definirá con tus metas de sponsorship.
+            </p>
+          </motion.div>
+          )}
 
           {/* Backlog de negociación (pipeline) */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-6">
@@ -333,6 +387,13 @@ export default function BudgetPage() {
             </div>
 
             {/* Leads list */}
+            {leads.length === 0 && (
+              <div className="py-10 text-center rounded-xl" style={{ backgroundColor: "#f8fafc", border: "1.5px dashed #e2e8f0" }}>
+                <Handshake size={28} className="mx-auto text-slate-300 mb-2" />
+                <p className="text-sm font-medium text-slate-600">Aún no tienes marcas en seguimiento</p>
+                <p className="text-xs text-slate-400 mt-1">Agrega tu primera marca con el botón &quot;Nueva marca&quot; para empezar a gestionar tu pipeline.</p>
+              </div>
+            )}
             <div className="space-y-2.5">
               {leads.map((lead) => {
                 const stageIdx = pipelineStages.indexOf(lead.stage);
@@ -379,6 +440,13 @@ export default function BudgetPage() {
                           <TrendingUp size={14} />
                         </div>
                       )}
+                      <button
+                        onClick={() => deleteLead(lead)}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        title="Eliminar marca"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -428,6 +496,48 @@ export default function BudgetPage() {
                 <div className="flex gap-3 pt-2">
                   <button className="btn-primary flex-1" onClick={handleRegistrar}>Registrar gasto</button>
                   <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Portal>
+
+      {/* Nueva marca modal */}
+      <Portal>
+        <AnimatePresence>
+          {showLeadModal && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+              onClick={() => setShowLeadModal(false)}>
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                className="card w-full max-w-md p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>Nueva marca en pipeline</h3>
+                  <button onClick={() => setShowLeadModal(false)} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+                    <X size={18} className="text-slate-400" />
+                  </button>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Marca *</label>
+                  <input type="text" placeholder="Ej: Banco Regional" className="input-field w-full"
+                    value={leadForm.brand} onChange={(e) => setLeadForm({ ...leadForm, brand: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Categoría *</label>
+                  <input type="text" placeholder="Ej: Banca, Bebidas, Retail" className="input-field w-full"
+                    value={leadForm.category} onChange={(e) => setLeadForm({ ...leadForm, category: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Monto estimado (USD)</label>
+                  <input type="number" min="0" placeholder="Ej: 25000" className="input-field w-full"
+                    value={leadForm.amount} onChange={(e) => setLeadForm({ ...leadForm, amount: e.target.value })} />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button className="btn-primary flex-1" onClick={handleCreateLead} disabled={savingLead}>
+                    {savingLead ? "Guardando..." : "Agregar marca"}
+                  </button>
+                  <button className="btn-secondary" onClick={() => setShowLeadModal(false)}>Cancelar</button>
                 </div>
               </motion.div>
             </motion.div>

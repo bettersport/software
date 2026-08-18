@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, Zap, Trophy, Gift, TrendingUp, Star, BarChart3,
-  ArrowUpRight, ArrowDownRight, ChevronRight, Filter,
+  ArrowUpRight, ArrowDownRight, ChevronRight,
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -149,9 +149,6 @@ export default function ClubFanZonePage() {
             <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
             <span className="text-xs font-semibold text-teal-700">En vivo</span>
           </div>
-          <button className="btn-secondary flex items-center gap-1.5">
-            <Filter size={13} /> Filtrar
-          </button>
         </div>
       </div>
 
@@ -359,7 +356,7 @@ export default function ClubFanZonePage() {
             <span className="text-xl flex-shrink-0">🎯</span>
             <p className="text-sm text-slate-600">
               <strong>Para el club:</strong> Los top 10 fans generan el 28% de todos los puntos ESG.
-              Crear un programa <strong>"Embajador Verde"</strong> para ellos amplifica el impacto con inversión mínima.
+              Crear un programa <strong>&quot;Embajador Verde&quot;</strong> para ellos amplifica el impacto con inversión mínima.
               Beneficio sugerido: acceso especial + visibilidad en comunicaciones del club.
             </p>
           </div>
