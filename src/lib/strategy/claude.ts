@@ -37,6 +37,7 @@ async function callClaude(system: string, user: string, maxTokens = 2000, opts: 
       return null;
     }
     const data = await res.json();
+    if (data?.usage) console.log(`[claude] ${data.model ?? opts.model ?? MODEL} tokens: in=${data.usage.input_tokens} out=${data.usage.output_tokens}${data.stop_reason === "max_tokens" ? " (SALIDA TRUNCADA por max_tokens)" : ""}`);
     const text = data?.content?.find((c: { type: string }) => c.type === "text")?.text;
     return typeof text === "string" ? text : null;
   } catch (e) {
@@ -47,10 +48,23 @@ async function callClaude(system: string, user: string, maxTokens = 2000, opts: 
 
 const STRATEGY_SYSTEM = `Eres un consultor ESG senior especializado en organizaciones deportivas (clubes, federaciones, ligas) en Latinoamérica.
 Recibirás un documento de estrategia ESG en JSON generado por un motor determinista basado en estándares GRI, más el input estructurado del club.
-Tu tarea: mejorar la REDACCIÓN de campos narrativos manteniendo EXACTAMENTE la estructura JSON y sin alterar cifras, años, estándares GRI, indicadores ni metas cuantitativas.
-Puedes reescribir: cover.executiveSummary, diagnosis.narrative, investment.narrative, strategicAlignment[].how, governance.nextSteps[], y el campo goalText de cada plan SOLO para mejorar claridad manteniendo el sentido y las cifras.
-Si una meta está marcada goalPreliminary=true debe seguir indicando explícitamente que es preliminar y sujeta a validación con datos.
-Responde ÚNICAMENTE con el JSON completo, sin comentarios ni markdown.`;
+Tu tarea: mejorar la REDACCIÓN de los campos narrativos sin alterar cifras, años, estándares GRI, indicadores ni metas cuantitativas.
+Si una meta está marcada goalPreliminary=true, su goalText mejorado debe seguir indicando explícitamente que es preliminar y sujeta a validación con datos.
+Responde ÚNICAMENTE con un objeto JSON con ESTA forma exacta (solo los campos narrativos, NO el documento completo):
+{"executiveSummary": string, "diagnosisNarrative": string, "investmentNarrative": string, "alignmentHows": string[], "nextSteps": string[], "goals": [{"pillar": string, "key": string, "goalText": string}]}
+- "alignmentHows": la redacción mejorada de strategicAlignment[].how, en el MISMO orden y cantidad que el documento.
+- "goals": un elemento por cada plan de pillars[].plans[], identificado por su pillar y key originales.
+Sin comentarios ni markdown.`;
+
+/** Forma compacta que Claude devuelve: solo los campos narrativos que puede reescribir. */
+interface NarrativePatch {
+  executiveSummary?: string;
+  diagnosisNarrative?: string;
+  investmentNarrative?: string;
+  alignmentHows?: string[];
+  nextSteps?: string[];
+  goals?: { pillar?: string; key?: string; goalText?: string }[];
+}
 
 /**
  * Enriquece el documento con Claude — MERGE narrativo, nunca reemplazo:
@@ -61,35 +75,35 @@ export async function enrichWithClaude(doc: StrategyDocument, input: StrategyInp
   const out = await callClaude(
     STRATEGY_SYSTEM,
     `INPUT DEL CLUB:\n${JSON.stringify(input)}\n\nDOCUMENTO A MEJORAR:\n${JSON.stringify(doc)}`,
-    8000,
+    4000,
     { timeoutMs: 60_000 },
   );
   if (!out) return doc;
-  let parsed: Partial<StrategyDocument>;
+  let parsed: NarrativePatch;
   try {
     parsed = JSON.parse(out.replace(/^```json\s*|```\s*$/g, ""));
   } catch {
     console.error("[claude] respuesta no es JSON válido; se conserva el documento del motor");
     return doc;
   }
-  if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.pillars)) return doc;
+  if (!parsed || typeof parsed !== "object") return doc;
 
   const merged: StrategyDocument = structuredClone(doc);
   const s = (v: unknown, fallback: string) => (typeof v === "string" && v.trim().length > 20 ? v.trim() : fallback);
 
-  merged.cover.executiveSummary = s(parsed.cover?.executiveSummary, doc.cover.executiveSummary);
-  merged.diagnosis.narrative = s(parsed.diagnosis?.narrative, doc.diagnosis.narrative);
-  merged.investment.narrative = s(parsed.investment?.narrative, doc.investment.narrative);
-  if (Array.isArray(parsed.strategicAlignment) && parsed.strategicAlignment.length === doc.strategicAlignment.length) {
-    merged.strategicAlignment = doc.strategicAlignment.map((a, i) => ({ ...a, how: s(parsed.strategicAlignment![i]?.how, a.how) }));
+  merged.cover.executiveSummary = s(parsed.executiveSummary, doc.cover.executiveSummary);
+  merged.diagnosis.narrative = s(parsed.diagnosisNarrative, doc.diagnosis.narrative);
+  merged.investment.narrative = s(parsed.investmentNarrative, doc.investment.narrative);
+  if (Array.isArray(parsed.alignmentHows) && parsed.alignmentHows.length === doc.strategicAlignment.length) {
+    merged.strategicAlignment = doc.strategicAlignment.map((a, i) => ({ ...a, how: s(parsed.alignmentHows![i], a.how) }));
   }
-  if (Array.isArray(parsed.governance?.nextSteps) && parsed.governance!.nextSteps.every((x) => typeof x === "string")) {
-    merged.governance.nextSteps = parsed.governance!.nextSteps as string[];
+  if (Array.isArray(parsed.nextSteps) && parsed.nextSteps.length > 0 && parsed.nextSteps.every((x) => typeof x === "string")) {
+    merged.governance.nextSteps = parsed.nextSteps;
   }
   // goalText por plan, emparejado por (pillar,key); una meta preliminar debe seguir diciéndolo.
   const incoming = new Map<string, string>();
-  for (const pp of parsed.pillars as StrategyDocument["pillars"]) {
-    for (const pl of pp?.plans ?? []) if (pl?.pillar && pl?.key && typeof pl.goalText === "string") incoming.set(`${pl.pillar}:${pl.key}`, pl.goalText);
+  for (const g of parsed.goals ?? []) {
+    if (g?.pillar && g?.key && typeof g.goalText === "string") incoming.set(`${g.pillar}:${g.key}`, g.goalText);
   }
   for (const pp of merged.pillars) {
     for (const pl of pp.plans) {

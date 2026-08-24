@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { withUser, json, badRequest, requireClubWriter, notify } from "@/lib/server-data";
 import { generateStrategyDocument, type GriRow, type FrameworkRow } from "@/lib/strategy/engine";
 import { enrichWithClaude, claudeAvailable } from "@/lib/strategy/claude";
+import { materializeStrategy } from "@/lib/strategy/materialize";
 import type { StrategyInput, ChallengeInput } from "@/lib/strategy/types";
 
 /** POST { id } → genera el documento y guarda maturity scores + metas por desafío. */
@@ -58,11 +59,23 @@ export async function POST(req: Request) {
       },
     });
   }
-  const updated = await prisma.esgStrategy.update({
+  await prisma.esgStrategy.update({
     where: { id: s.id },
     data: { generatedDoc: doc as object, generatedAt: new Date(), maturityScores: doc.diagnosis.maturity as object, status: "generated", currentStep: 7, globalBody: fw?.organism ?? s.globalBody },
+  });
+  await notify(ctx.user.id, { type: "success", title: "Estrategia ESG generada", message: `Tu estrategia ${s.vigenciaInicio}–${s.vigenciaFin} está lista.` });
+
+  // Materialización automática: proyectos ESG + KPIs del club + puntaje/ranking.
+  try {
+    const full = await prisma.esgStrategy.findUnique({ where: { id: s.id }, include: { challenges: { include: { projects: true } } } });
+    if (full) await materializeStrategy(full, ctx.user.id);
+  } catch (e) {
+    console.error("[strategy] materialización automática falló:", e instanceof Error ? e.message : e);
+  }
+
+  const updated = await prisma.esgStrategy.findUnique({
+    where: { id: s.id },
     include: { challenges: { include: { documents: true }, orderBy: { createdAt: "asc" } } },
   });
-  await notify(ctx.user.id, { type: "success", title: "Estrategia ESG generada", message: `Tu estrategia ${s.vigenciaInicio}–${s.vigenciaFin} está lista. Revísala y conviértela en proyectos.` });
   return json(updated);
 }
