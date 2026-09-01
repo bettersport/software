@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Upload, Pencil } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
@@ -203,6 +204,18 @@ export default function MyEventsPage() {
           </button>
         }
       />
+
+      {/* Aclaración: estos eventos son internos; el patrocinio se busca en el marketplace */}
+      <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-xs"
+        style={{ backgroundColor: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.2)" }}>
+        <span className="text-slate-600">
+          Los eventos de esta sección son <strong>internos de tu club</strong> y no se muestran a marcas.
+          Para buscar patrocinio, publica el evento en el marketplace.
+        </span>
+        <Link href="/marketplace" className="btn-secondary text-xs py-1.5 px-3 flex-shrink-0">
+          Ir al marketplace
+        </Link>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

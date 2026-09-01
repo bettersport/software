@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Lightbulb, Search, Filter, Users,
   Calendar, DollarSign, ChevronDown, CheckCircle,
+  Plus, X, Upload, Trash2,
 } from "lucide-react";
 import { SectionHeader, ProgressBar, Tabs } from "@/components/ui";
 import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
@@ -31,6 +32,17 @@ const categoryTabs = [
 
 const sports = ["Todos", "Fútbol", "Rugby", "Pádel", "Natación", "Tenis", "Atletismo"];
 const countries = ["Todos", "Chile", "Argentina", "Colombia", "España", "México"];
+
+/** Roles que pueden publicar eventos de su club en el marketplace. */
+const PUBLISHER_ROLES = ["club", "admin", "manager"];
+const PUBLISH_CATEGORIES = [
+  "huella_hidrica", "huella_carbono", "gestion_residuos",
+  "educacion", "inclusion", "equidad_genero",
+] as const;
+const emptyPublishForm = {
+  title: "", category: "huella_carbono" as string, description: "",
+  sustainableImpact: "", budget: "", audience: "", daysLeft: "30", image: "",
+};
 
 /* ── Brand logo helpers ── */
 const mediaPartnerStyles: Record<string, { bg: string; text: string; label: string }> = {
@@ -75,7 +87,7 @@ function SponsorLogo({ name }: { name: string }) {
 
 export default function MarketplacePage() {
   const { activeUser, loaded } = useUser();
-  const { data: rawEvents } = useResource<Event[]>(
+  const { data: rawEvents, reload: reloadEvents } = useResource<Event[]>(
     loaded && activeUser ? "/api/events" : null, EMPTY,
   );
   const { data: myRequests, reload: reloadRequests } = useResource<SponsorRequest[]>(
@@ -98,9 +110,67 @@ export default function MarketplacePage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [requestedIds, setRequestedIds] = useState<string[]>([]);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [showPublish, setShowPublish] = useState(false);
+  const [publishForm, setPublishForm] = useState(emptyPublishForm);
+  const [publishing, setPublishing] = useState(false);
+
+  const canPublish = !!activeUser && PUBLISHER_ROLES.includes(activeUser.role) && !!activeUser.clubId;
+  const isOwn = (event: Event) => !!activeUser?.clubId && event.clubId === activeUser.clubId;
 
   const isRequested = (eventId: string) =>
     requestedIds.includes(eventId) || myRequests.some((r) => r.eventId === eventId && r.status === "pending");
+
+  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1_500_000) {
+      toast.error("La imagen no puede superar 1.5MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setPublishForm((f) => ({ ...f, image: reader.result as string }));
+    reader.readAsDataURL(file);
+  };
+
+  const publishEvent = async () => {
+    const budget = parseFloat(publishForm.budget);
+    if (!publishForm.title.trim() || !publishForm.description.trim() || Number.isNaN(budget) || budget <= 0) {
+      toast.error("Completa título, descripción y un presupuesto válido");
+      return;
+    }
+    setPublishing(true);
+    try {
+      await apiSend("/api/events", "POST", {
+        title: publishForm.title.trim(),
+        category: publishForm.category,
+        description: publishForm.description.trim(),
+        sustainableImpact: publishForm.sustainableImpact.trim(),
+        budget,
+        audience: parseFloat(publishForm.audience) || 0,
+        daysLeft: parseInt(publishForm.daysLeft, 10) || 30,
+        image: publishForm.image || undefined,
+      });
+      await reloadEvents();
+      setPublishForm(emptyPublishForm);
+      setShowPublish(false);
+      toast.success("Evento publicado en el marketplace");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo publicar el evento");
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const deleteEvent = async (event: Event) => {
+    try {
+      await apiSend(`/api/events/${event.id}`, "DELETE");
+      await reloadEvents();
+      setSelectedEvent(null);
+      toast("Evento retirado del marketplace", { icon: "🗑️" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar el evento");
+    }
+  };
 
   const filtered = events.filter((e) => {
     const matchCat = activeCategory === "all" || e.category === activeCategory;
@@ -136,6 +206,11 @@ export default function MarketplacePage() {
         icon={<Lightbulb size={22} className="text-amber-400" />}
         title="Eventos de alto impacto"
         subtitle="Descubre y patrocina proyectos deportivos sostenibles"
+        action={canPublish ? (
+          <button className="btn-primary flex items-center gap-2" onClick={() => setShowPublish(true)}>
+            <Plus size={16} /> Crear evento
+          </button>
+        ) : undefined}
       />
 
       {/* Search + Filter bar */}
@@ -294,13 +369,19 @@ export default function MarketplacePage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 mt-auto">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleSponsor(event); }}
-                    disabled={isRequested(event.id) || sendingId === event.id}
-                    className="btn-primary flex-1 justify-center disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {isRequested(event.id) ? "Solicitud enviada" : sendingId === event.id ? "Enviando..." : "Sponsorear ahora"}
-                  </button>
+                  {isOwn(event) ? (
+                    <span className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-teal-600 rounded-xl py-2" style={{ backgroundColor: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                      <CheckCircle size={13} /> Evento de tu club
+                    </span>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleSponsor(event); }}
+                      disabled={isRequested(event.id) || sendingId === event.id}
+                      className="btn-primary flex-1 justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isRequested(event.id) ? "Solicitud enviada" : sendingId === event.id ? "Enviando..." : "Sponsorear ahora"}
+                    </button>
+                  )}
                   <button
                     onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
                     className="btn-secondary flex-1 justify-center"
@@ -321,6 +402,112 @@ export default function MarketplacePage() {
           <p className="text-slate-300 text-sm mt-1">Prueba con otros filtros</p>
         </div>
       )}
+
+      {/* Publish event modal */}
+      <AnimatePresence>
+        {showPublish && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}
+            onClick={() => setShowPublish(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="card w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>Crear evento</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Se publicará en el marketplace para recibir patrocinios</p>
+                </div>
+                <button onClick={() => setShowPublish(false)} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
+                  <X size={18} className="text-slate-400" />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Nombre del evento *</label>
+                <input type="text" placeholder="Ej: Corrida Verde 2026" className="input-field w-full"
+                  value={publishForm.title} onChange={(e) => setPublishForm({ ...publishForm, title: e.target.value })} />
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Categoría ESG *</label>
+                <select className="input-field w-full" value={publishForm.category}
+                  onChange={(e) => setPublishForm({ ...publishForm, category: e.target.value })}>
+                  {PUBLISH_CATEGORIES.map((c) => (
+                    <option key={c} value={c} style={{ backgroundColor: "#fff" }}>
+                      {categoryIcons[c]} {categoryLabels[c]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Descripción *</label>
+                <textarea rows={3} className="input-field w-full resize-none" placeholder="Describe el evento, su alcance y su impacto"
+                  value={publishForm.description} onChange={(e) => setPublishForm({ ...publishForm, description: e.target.value })} />
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Impacto sostenible</label>
+                <textarea rows={2} className="input-field w-full resize-none" placeholder="Ej: 500 kg de residuos reciclados, 2.000 niños beneficiados"
+                  value={publishForm.sustainableImpact} onChange={(e) => setPublishForm({ ...publishForm, sustainableImpact: e.target.value })} />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Presupuesto (USD) *</label>
+                  <input type="number" min="1" placeholder="10000" className="input-field w-full"
+                    value={publishForm.budget} onChange={(e) => setPublishForm({ ...publishForm, budget: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Audiencia estimada</label>
+                  <input type="number" min="0" placeholder="5000" className="input-field w-full"
+                    value={publishForm.audience} onChange={(e) => setPublishForm({ ...publishForm, audience: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Días de campaña</label>
+                  <input type="number" min="1" max="365" className="input-field w-full"
+                    value={publishForm.daysLeft} onChange={(e) => setPublishForm({ ...publishForm, daysLeft: e.target.value })} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Imagen del evento</label>
+                <label className="group flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all hover:border-teal-400 hover:bg-teal-50/40"
+                  style={{ borderColor: publishForm.image ? "#10B981" : "#e2e8f0", backgroundColor: publishForm.image ? "rgba(16,185,129,0.04)" : "#f8fafc" }}>
+                  {publishForm.image ? (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <img src={publishForm.image} alt="imagen del evento" className="h-16 w-auto object-cover rounded-lg" />
+                      <span className="text-[10px] text-teal-600 font-semibold">Cambiar imagen</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <Upload size={16} className="text-slate-400 group-hover:text-teal-600 transition-colors" />
+                      <span className="text-[10px] text-slate-400 text-center leading-tight">Subir imagen (opcional, máx. 1.5MB)<br />Si no subes una, usamos una según la categoría</span>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" className="sr-only" onChange={handleImageFile} />
+                </label>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button className="btn-primary flex-1" onClick={publishEvent} disabled={publishing}>
+                  {publishing ? "Publicando..." : "Publicar evento"}
+                </button>
+                <button className="btn-secondary" onClick={() => setShowPublish(false)}>Cancelar</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Event detail modal */}
       <AnimatePresence>
@@ -388,13 +575,23 @@ export default function MarketplacePage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button
-                    onClick={async () => { await handleSponsor(selectedEvent); setSelectedEvent(null); }}
-                    disabled={isRequested(selectedEvent.id) || sendingId === selectedEvent.id}
-                    className="btn-primary flex-1 justify-center py-3 disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {isRequested(selectedEvent.id) ? "Solicitud enviada" : sendingId === selectedEvent.id ? "Enviando..." : "Sponsorear ahora"}
-                  </button>
+                  {isOwn(selectedEvent) ? (
+                    <button
+                      onClick={() => deleteEvent(selectedEvent)}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
+                      style={{ border: "1px solid rgba(239,68,68,0.3)" }}
+                    >
+                      <Trash2 size={15} /> Retirar del marketplace
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => { await handleSponsor(selectedEvent); setSelectedEvent(null); }}
+                      disabled={isRequested(selectedEvent.id) || sendingId === selectedEvent.id}
+                      className="btn-primary flex-1 justify-center py-3 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isRequested(selectedEvent.id) ? "Solicitud enviada" : sendingId === selectedEvent.id ? "Enviando..." : "Sponsorear ahora"}
+                    </button>
+                  )}
                   <button onClick={() => setSelectedEvent(null)} className="btn-secondary px-5">
                     Cerrar
                   </button>
