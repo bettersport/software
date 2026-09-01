@@ -277,7 +277,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
             className="flex-1 min-w-0"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="BetterSport" className="h-8 w-auto object-contain" />
+            <img src="/logo.svg" alt="BetterSport" className="h-8 w-auto object-contain" style={{ filter: "brightness(0) invert(1)" }} />
           </motion.div>
         )}
         <button
