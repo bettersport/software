@@ -45,114 +45,154 @@ interface NavItem {
 
 const allRoles: UserRole[] = ["admin", "club", "brand", "solucion", "manager", "auditor"];
 
-const navItems: NavItem[] = [
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: <LayoutDashboard size={18} />,
-    roles: [...allRoles, "hincha"],
-  },
-  {
-    label: "Ranking",
-    icon: <Trophy size={18} />,
-    roles: allRoles,
-    children: [
-      { label: "Clubes", href: "/ranking", icon: <Trophy size={15} /> },
-      { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin"] },
+    items: [
+      {
+        label: "Dashboard",
+        href: "/dashboard",
+        icon: <LayoutDashboard size={18} />,
+        roles: [...allRoles, "hincha"],
+      },
+      {
+        label: "Ranking",
+        icon: <Trophy size={18} />,
+        roles: allRoles,
+        children: [
+          { label: "Clubes", href: "/ranking", icon: <Trophy size={15} /> },
+          { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin"] },
+        ],
+      },
+      {
+        label: "Motor IA",
+        href: "/ai-strategy",
+        icon: <Brain size={18} />,
+        roles: ["admin", "club"],
+      },
     ],
   },
   {
-    label: "Soluciones",
-    href: "/solutions",
-    icon: <Wrench size={18} />,
-    roles: allRoles,
-  },
-  {
-    label: "Proyectos de alto impacto",
-    icon: <ShoppingBag size={18} />,
-    roles: allRoles,
-    children: [
-      { label: "Proyectos sostenibles", href: "/marketplace", icon: <ShoppingBag size={15} /> },
-      { label: "Mis eventos", href: "/marketplace/my-events", icon: <FileText size={15} />, roles: ["club", "admin"] },
+    title: "Gestión ESG",
+    items: [
+      {
+        label: "Mis proyectos",
+        href: "/esg/projects",
+        icon: <Lightbulb size={18} />,
+        roles: ["admin", "club", "manager", "auditor"],
+      },
+      {
+        label: "KPIs e indicadores",
+        href: "/esg/kpis",
+        icon: <BarChart3 size={18} />,
+        roles: ["admin", "club", "manager", "auditor"],
+      },
+      {
+        label: "Gestión documental",
+        href: "/esg/documents",
+        icon: <FileText size={18} />,
+        roles: ["admin", "club", "manager", "auditor"],
+      },
+      {
+        label: "Presupuesto",
+        href: "/esg/budget",
+        icon: <Wallet size={18} />,
+        roles: ["admin", "club", "manager", "auditor"],
+      },
     ],
   },
   {
-    label: "Marcas",
-    icon: <Tag size={18} />,
-    roles: ["admin", "brand"],
-    children: [
-      { label: "Ranking clubes",       href: "/brands/ranking", icon: <Trophy size={15} /> },
-      { label: "Proyectos sostenibles", href: "/brands/projects", icon: <Leaf size={15} /> },
-      { label: "Mi configuración",     href: "/brands/config",  icon: <SlidersHorizontal size={15} />, roles: ["brand"] },
+    title: "Mercado",
+    items: [
+      {
+        label: "Alto impacto",
+        icon: <ShoppingBag size={18} />,
+        roles: allRoles,
+        children: [
+          { label: "Proyectos sostenibles", href: "/marketplace", icon: <ShoppingBag size={15} /> },
+          { label: "Mis eventos", href: "/marketplace/my-events", icon: <FileText size={15} />, roles: ["club", "admin"] },
+        ],
+      },
+      {
+        label: "Soluciones",
+        href: "/solutions",
+        icon: <Wrench size={18} />,
+        roles: allRoles,
+      },
+      {
+        label: "Marcas",
+        icon: <Tag size={18} />,
+        roles: ["admin", "brand"],
+        children: [
+          { label: "Ranking clubes",        href: "/brands/ranking",  icon: <Trophy size={15} /> },
+          { label: "Proyectos sostenibles", href: "/brands/projects", icon: <Leaf size={15} /> },
+          { label: "Mi configuración",      href: "/brands/config",   icon: <SlidersHorizontal size={15} />, roles: ["brand"] },
+        ],
+      },
+      {
+        label: "Mis Soluciones",
+        icon: <Wrench size={18} />,
+        roles: ["admin", "solucion"],
+        children: [
+          { label: "Catálogo de soluciones", href: "/solutions", icon: <Wrench size={15} /> },
+          { label: "Ver clubes",             href: "/ranking",   icon: <Eye size={15} /> },
+        ],
+      },
     ],
   },
   {
-    label: "Gestión ESG",
-    icon: <Leaf size={18} />,
-    roles: ["admin", "club", "manager", "auditor"],
-    children: [
-      { label: "Mis proyectos", href: "/esg/projects", icon: <Lightbulb size={15} /> },
-      { label: "KPIs e indicadores", href: "/esg/kpis", icon: <BarChart3 size={15} /> },
-      { label: "Gestión documental", href: "/esg/documents", icon: <FileText size={15} /> },
-      { label: "Presupuesto", href: "/esg/budget", icon: <Wallet size={15} /> },
+    title: "Mi espacio",
+    items: [
+      {
+        label: "Mi Fan Zone",
+        href: "/fanzone",
+        icon: <Star size={18} />,
+        roles: ["hincha"],
+      },
+      {
+        label: "Engagement Hinchas",
+        href: "/fanzone",
+        icon: <Users size={18} />,
+        roles: ["admin", "club"],
+      },
+      {
+        label: "Mi Club",
+        icon: <Building2 size={18} />,
+        roles: ["club"],
+        children: [
+          { label: "Perfil del club",     href: "/club/profile",        icon: <Users size={15} /> },
+          { label: "Fan Zone",            href: "/club/fanzone",        icon: <Zap size={15} /> },
+          { label: "Configurar Fan Zone", href: "/club/fanzone/config", icon: <SlidersHorizontal size={15} /> },
+          { label: "Configuración",       href: "/club/settings",       icon: <Settings size={15} /> },
+        ],
+      },
     ],
   },
   {
-    label: "Mis Soluciones",
-    icon: <Wrench size={18} />,
-    roles: ["admin", "solucion"],
-    children: [
-      { label: "Catálogo de soluciones", href: "/solutions", icon: <Wrench size={15} /> },
-      { label: "Ver clubes",            href: "/ranking",   icon: <Eye size={15} /> },
+    title: "Administración",
+    items: [
+      {
+        label: "Administración",
+        icon: <Shield size={18} />,
+        roles: ["admin"],
+        children: [
+          { label: "Todos los clubes",  href: "/ranking",       icon: <Building2 size={15} /> },
+          { label: "Gestión de marcas", href: "/admin/brands",  icon: <Tag size={15} /> },
+          { label: "Fan Zone",          href: "/fanzone",       icon: <Star size={15} /> },
+          { label: "Configuración",     href: "/club/settings", icon: <Settings size={15} /> },
+        ],
+      },
+      {
+        label: "Data Intelligence",
+        href: "/admin/data-intelligence",
+        icon: <Database size={18} />,
+        roles: ["admin"],
+      },
     ],
-  },
-  {
-    label: "Motor IA",
-    href: "/ai-strategy",
-    icon: <Brain size={18} />,
-    roles: ["admin", "club"],
-  },
-  {
-    label: "Mi Fan Zone",
-    href: "/fanzone",
-    icon: <Star size={18} />,
-    roles: ["hincha", "admin"],
-  },
-  {
-    label: "Engagement Hinchas",
-    icon: <Users size={18} />,
-    roles: ["admin", "club"],
-    children: [
-      { label: "Estrategia de Fidelización", href: "/fanzone", icon: <Zap size={15} /> },
-    ],
-  },
-  {
-    label: "Mi Club",
-    icon: <Building2 size={18} />,
-    roles: ["club"],
-    children: [
-      { label: "Perfil del club",      href: "/club/profile",        icon: <Users size={15} /> },
-      { label: "Fan Zone",             href: "/club/fanzone",        icon: <Zap size={15} /> },
-      { label: "Configurar Fan Zone",  href: "/club/fanzone/config", icon: <SlidersHorizontal size={15} /> },
-      { label: "Configuración",        href: "/club/settings",       icon: <Settings size={15} /> },
-    ],
-  },
-  {
-    label: "Administración",
-    icon: <Shield size={18} />,
-    roles: ["admin"],
-    children: [
-      { label: "Todos los clubes",  href: "/ranking",       icon: <Building2 size={15} /> },
-      { label: "Gestión de marcas", href: "/admin/brands",  icon: <Tag size={15} /> },
-      { label: "Fan Zone",          href: "/fanzone",       icon: <Star size={15} /> },
-      { label: "Configuración",     href: "/club/settings", icon: <Settings size={15} /> },
-    ],
-  },
-  {
-    label: "Data Intelligence",
-    href: "/admin/data-intelligence",
-    icon: <Database size={18} />,
-    roles: ["admin"],
   },
 ];
 
@@ -167,7 +207,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
   const pathname = usePathname();
   const { activeUser } = useUser();
   const role = activeUser?.role ?? "club";
-  const [openMenus, setOpenMenus] = useState<string[]>(["Ranking", "Proyectos de alto impacto", "Marcas"]);
+  const [openMenus, setOpenMenus] = useState<string[]>([]);
 
   // Auto-close drawer on mobile when navigating
   useEffect(() => {
@@ -186,13 +226,30 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  // Filtrar items según el rol del usuario activo
-  const filteredNavItems = navItems
-    .filter((item) => !item.roles || item.roles.includes(role))
-    .map((item) => ({
-      ...item,
-      children: item.children?.filter((child) => !child.roles || child.roles.includes(role)),
-    }));
+  // Filtrar secciones e items según el rol del usuario activo
+  const filteredSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items
+        .filter((item) => !item.roles || item.roles.includes(role))
+        .map((item) => ({
+          ...item,
+          children: item.children?.filter((child) => !child.roles || child.roles.includes(role)),
+        })),
+    }))
+    .filter((section) => section.items.length > 0);
+
+  // Mantener abierto el grupo que contiene la ruta activa
+  useEffect(() => {
+    for (const section of filteredSections) {
+      for (const item of section.items) {
+        if (item.children?.some((c) => isActive(c.href))) {
+          setOpenMenus((prev) => (prev.includes(item.label) ? prev : [...prev, item.label]));
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, role]);
 
   return (
     <aside
@@ -233,16 +290,28 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 min-h-0 overflow-y-auto py-5 px-4 space-y-1">
-        {filteredNavItems.map((item) => (
-          <NavItemComponent
-            key={item.label}
-            item={item}
-            collapsed={collapsed}
-            isActive={isActive}
-            isOpen={openMenus.includes(item.label)}
-            onToggle={() => toggleMenu(item.label)}
-          />
+      <nav className="flex-1 min-h-0 overflow-y-auto py-4 px-4">
+        {filteredSections.map((section, si) => (
+          <div key={section.title ?? `sec-${si}`} className={cn(si > 0 && "mt-5")}>
+            {section.title && !collapsed && (
+              <p className="eyebrow px-3 mb-1.5">{section.title}</p>
+            )}
+            {section.title && collapsed && si > 0 && (
+              <div className="mx-2 mb-2 border-t" style={{ borderColor: "#1c2431" }} />
+            )}
+            <div className="space-y-0.5">
+              {section.items.map((item) => (
+                <NavItemComponent
+                  key={item.label}
+                  item={item}
+                  collapsed={collapsed}
+                  isActive={isActive}
+                  isOpen={openMenus.includes(item.label)}
+                  onToggle={() => toggleMenu(item.label)}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
     </aside>
@@ -272,9 +341,9 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
             level > 0 && "pl-6"
           )}
         >
-          <span className="flex items-center gap-3">
+          <span className="flex items-center gap-3 min-w-0">
             <span className="flex-shrink-0">{item.icon}</span>
-            {!collapsed && <span>{item.label}</span>}
+            {!collapsed && <span className="truncate">{item.label}</span>}
           </span>
           {!collapsed && (
             <ChevronDown
@@ -304,7 +373,7 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
                     )}
                   >
                     <span className="flex-shrink-0">{child.icon}</span>
-                    <span>{child.label}</span>
+                    <span className="truncate">{child.label}</span>
                   </Link>
                 ))}
               </div>
@@ -325,7 +394,7 @@ function NavItemComponent({ item, collapsed, isActive, isOpen, onToggle, level =
       )}
     >
       <span className="flex-shrink-0">{item.icon}</span>
-      {!collapsed && <span>{item.label}</span>}
+      {!collapsed && <span className="truncate">{item.label}</span>}
     </Link>
   );
 }
