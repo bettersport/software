@@ -8,6 +8,7 @@ import {
   Plus, X, Upload, Trash2,
 } from "lucide-react";
 import { SectionHeader, ProgressBar, Tabs } from "@/components/ui";
+import { CategoryIcon } from "@/components/ui/icons";
 import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
 import { getStatusLabel, getStatusColor, cn } from "@/lib/utils";
 import type { Event } from "@/lib/types";
@@ -21,13 +22,13 @@ const EMPTY_REQUESTS: SponsorRequest[] = [];
 
 const categoryTabs = [
   { label: "Todos", value: "all" },
-  { label: "💧 Huella hídrica", value: "huella_hidrica" },
-  { label: "🌱 Huella de carbono", value: "huella_carbono" },
-  { label: "♻️ Gestión de residuos", value: "gestion_residuos" },
-  { label: "⚡ Eficiencia Energética", value: "eficiencia_energetica" },
-  { label: "📚 Educación", value: "educacion" },
-  { label: "🤝 Inclusión", value: "inclusion" },
-  { label: "⚖️ Equidad de género", value: "equidad_genero" },
+  { label: "Huella hídrica", value: "huella_hidrica", icon: <CategoryIcon category="huella_hidrica" size={13} /> },
+  { label: "Huella de carbono", value: "huella_carbono", icon: <CategoryIcon category="huella_carbono" size={13} /> },
+  { label: "Gestión de residuos", value: "gestion_residuos", icon: <CategoryIcon category="gestion_residuos" size={13} /> },
+  { label: "Eficiencia Energética", value: "eficiencia_energetica", icon: <CategoryIcon category="eficiencia_energetica" size={13} /> },
+  { label: "Educación", value: "educacion", icon: <CategoryIcon category="educacion" size={13} /> },
+  { label: "Inclusión", value: "inclusion", icon: <CategoryIcon category="inclusion" size={13} /> },
+  { label: "Equidad de género", value: "equidad_genero", icon: <CategoryIcon category="equidad_genero" size={13} /> },
 ];
 
 const sports = ["Todos", "Fútbol", "Rugby", "Pádel", "Natación", "Tenis", "Atletismo"];
@@ -301,7 +302,7 @@ export default function MarketplacePage() {
                 {/* Category badge */}
                 <div className="absolute top-3 left-3">
                   <span className={cn("badge", categoryColors[event.category])}>
-                    {categoryIcons[event.category]} {categoryLabels[event.category]}
+                    <CategoryIcon category={event.category} size={11} /> {categoryLabels[event.category]}
                   </span>
                 </div>
 
@@ -535,7 +536,7 @@ export default function MarketplacePage() {
                 </button>
                 <div className="absolute bottom-4 left-5">
                   <span className={cn("badge", categoryColors[selectedEvent.category])}>
-                    {categoryIcons[selectedEvent.category]} {categoryLabels[selectedEvent.category]}
+                    <CategoryIcon category={selectedEvent.category} size={11} /> {categoryLabels[selectedEvent.category]}
                   </span>
                 </div>
               </div>

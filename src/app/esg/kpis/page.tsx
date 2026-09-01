@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, TrendingDown, Minus, Plus, X, Building2, CheckCheck, Bell, Copy, Trash2, Save, Pencil } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
+import { IconChip } from "@/components/ui/icons";
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, Legend,
@@ -433,8 +434,8 @@ export default function KPIsPage() {
               className="card p-7"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{kpi.icon}</span>
+                <div className="flex items-center gap-3">
+                  <IconChip emoji={kpi.icon} color={kpi.color} />
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{kpi.name}</p>
                     <span

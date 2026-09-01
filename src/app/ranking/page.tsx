@@ -9,6 +9,7 @@ import {
   Leaf, Users, Scale, Eye, X, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
+import { SportIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 import type { Club } from "@/lib/types";
 import { useUser } from "@/lib/userContext";
@@ -231,7 +232,7 @@ export default function RankingPage() {
             value={sportFilter}
             options={sportFilters}
             onChange={setSportFilter}
-            icon={<span className="text-slate-400">⚽</span>}
+            icon={<SportIcon sport="Fútbol" size={15} className="text-slate-400" />}
           />
         </div>
       </div>

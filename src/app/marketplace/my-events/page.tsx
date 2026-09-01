@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, MapPin, Users, Tag, Clock, CheckCircle2, ChevronDown, ChevronUp, X, Upload, Pencil } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
+import { SportIcon } from "@/components/ui/icons";
 import { useUser } from "@/lib/userContext";
 import { useResource, apiSend } from "@/lib/useResource";
 import toast from "react-hot-toast";
@@ -239,8 +240,9 @@ export default function MyEventsPage() {
           return (
             <motion.div key={event.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 + 0.2 }} className="card overflow-hidden">
               <div className="p-5 flex items-start gap-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setExpanded(isOpen ? null : event.id)}>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-100 to-teal-100 border border-slate-200 flex items-center justify-center text-xl flex-shrink-0">
-                  {event.sport === "Fútbol" ? "⚽" : event.sport === "Atletismo" ? "��" : "🚴"}
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-teal-600"
+                  style={{ backgroundColor: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", boxShadow: "0 0 16px -8px rgba(45,212,191,0.6)" }}>
+                  <SportIcon sport={event.sport} size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-3 mb-1.5">

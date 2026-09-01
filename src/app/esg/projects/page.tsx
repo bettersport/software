@@ -8,6 +8,7 @@ import {
   AlertTriangle, SlidersHorizontal, X, Shield,
 } from "lucide-react";
 import { SectionHeader, ProgressBar } from "@/components/ui";
+import { CategoryIcon } from "@/components/ui/icons";
 import { categoryLabels, categoryColors, categoryIcons } from "@/lib/data";
 import { getStatusColor, getStatusLabel, cn } from "@/lib/utils";
 import type { ESGProject, Club } from "@/lib/types";
@@ -365,9 +366,9 @@ export default function ESGProjectsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
-                      style={{ backgroundColor: "#10151f", border: "1px solid #232c3a" }}>
-                      {categoryIcons[project.category]}
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-teal-600"
+                      style={{ backgroundColor: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", boxShadow: "0 0 16px -8px rgba(45,212,191,0.6)" }}>
+                      <CategoryIcon category={project.category} size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
