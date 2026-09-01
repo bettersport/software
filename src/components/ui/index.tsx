@@ -3,6 +3,18 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { CountUp } from "@/components/fx";
+
+/** Anima la parte numérica de un valor ("91.3", "#4", "$90K", "340%"). */
+function AnimatedValue({ value }: { value: string | number }) {
+  const s = String(value);
+  const m = /^([^\d-]*)(-?[\d.,]+)([^\d]*)$/.exec(s);
+  if (!m) return <>{s}</>;
+  const num = parseFloat(m[2].replace(/,/g, ""));
+  if (Number.isNaN(num)) return <>{s}</>;
+  const decimals = (m[2].split(".")[1] ?? "").length;
+  return <CountUp to={num} decimals={decimals} prefix={m[1]} suffix={m[3]} />;
+}
 
 /* ——— Stat Card ——— */
 interface StatCardProps {
@@ -33,13 +45,13 @@ export function StatCard({ title, value, subtitle, icon, trend, color = "green",
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay }}
-      className={cn("card p-5 md:px-8 md:py-7 flex flex-col gap-3 md:gap-4", className)}
+      className={cn("card glass-hover p-5 md:px-8 md:py-7 flex flex-col gap-3 md:gap-4", className)}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#94A3B8" }}>{title}</p>
           <p className="text-[26px] md:text-[32px] font-extrabold leading-none" style={{ color: "#f4f7fb", letterSpacing: "-0.03em" }}>
-            {value}
+            <AnimatedValue value={value} />
           </p>
           {subtitle && <p className="text-[13px] mt-1" style={{ color: "#94A3B8" }}>{subtitle}</p>}
         </div>

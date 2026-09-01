@@ -56,69 +56,79 @@ function getTeamAbbr(name: string): string {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-/* ── Custom Top-10 animated bar ── */
+/* ── Top-10: barra fina estilo Spec Research (pista hairline + gradiente + punto) ── */
 function ESGBar({ club, index, maxScore }: { club: Club; index: number; maxScore: number }) {
   const [hovered, setHovered] = useState(false);
   const pct = (club.esgScore / maxScore) * 100;
   const barColor =
-    index === 0 ? "#F59E0B" :
-    index === 1 ? "#94A3B8" :
-    index === 2 ? "#CD7F32" : "#10B981";
+    index === 0 ? "#fab219" :
+    index === 1 ? "#a8b3c4" :
+    index === 2 ? "#ec835a" : "#22d3ee";
 
   const teamStyle = TEAM_COLORS[club.name];
 
   return (
     <motion.div
-      className="flex items-center gap-3 py-1.5 px-2 rounded-xl cursor-pointer"
+      className="flex items-center gap-3 py-2 px-2 rounded-xl cursor-pointer"
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
-      animate={{ backgroundColor: hovered ? "rgba(16,185,129,0.05)" : "rgba(0,0,0,0)" }}
+      animate={{ backgroundColor: hovered ? "rgba(34,211,238,0.05)" : "rgba(0,0,0,0)" }}
       transition={{ duration: 0.2 }}
     >
-      {/* Rank number */}
-      <span className="w-5 text-xs font-bold text-slate-400 text-right flex-shrink-0">{index + 1}</span>
+      {/* Rank en mono */}
+      <span className="w-6 text-right flex-shrink-0 font-mono text-[11px] tnum" style={{ color: index < 3 ? barColor : "#6b7789" }}>
+        {String(index + 1).padStart(2, "0")}
+      </span>
 
-      {/* Club logo / avatar */}
+      {/* Avatar del club */}
       <motion.div
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 shadow-sm"
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0"
         style={{
-          background: teamStyle?.bg ?? `linear-gradient(135deg, ${barColor}, ${barColor}88)`,
-          color: teamStyle?.text ?? "#fff",
+          background: teamStyle?.bg ?? `linear-gradient(135deg, ${barColor}33, ${barColor}18)`,
+          color: teamStyle?.text ?? barColor,
+          border: teamStyle ? undefined : `1px solid ${barColor}40`,
         }}
-        animate={{ scale: hovered ? 1.12 : 1 }}
+        animate={{ scale: hovered ? 1.1 : 1 }}
         transition={{ duration: 0.2 }}
       >
         {getTeamAbbr(club.name)}
       </motion.div>
 
-      {/* Name */}
+      {/* Nombre */}
       <motion.span
-        className="w-32 text-xs font-semibold truncate flex-shrink-0 transition-colors"
-        animate={{ color: hovered ? "#2dd4bf" : "#c0c9d6" }}
+        className="w-36 text-xs font-medium truncate flex-shrink-0 transition-colors"
+        animate={{ color: hovered ? "#f4f7fb" : "#a8b3c4" }}
       >
         {club.name.split(" ").slice(0, 3).join(" ")}
       </motion.span>
 
-      {/* Bar */}
-      <div className="flex-1 h-7 rounded-lg bg-slate-100 overflow-hidden relative">
+      {/* Pista fina con gradiente y punto final */}
+      <div className="flex-1 rounded-full relative" style={{ height: 6, backgroundColor: "var(--color-grid)" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ delay: index * 0.07 + 0.3, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-y-0 left-0 rounded-lg flex items-center justify-end pr-2.5"
+          transition={{ delay: index * 0.06 + 0.25, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-y-0 left-0 rounded-full"
           style={{
-            background: `linear-gradient(90deg, ${barColor}cc, ${barColor})`,
-            boxShadow: hovered ? `0 0 20px ${barColor}66` : `0 0 10px ${barColor}33`,
+            background: `linear-gradient(90deg, color-mix(in oklab, ${barColor} 45%, transparent), ${barColor})`,
+            boxShadow: hovered ? `0 0 16px -2px ${barColor}` : `0 0 8px -4px ${barColor}`,
           }}
         >
-          <motion.span
-            className="text-[11px] font-bold text-white"
-            animate={{ scale: hovered ? 1.1 : 1 }}
-          >
-            {club.esgScore}
-          </motion.span>
+          <span
+            aria-hidden
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-2 rounded-full"
+            style={{ background: barColor, border: "2px solid var(--color-surface-1)" }}
+          />
         </motion.div>
       </div>
+
+      {/* Valor tabular fuera de la barra */}
+      <motion.span
+        className="w-11 text-right flex-shrink-0 font-mono text-xs font-semibold tnum"
+        animate={{ color: hovered ? barColor : "#f4f7fb", scale: hovered ? 1.08 : 1 }}
+      >
+        {club.esgScore.toFixed(1)}
+      </motion.span>
     </motion.div>
   );
 }

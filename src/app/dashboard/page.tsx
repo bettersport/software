@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { StatCard, ProgressBar, SectionHeader } from "@/components/ui";
 import { CategoryIcon } from "@/components/ui/icons";
+import { Aurora } from "@/components/fx";
+import { TipShell, TipRow, TipTitle, RankBar } from "@/components/viz";
 import { categoryLabels, categoryColors, fanTiers } from "@/lib/data";
 import { useResource } from "@/lib/useResource";
 import { computeClubScore } from "@/lib/scoring";
@@ -169,6 +171,18 @@ export default function DashboardPage() {
   if (!loaded) return null;
 
   const activeProjects = projects.filter((p) => p.status === "in_progress");
+
+  // Gráficos derivados de los proyectos reales del club (cálculo directo: la
+  // lista es corta y este código corre tras un return condicional — sin hooks).
+  const budgetMap = new Map<string, number>();
+  for (const p of projects) budgetMap.set(p.category, (budgetMap.get(p.category) ?? 0) + (p.budget || 0));
+  const budgetByCategory = [...budgetMap.entries()]
+    .map(([category, budget]) => ({ category, budget }))
+    .sort((a, b) => b.budget - a.budget);
+  const statusColors: Record<string, string> = { in_progress: "#22d3ee", planning: "#c98500", completed: "#199e70", paused: "#8b95a5" };
+  const statusDist = (["in_progress", "planning", "completed", "paused"] as ESGProject["status"][])
+    .map((status) => ({ status, count: projects.filter((p) => p.status === status).length, color: statusColors[status] }))
+    .filter((s) => s.count > 0);
   const openEvents = events.filter((e) => e.status === "negotiating").slice(0, 2);
   const quickActions = quickActionsMap[role] || quickActionsMap.club;
   // Whether this club account has any ESG data yet — drives empty vs. populated views.
@@ -282,7 +296,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6 lg:space-y-10">
+    <div className="relative max-w-[1400px] mx-auto space-y-6 lg:space-y-10">
+      <Aurora intensity={0.55} className="-mx-8 -mt-8 -z-10" />
       {/* ── Welcome header ── */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -290,12 +305,16 @@ export default function DashboardPage() {
         className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
       >
         <div>
-          <h1 className="text-[22px] sm:text-[28px] lg:text-[34px] font-extrabold" style={{ color: "#f4f7fb", letterSpacing: "-0.03em" }}>
-            {greeting}, {(activeUser?.name ?? "").split(" ")[0]} 👋
-          </h1>
-          <p className="text-[15px] mt-2" style={{ color: "#a8b3c4" }}>
-            {roleSubtitle[role]} · {new Date().toLocaleDateString("es-CL", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+          <p className="eyebrow flex items-center gap-2 mb-2">
+            <span className="relative flex w-2 h-2">
+              <span className="absolute inline-flex w-full h-full rounded-full animate-pulse-ring" style={{ backgroundColor: "#22d3ee" }} />
+              <span className="relative inline-flex w-2 h-2 rounded-full" style={{ backgroundColor: "#22d3ee" }} />
+            </span>
+            {roleSubtitle[role]} · {new Date().toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long" })}
           </p>
+          <h1 className="text-[22px] sm:text-[28px] lg:text-[34px] font-extrabold" style={{ color: "#f4f7fb", letterSpacing: "-0.03em" }}>
+            {greeting}, <span className="text-gradient">{(activeUser?.name ?? "").split(" ")[0]}</span>
+          </h1>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
           {quickActions.map((a) => (
@@ -383,9 +402,9 @@ export default function DashboardPage() {
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <RadarChart data={clubRadar}>
-              <PolarGrid stroke="#232c3a" strokeDasharray="3 3" />
+              <PolarGrid stroke="#1c2431" />
               <PolarAngleAxis dataKey="subject" tick={{ fill: "#a8b3c4", fontSize: 11, fontWeight: 500 }} />
-              <Radar name="ESG" dataKey="value" stroke="#10B981" fill="#10B981" fillOpacity={0.12} strokeWidth={2} />
+              <Radar name="ESG" dataKey="value" stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.14} strokeWidth={2} dot={{ r: 3, fill: "#22d3ee", stroke: "#0b0f16", strokeWidth: 2 }} />
             </RadarChart>
           </ResponsiveContainer>
           <div className="grid grid-cols-2 gap-3 mt-4 pt-4" style={{ borderTop: "1px solid #161d29" }}>
@@ -417,18 +436,25 @@ export default function DashboardPage() {
               <AreaChart data={progressData}>
                 <defs>
                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.22} />
+                    <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
-                <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[60, 100]} />
+                <CartesianGrid stroke="#1c2431" strokeWidth={1} vertical={false} />
+                <XAxis dataKey="month" tick={{ fill: "#8b95a5", fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: "#2a3442" }} tickLine={false} />
+                <YAxis tick={{ fill: "#8b95a5", fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }} axisLine={false} tickLine={false} domain={[60, 100]} width={34} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }}
-                  formatter={(value) => [`${value} pts`, "Puntaje"]}
+                  cursor={{ stroke: "#22d3ee", strokeWidth: 1, strokeOpacity: 0.55 }}
+                  content={({ active, payload, label }) =>
+                    active && payload?.length ? (
+                      <TipShell>
+                        <TipTitle>{String(label)}</TipTitle>
+                        <TipRow shape="line" color="#22d3ee" label="Puntaje ESG" value={`${payload[0].value} pts`} />
+                      </TipShell>
+                    ) : null
+                  }
                 />
-                <Area type="monotone" dataKey="score" stroke="#10B981" strokeWidth={2.5} fill="url(#colorScore)" dot={{ fill: "#10B981", strokeWidth: 0, r: 4 }} activeDot={{ r: 6, fill: "#10B981", strokeWidth: 2, stroke: "#fff" }} />
+                <Area type="monotone" dataKey="score" stroke="#22d3ee" strokeWidth={2} strokeLinecap="round" fill="url(#colorScore)" dot={false} activeDot={{ r: 4, fill: "#22d3ee", strokeWidth: 2, stroke: "#0b0f16" }} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
@@ -439,6 +465,79 @@ export default function DashboardPage() {
               </p>
             </div>
           )}
+        </motion.div>
+      </div>
+      )}
+
+      {/* ── Club: inversión y estado de proyectos (datos reales) ── */}
+      {(role === "club" || role === "manager") && projects.length > 0 && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-7">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }} className="card p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Inversión por categoría</h3>
+            <span className="eyebrow">USD presupuestado</span>
+          </div>
+          <div className="space-y-4">
+            {budgetByCategory.map((row, i) => {
+              const max = budgetByCategory[0]?.budget || 1;
+              return (
+                <div key={row.category} className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-teal-600" style={{ backgroundColor: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.22)" }}>
+                    <CategoryIcon category={row.category} size={12} />
+                  </span>
+                  <span className="w-36 text-xs font-medium truncate flex-shrink-0" style={{ color: "#a8b3c4" }}>
+                    {categoryLabels[row.category] ?? row.category}
+                  </span>
+                  <RankBar pct={(row.budget / max) * 100} color="#22d3ee" delay={0.3 + i * 0.08} />
+                  <span className="w-20 text-right font-mono text-xs font-semibold tnum flex-shrink-0" style={{ color: "#f4f7fb" }}>
+                    ${row.budget.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card p-8">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Estado de proyectos</h3>
+            <span className="eyebrow">{projects.length} en total</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="relative flex-shrink-0" style={{ width: 190, height: 190 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={statusDist} dataKey="count" nameKey="status" innerRadius={62} outerRadius={82} paddingAngle={3} strokeWidth={0}>
+                    {statusDist.map((s) => <Cell key={s.status} fill={s.color} />)}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) =>
+                      active && payload?.length ? (
+                        <TipShell>
+                          <TipRow color={String((payload[0].payload as { color: string }).color)} label={getStatusLabel(String(payload[0].name))} value={String(payload[0].value)} />
+                        </TipShell>
+                      ) : null
+                    }
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-extrabold tnum" style={{ color: "#f4f7fb" }}>{projects.length}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "#6b7789" }}>proyectos</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-3">
+              {statusDist.map((s) => (
+                <div key={s.status} className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-xs" style={{ color: "#a8b3c4" }}>
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
+                    {getStatusLabel(s.status)}
+                  </span>
+                  <span className="font-mono text-xs font-semibold tnum" style={{ color: "#f4f7fb" }}>{s.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
       )}
