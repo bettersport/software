@@ -136,8 +136,8 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-12 w-80 card z-50 overflow-hidden"
               >
-                <div className="p-4 flex items-center justify-between" style={{ borderBottom: "1px solid #f1f5f9" }}>
-                  <span className="font-semibold text-sm" style={{ color: "#0f172a" }}>Notificaciones</span>
+                <div className="p-4 flex items-center justify-between" style={{ borderBottom: "1px solid #161d29" }}>
+                  <span className="font-semibold text-sm" style={{ color: "#f4f7fb" }}>Notificaciones</span>
                   <div className="flex items-center gap-2">
                     <span className="badge badge-green text-xs">{unreadCount} nuevas</span>
                     {unreadCount > 0 && (
@@ -168,7 +168,7 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                         <div className={cn("w-2 h-2 rounded-full mt-1.5 flex-shrink-0", notifDotColors[notif.type])} />
                         <div className="flex-1 min-w-0">
                           <p className={cn("text-sm font-medium", notifTypeColors[notif.type])}>{notif.title}</p>
-                          <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#64748b" }}>{notif.message}</p>
+                          <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#a8b3c4" }}>{notif.message}</p>
                           <p className="text-xs mt-1" style={{ color: "#94a3b8" }}>{relativeTime(notif.createdAt)}</p>
                         </div>
                         {!notif.read && <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: "#10B981" }} />}
@@ -191,7 +191,7 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
               style={{ background: `linear-gradient(135deg, ${role.color}, ${role.color}99)`, color: "#fff" }}>
               {userName.charAt(0)}
             </div>
-            <span className="hidden sm:block text-sm font-medium" style={{ color: "#0f172a" }}>{userName.split(" ")[0]}</span>
+            <span className="hidden sm:block text-sm font-medium" style={{ color: "#f4f7fb" }}>{userName.split(" ")[0]}</span>
             <ChevronDown size={12} style={{ color: "#94a3b8" }} />
           </button>
 
@@ -204,14 +204,14 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-12 w-56 card py-2 z-50"
               >
-                <div className="px-4 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <div className="px-4 py-3" style={{ borderBottom: "1px solid #161d29" }}>
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: `linear-gradient(135deg, ${role.color}, ${role.color}99)`, color: "#fff" }}>
                       {userName.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: "#0f172a" }}>{userName}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: "#f4f7fb" }}>{userName}</p>
                       <p className="text-xs truncate" style={{ color: "#94a3b8" }}>{activeUser?.email}</p>
                     </div>
                   </div>
@@ -233,13 +233,13 @@ export function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void
                       router.push(item.href);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-sm transition-colors"
-                    style={{ color: "#64748b" }}
+                    style={{ color: "#a8b3c4" }}
                   >
                     {item.icon}
                     {item.label}
                   </button>
                 ))}
-                <div className="mt-1 pt-1" style={{ borderTop: "1px solid #f1f5f9" }}>
+                <div className="mt-1 pt-1" style={{ borderTop: "1px solid #161d29" }}>
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-500/10 text-sm text-red-400 hover:text-red-300 transition-colors"

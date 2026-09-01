@@ -192,8 +192,8 @@ function ESGChartSection() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="month" tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} domain={[30, 100]} />
+                <XAxis dataKey="month" tick={{ fill: "#a8b3c4", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#a8b3c4", fontSize: 11 }} axisLine={false} tickLine={false} domain={[30, 100]} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" dataKey="ambiental" name="Ambiental" stroke="#10B981" strokeWidth={2} fill="url(#colorAmb)" dot={false} />
                 <Area type="monotone" dataKey="social" name="Social" stroke="#06B6D4" strokeWidth={2} fill="url(#colorSoc)" dot={false} />
@@ -265,15 +265,15 @@ function ESGChartSection() {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={wellnessData} barGap={4} margin={{ left: -20, right: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" tick={{ fill: "#64748B", fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                <XAxis dataKey="name" tick={{ fill: "#a8b3c4", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#a8b3c4", fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="antes" name="Antes" fill="#334155" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="antes" name="Antes" fill="#566173" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="despues" name="Después" fill="#10B981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
             <div className="flex gap-5 mt-3 justify-center">
-              {[{ c: "#334155", l: "Antes" }, { c: "#10B981", l: "Después" }].map((p) => (
+              {[{ c: "#566173", l: "Antes" }, { c: "#10B981", l: "Después" }].map((p) => (
                 <div key={p.l} className="flex items-center gap-1.5 text-xs text-slate-400">
                   <div className="w-3 h-3 rounded-sm" style={{ background: p.c }} />
                   {p.l}
@@ -354,8 +354,8 @@ function ESGChartSection() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="m" tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#64748B", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="m" tick={{ fill: "#a8b3c4", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#a8b3c4", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} formatter={(v) => [`${v} ton`, "CO₂"]} />
                 <Line type="monotone" dataKey="co2" name="CO₂" stroke="url(#co2grad)" strokeWidth={2.5} dot={{ fill: "#10B981", r: 3, strokeWidth: 0 }} activeDot={{ r: 5 }} />
               </LineChart>

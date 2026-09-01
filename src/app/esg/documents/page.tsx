@@ -86,7 +86,7 @@ export default function DocumentsPage() {
 
       <SectionHeader
         icon={<FileText size={22} className="text-blue-400" />}
-        title="Gesti\u00f3n Documental"
+        title="Gestión Documental"
         subtitle="Sube, organiza y archiva documentos ESG con trazabilidad"
         action={
           <button className="btn-primary flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
@@ -119,7 +119,7 @@ export default function DocumentsPage() {
           <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Categoría del documento</label>
           <select className="input-field" value={uploadCategory} onChange={(e) => setUploadCategory(e.target.value)}>
             {uploadCategories.map((c) => (
-              <option key={c} value={c} style={{ backgroundColor: "#fff" }}>{c}</option>
+              <option key={c} value={c} style={{ backgroundColor: "#10151f" }}>{c}</option>
             ))}
           </select>
           <p className="text-xs text-slate-400 mt-2">Se aplicará a los archivos que subas a continuación.</p>
@@ -147,8 +147,8 @@ export default function DocumentsPage() {
                 catFilter === c ? "text-slate-900" : "text-slate-400 hover:text-slate-700"
               )}
               style={catFilter === c
-                ? { background: "linear-gradient(135deg, #10B981, #06B6D4)" }
-                : { backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }
+                ? { background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#04121a" }
+                : { backgroundColor: "#10151f", border: "1px solid #232c3a" }
               }
             >
               {c}
@@ -189,7 +189,7 @@ export default function DocumentsPage() {
                 className="p-4 hover:bg-slate-50 transition-colors flex items-center gap-4"
               >
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                  style={{ backgroundColor: "#10151f", border: "1px solid #232c3a" }}>
                   {fileIcons[doc.type]}
                 </div>
                 <div className="flex-1 min-w-0">

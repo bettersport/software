@@ -67,7 +67,7 @@ function StarRating({ stars, size = 13 }: { stars: number; size?: number }) {
         <Star
           key={s}
           size={size}
-          className={s <= stars ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200"}
+          className={s <= stars ? "text-amber-400 fill-amber-400" : "text-slate-300 fill-slate-300"}
         />
       ))}
     </div>
@@ -76,7 +76,7 @@ function StarRating({ stars, size = 13 }: { stars: number; size?: number }) {
 
 function CategoryPill({ category }: { category: string }) {
   const Icon = categoryIcons[category] ?? Sparkles;
-  const color = categoryColors[category] ?? "#64748b";
+  const color = categoryColors[category] ?? "#a8b3c4";
   return (
     <span
       className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -97,7 +97,7 @@ function BrandBadge({ name }: { name: string }) {
     Pemex: { bg: "#006B3F", text: "#fff" },
     Águila: { bg: "#FFD700", text: "#1a1a1a" },
   };
-  const style = colors[name] ?? { bg: "#64748B", text: "#fff" };
+  const style = colors[name] ?? { bg: "#a8b3c4", text: "#fff" };
   return (
     <div
       className="h-6 min-w-[44px] px-2 rounded-md flex items-center justify-center text-[10px] font-bold tracking-wide"
@@ -113,7 +113,7 @@ function ClubBadge({ name, initials }: { name: string; initials: string }) {
     <div
       title={name}
       className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold text-white ring-2 ring-white"
-      style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}
+      style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}
     >
       {initials}
     </div>
@@ -176,7 +176,7 @@ export default function SolutionsPage() {
           <div className="flex items-center gap-2 mb-1">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}
+              style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}
             >
               <Sparkles size={16} className="text-white" />
             </div>
@@ -186,7 +186,7 @@ export default function SolutionsPage() {
         </div>
         <div
           className="flex items-center gap-1.5 text-xs text-slate-400 px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: "#f1f5f9" }}
+          style={{ backgroundColor: "#161d29" }}
         >
           <span className="font-bold text-slate-700">{filtered.length}</span>&nbsp;resultados
         </div>
@@ -252,7 +252,7 @@ export default function SolutionsPage() {
             style={
               onlyEmpresaB
                 ? { backgroundColor: "#7C3AED", color: "#fff", borderColor: "#7C3AED", boxShadow: "0 4px 14px #7C3AED45" }
-                : { backgroundColor: "#f5f3ff", color: "#7C3AED", borderColor: "#DDD6FE" }
+                : { backgroundColor: "rgba(167,139,250,0.12)", color: "#a78bfa", borderColor: "rgba(167,139,250,0.3)" }
             }
           >
             <ShieldCheck size={11} />
@@ -272,7 +272,7 @@ export default function SolutionsPage() {
                 style={
                   active
                     ? { backgroundColor: color, color: "#fff", boxShadow: `0 4px 14px ${color}45` }
-                    : { backgroundColor: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0" }
+                    : { backgroundColor: "#161d29", color: "#a8b3c4", border: "1px solid #232c3a" }
                 }
               >
                 {opt.value !== "all" && <Icon size={11} />}
@@ -291,8 +291,8 @@ export default function SolutionsPage() {
             style={{
               gridTemplateColumns: "44px 1fr 180px 80px 140px",
               color: "#94A3B8",
-              borderBottom: "1px solid #F1F5F9",
-              background: "#FAFBFC",
+              borderBottom: "1px solid #161d29",
+              background: "#0b0f16",
             }}
           >
             <span>#</span>
@@ -372,7 +372,7 @@ export default function SolutionsPage() {
                       <StarRating stars={p.stars} />
                       <ArrowUpRight
                         size={13}
-                        className="text-slate-200 group-hover:text-teal-500 transition-colors flex-shrink-0"
+                        className="text-slate-300 group-hover:text-teal-500 transition-colors flex-shrink-0"
                       />
                     </div>
                   </motion.div>
@@ -627,7 +627,7 @@ function EmptyState() {
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <div
         className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-        style={{ background: "linear-gradient(135deg, #f1f5f9, #e2e8f0)" }}
+        style={{ background: "linear-gradient(135deg, #161d29, #232c3a)" }}
       >
         <Search size={22} className="text-slate-300" />
       </div>

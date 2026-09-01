@@ -48,7 +48,7 @@ export default function RankingPositionPage() {
         </div>
         <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="card p-10 text-center">
           <p className="text-xs text-slate-400 uppercase tracking-widest mb-2">Posición actual</p>
-          <span className="text-8xl font-black text-slate-200" style={{ fontFamily: "'Manrope', sans-serif" }}>—</span>
+          <span className="text-8xl font-black text-slate-300" style={{ fontFamily: "'Manrope', sans-serif" }}>—</span>
           <p className="text-slate-500 text-sm mt-4 font-medium">Aún no apareces en el ranking.</p>
           <p className="text-slate-400 text-xs mt-1.5 max-w-md mx-auto">
             Tu puntaje ESG actual es <span className="font-bold text-teal-600">{(myClub?.esgScore ?? 0).toFixed(1)}/100</span>.
@@ -102,11 +102,11 @@ export default function RankingPositionPage() {
           <p className="text-xs text-slate-400 mb-4">Comparado con benchmark de categoría y LATAM</p>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={evolutionData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#232c3a" />
               <XAxis dataKey="mes" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis reversed tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[1, 10]} tickFormatter={(v) => `#${v}`} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", fontSize: 12 }}
+                contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", fontSize: 12 }}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(v: any, name: string | undefined) => {
                   const labels: Record<string, string> = { posicion: "Mi posición", benchmarkCategoria: "Benchmark categoría", benchmarkLatam: "Benchmark LATAM" };
@@ -119,7 +119,7 @@ export default function RankingPositionPage() {
                 wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
                 formatter={(value) => {
                   const labels: Record<string, string> = { posicion: "Mi posición", benchmarkCategoria: "1º Categoría", benchmarkLatam: "1º LATAM" };
-                  return <span style={{ color: "#64748b" }}>{labels[value] ?? value}</span>;
+                  return <span style={{ color: "#a8b3c4" }}>{labels[value] ?? value}</span>;
                 }}
               />
               <Line type="monotone" dataKey="posicion" name="posicion" stroke="#F59E0B" strokeWidth={2.5} dot={{ fill: "#F59E0B", strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />

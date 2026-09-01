@@ -1,53 +1,235 @@
 @import "tailwindcss";
 
+/* ============================================================================
+   BETTERSPORT — Dark glass theme (design system portado de Spec Research)
+   Colores de series de gráficos = paleta categórica validada (s1..s8).
+   Los acentos neón son chrome/glow de UI — nunca identidad de una serie.
+   ========================================================================= */
+
 @theme {
-  --color-surface: #F8FAFC;
-  --color-surface-2: #ffffff;
-  --color-surface-3: #F1F5F9;
-  --color-surface-elevated: #ffffff;
-  --color-border: #E2E8F0;
-  --color-border-subtle: #F1F5F9;
-  --color-text: #0F172A;
-  --color-text-secondary: #64748B;
-  --color-text-muted: #94A3B8;
-  --color-accent: #10B981;
-  --color-accent-2: #3B82F6;
-  --color-accent-3: #22577a;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  /* --- planos y superficies --- */
+  --color-plane: #05070a;
+  --color-surface: #0b0f16;
+  --color-surface-1: #0b0f16;
+  --color-surface-2: #10151f;
+  --color-surface-3: #161d29;
+  --color-surface-elevated: #10151f;
+  --color-border: #1c2431;
+  --color-border-subtle: #161d29;
+
+  /* --- tinta --- */
+  --color-ink: #f4f7fb;
+  --color-ink-2: #a8b3c4;
+  --color-ink-3: #6b7789;
+  --color-text: #f4f7fb;
+  --color-text-secondary: #a8b3c4;
+  --color-text-muted: #6b7789;
+
+  /* --- acentos neón (chrome, glow, focus — NO series de gráficos) --- */
+  --color-neon: #22d3ee;
+  --color-neon-dim: #0e7490;
+  --color-violet-accent: #8b5cf6;
+  --color-accent: #22d3ee;
+  --color-accent-2: #8b5cf6;
+  --color-accent-3: #67e8f9;
+
+  /* --- paleta categórica validada para series (dark) --- */
+  --color-s1: #3987e5;
+  --color-s2: #d95926;
+  --color-s3: #199e70;
+  --color-s4: #c98500;
+  --color-s5: #d55181;
+  --color-s6: #008300;
+  --color-s7: #9085e9;
+  --color-s8: #e66767;
+
+  /* --- estado (reservado: nunca una serie) --- */
+  --color-good: #0ca30c;
+  --color-warning: #fab219;
+  --color-serious: #ec835a;
+  --color-critical: #d03b3b;
+
+  /* --- chrome de gráficos --- */
+  --color-grid: #1c2431;
+  --color-axis: #2a3442;
+
+  /* ------------------------------------------------------------------
+     Remapeo de la escala slate: la app se escribió light-first con
+     text-slate-900 = texto principal y bg-slate-50 = fondos suaves.
+     Invertimos la rampa para que esas mismas utilidades rindan en dark.
+     ------------------------------------------------------------------ */
+  --color-slate-50: #10151f;
+  --color-slate-100: #161d29;
+  --color-slate-200: #1c2431;
+  --color-slate-300: #566173;
+  --color-slate-400: #8b95a5;
+  --color-slate-500: #a8b3c4;
+  --color-slate-600: #c0c9d6;
+  --color-slate-700: #d7dde7;
+  --color-slate-800: #e8edf4;
+  --color-slate-900: #f4f7fb;
+  --color-slate-950: #ffffff;
+
+  /* ------------------------------------------------------------------
+     Tintes claros (chips *-50/100) → lavados translúcidos oscuros, y
+     tonos 600/700 de texto → variantes brillantes legibles sobre dark.
+     ------------------------------------------------------------------ */
+  --color-emerald-50: rgba(52, 211, 153, 0.08);
+  --color-emerald-100: rgba(52, 211, 153, 0.14);
+  --color-emerald-200: rgba(52, 211, 153, 0.28);
+  --color-emerald-600: #34d399;
+  --color-emerald-700: #6ee7b7;
+
+  --color-teal-50: rgba(45, 212, 191, 0.08);
+  --color-teal-100: rgba(45, 212, 191, 0.14);
+  --color-teal-200: rgba(45, 212, 191, 0.28);
+  --color-teal-600: #2dd4bf;
+  --color-teal-700: #5eead4;
+
+  --color-cyan-50: rgba(34, 211, 238, 0.08);
+  --color-cyan-100: rgba(34, 211, 238, 0.14);
+  --color-cyan-200: rgba(34, 211, 238, 0.28);
+  --color-cyan-600: #22d3ee;
+  --color-cyan-700: #67e8f9;
+
+  --color-red-50: rgba(248, 113, 113, 0.08);
+  --color-red-100: rgba(248, 113, 113, 0.14);
+  --color-red-200: rgba(248, 113, 113, 0.28);
+  --color-red-600: #f87171;
+  --color-red-700: #fca5a5;
+
+  --color-amber-50: rgba(251, 191, 36, 0.08);
+  --color-amber-100: rgba(251, 191, 36, 0.14);
+  --color-amber-200: rgba(251, 191, 36, 0.28);
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+
+  --color-orange-50: rgba(251, 146, 60, 0.08);
+  --color-orange-100: rgba(251, 146, 60, 0.14);
+  --color-orange-200: rgba(251, 146, 60, 0.28);
+  --color-orange-600: #fb923c;
+  --color-orange-700: #fdba74;
+
+  --color-blue-50: rgba(96, 165, 250, 0.08);
+  --color-blue-100: rgba(96, 165, 250, 0.14);
+  --color-blue-200: rgba(96, 165, 250, 0.28);
+  --color-blue-600: #60a5fa;
+  --color-blue-700: #93c5fd;
+
+  --color-purple-50: rgba(192, 132, 252, 0.08);
+  --color-purple-100: rgba(192, 132, 252, 0.14);
+  --color-purple-200: rgba(192, 132, 252, 0.28);
+  --color-purple-600: #c084fc;
+  --color-purple-700: #d8b4fe;
+
+  --color-violet-50: rgba(167, 139, 250, 0.08);
+  --color-violet-100: rgba(167, 139, 250, 0.14);
+  --color-violet-200: rgba(167, 139, 250, 0.28);
+  --color-violet-600: #a78bfa;
+  --color-violet-700: #c4b5fd;
+
+  --color-green-50: rgba(74, 222, 128, 0.08);
+  --color-green-100: rgba(74, 222, 128, 0.14);
+  --color-green-600: #4ade80;
+  --color-green-700: #86efac;
+
+  /* --- animaciones nombradas --- */
+  --animate-marquee: marquee 46s linear infinite;
+  --animate-drift: drift 24s ease-in-out infinite alternate;
+  --animate-pulse-ring: pulse-ring 2.6s ease-out infinite;
+  --animate-sheen: sheen 3.4s ease-in-out infinite;
+  --animate-dash: dash 2.4s linear infinite;
+  --animate-blink: blink 1.05s steps(2, start) infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(4%, -6%, 0) scale(1.14); }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.75); opacity: 0.85; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes sheen {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.75; }
+}
+@keyframes dash {
+  to { stroke-dashoffset: -240; }
+}
+@keyframes blink {
+  50% { opacity: 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
 }
 
 /* ==================== BASE ==================== */
-/* All base resets go inside @layer base so Tailwind utilities can override them */
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
   }
-  html { scroll-behavior: smooth; }
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
 
   body {
-    background-color: #F8FAFC;
-    color: #0F172A;
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    background-color: var(--color-plane);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-size: 15px;
     line-height: 1.6;
+    overflow-x: hidden;
   }
 
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::selection {
+    background: color-mix(in oklab, var(--color-neon) 30%, transparent);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 100px; }
-  ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+  ::-webkit-scrollbar-thumb { background: #232c3a; border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2f3a4b; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-neon);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* números que deben alinear verticalmente (tablas, ejes) */
+  .tnum { font-variant-numeric: tabular-nums; }
 }
 
 /* ==================== COMPONENTS ==================== */
-/* All component classes inside @layer components so Tailwind utilities can override them */
 @layer components {
 
   /* Typography */
   .text-gradient {
-    background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+    background: linear-gradient(
+      100deg,
+      #ffffff 0%,
+      #cdf4fb 34%,
+      var(--color-neon) 62%,
+      var(--color-violet-accent) 100%
+    );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -56,127 +238,306 @@
   .section-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #0F172A;
+    color: var(--color-ink);
     display: flex;
     align-items: center;
     gap: 0.625rem;
     letter-spacing: -0.02em;
   }
 
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+
   /* Buttons */
   .btn-primary {
-    display: inline-flex; align-items: center; gap: 0.5rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
     padding: 0.625rem 1.125rem; border-radius: 10px;
-    font-size: 0.875rem; font-weight: 600; color: #fff;
-    background-color: #0F172A;
-    cursor: pointer; border: none;
-    transition: all 0.15s ease; font-family: inherit;
+    font-size: 0.875rem; font-weight: 600; color: #04121a;
+    background: linear-gradient(100deg, #67e8f9, var(--color-neon) 55%, #a78bfa);
+    box-shadow: 0 10px 34px -12px color-mix(in oklab, var(--color-neon) 70%, transparent);
+    cursor: pointer; border: none; white-space: nowrap;
+    transition: all 0.25s ease; font-family: inherit;
   }
-  .btn-primary:hover { background-color: #1E293B; box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 14px 44px -12px color-mix(in oklab, var(--color-neon) 85%, transparent);
+  }
   .btn-primary:active { transform: scale(0.98); }
 
   .btn-secondary {
-    display: inline-flex; align-items: center; gap: 0.5rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
     padding: 0.625rem 1.125rem; border-radius: 10px;
-    font-size: 0.875rem; font-weight: 500; color: #374151;
-    background-color: #fff; border: 1px solid #E2E8F0;
-    cursor: pointer; transition: all 0.15s; font-family: inherit;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    font-size: 0.875rem; font-weight: 500; color: var(--color-ink);
+    background: color-mix(in oklab, var(--color-ink) 5%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+    cursor: pointer; transition: all 0.25s ease; font-family: inherit; white-space: nowrap;
   }
-  .btn-secondary:hover { background-color: #F8FAFC; border-color: #CBD5E1; }
+  .btn-secondary:hover {
+    background: color-mix(in oklab, var(--color-ink) 9%, transparent);
+    border-color: color-mix(in oklab, var(--color-neon) 40%, transparent);
+  }
 
   .btn-ghost {
     display: inline-flex; align-items: center; gap: 0.375rem;
     padding: 0.375rem 0.625rem; border-radius: 6px;
-    font-size: 0.8125rem; font-weight: 500; color: #64748B;
+    font-size: 0.8125rem; font-weight: 500; color: var(--color-ink-2);
     background: transparent; border: none; cursor: pointer; transition: all 0.15s;
   }
-  .btn-ghost:hover { color: #0F172A; background-color: #F1F5F9; }
+  .btn-ghost:hover {
+    color: var(--color-ink);
+    background-color: color-mix(in oklab, var(--color-ink) 8%, transparent);
+  }
 
   .btn-gradient {
     display: inline-flex; align-items: center; gap: 0.375rem;
     padding: 0.5rem 0.875rem; border-radius: 8px;
     font-size: 0.8125rem; font-weight: 600;
-    color: #fff; border: none; cursor: pointer;
-    background: linear-gradient(135deg, #10B981, #06B6D4);
-    transition: all 0.15s ease; font-family: inherit;
-    box-shadow: 0 1px 3px rgba(16,185,129,0.3);
+    color: #04121a; border: none; cursor: pointer;
+    background: linear-gradient(100deg, #67e8f9, var(--color-neon) 55%, #a78bfa);
+    transition: all 0.25s ease; font-family: inherit;
+    box-shadow: 0 6px 22px -8px color-mix(in oklab, var(--color-neon) 60%, transparent);
   }
-  .btn-gradient:hover { box-shadow: 0 4px 12px rgba(16,185,129,0.35); }
+  .btn-gradient:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 10px 30px -8px color-mix(in oklab, var(--color-neon) 75%, transparent);
+  }
 
-  /* Cards */
+  /* Cards — glass: ring hairline + highlight interno superior + profundidad */
   .card {
-    border-radius: 16px; background-color: #ffffff;
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    transition: all 0.2s ease;
+    position: relative;
+    border-radius: 16px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--color-ink) 5%, transparent) 0%,
+        color-mix(in oklab, var(--color-ink) 2%, transparent) 100%
+      ),
+      var(--color-surface-1);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
+    backdrop-filter: blur(14px);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-ink) 8%, transparent),
+      0 18px 44px -24px rgb(0 0 0 / 0.9);
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease;
   }
   .card-hover {
-    border-radius: 16px; background-color: #ffffff;
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    transition: all 0.2s ease; cursor: pointer;
+    position: relative;
+    border-radius: 16px;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--color-ink) 5%, transparent) 0%,
+        color-mix(in oklab, var(--color-ink) 2%, transparent) 100%
+      ),
+      var(--color-surface-1);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
+    backdrop-filter: blur(14px);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-ink) 8%, transparent),
+      0 18px 44px -24px rgb(0 0 0 / 0.9);
+    cursor: pointer;
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease,
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .card-hover:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); border-color: #CBD5E1; }
+  .card-hover:hover {
+    border-color: color-mix(in oklab, var(--color-neon) 34%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-ink) 10%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--color-neon) 14%, transparent),
+      0 26px 60px -30px color-mix(in oklab, var(--color-neon) 40%, transparent);
+    transform: translateY(-2px);
+  }
+
+  /* Alias glass (mismo look que .card, para nuevos usos) */
+  .glass {
+    position: relative;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--color-ink) 5%, transparent) 0%,
+        color-mix(in oklab, var(--color-ink) 2%, transparent) 100%
+      ),
+      var(--color-surface-1);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
+    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-ink) 8%, transparent),
+      0 18px 44px -24px rgb(0 0 0 / 0.9);
+  }
+  .glass-hover {
+    transition:
+      border-color 0.35s ease,
+      box-shadow 0.35s ease,
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .glass-hover:hover {
+    border-color: color-mix(in oklab, var(--color-neon) 34%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in oklab, var(--color-ink) 10%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--color-neon) 14%, transparent),
+      0 26px 60px -30px color-mix(in oklab, var(--color-neon) 40%, transparent);
+    transform: translateY(-2px);
+  }
+
+  /* Borde hairline en degradé para paneles de énfasis */
+  .ring-gradient { position: relative; }
+  .ring-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-neon) 65%, transparent),
+      transparent 42%,
+      transparent 58%,
+      color-mix(in oklab, var(--color-violet-accent) 60%, transparent)
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Plano cuadriculado tipo blueprint */
+  .grid-plane {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--color-ink) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--color-ink) 5%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
 
   /* Inputs */
   .input-field {
     width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px;
-    font-size: 0.8125rem; color: #0F172A; background-color: #ffffff;
-    border: 1px solid #E2E8F0; outline: none;
+    font-size: 0.8125rem; color: var(--color-ink);
+    background-color: var(--color-surface-2);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 12%, transparent);
+    outline: none;
     transition: all 0.15s ease; font-family: inherit;
   }
-  .input-field::placeholder { color: #94A3B8; }
-  .input-field:focus { border-color: #94A3B8; box-shadow: 0 0 0 3px rgba(15,23,42,0.05); }
+  .input-field::placeholder { color: var(--color-ink-3); }
+  .input-field:focus {
+    border-color: color-mix(in oklab, var(--color-neon) 55%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-neon) 14%, transparent);
+  }
+  .input-field option { background-color: var(--color-surface-2); color: var(--color-ink); }
 
-  /* Badges */
+  /* Badges — lavado translúcido + texto brillante */
   .badge {
     display: inline-flex; align-items: center; gap: 0.25rem;
     padding: 0.25rem 0.625rem; border-radius: 8px;
     font-size: 0.75rem; font-weight: 600; line-height: 1.5;
   }
-  .badge-green  { background-color: #ECFDF5; color: #059669; }
-  .badge-cyan   { background-color: #ECFEFF; color: #0891B2; }
-  .badge-orange { background-color: #FFF7ED; color: #C2410C; }
-  .badge-red    { background-color: #FEF2F2; color: #DC2626; }
-  .badge-purple { background-color: #F5F3FF; color: #7C3AED; }
-  .badge-blue   { background-color: #EFF6FF; color: #2563EB; }
+  .badge-green  { background-color: rgba(52, 211, 153, 0.12); color: #34d399; }
+  .badge-cyan   { background-color: rgba(34, 211, 238, 0.12); color: #22d3ee; }
+  .badge-orange { background-color: rgba(251, 146, 60, 0.12); color: #fb923c; }
+  .badge-red    { background-color: rgba(248, 113, 113, 0.12); color: #f87171; }
+  .badge-purple { background-color: rgba(167, 139, 250, 0.12); color: #a78bfa; }
+  .badge-blue   { background-color: rgba(96, 165, 250, 0.12); color: #60a5fa; }
 
   /* Navigation */
   .nav-item {
     display: flex; align-items: center; gap: 0.625rem;
     padding: 0.5rem 0.75rem; border-radius: 8px;
-    font-size: 0.875rem; font-weight: 500; color: #64748B;
-    cursor: pointer; transition: all 0.1s ease;
+    font-size: 0.875rem; font-weight: 500; color: var(--color-ink-2);
+    cursor: pointer; transition: all 0.15s ease;
     border: 1px solid transparent;
   }
-  .nav-item:hover { color: #0F172A; background-color: #F1F5F9; }
+  .nav-item:hover {
+    color: var(--color-ink);
+    background-color: color-mix(in oklab, var(--color-ink) 6%, transparent);
+  }
 
   .nav-item-active {
     display: flex; align-items: center; gap: 0.625rem;
     padding: 0.5rem 0.75rem; border-radius: 8px;
     font-size: 0.875rem; font-weight: 600; cursor: pointer;
-    transition: all 0.1s ease;
-    color: #0F172A;
-    background-color: #F1F5F9;
-    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    color: var(--color-ink);
+    background: color-mix(in oklab, var(--color-neon) 10%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-neon) 24%, transparent);
   }
 
   /* Progress */
-  .progress-bar { height: 4px; border-radius: 100px; overflow: hidden; background-color: #F1F5F9; }
-  .progress-fill { height: 100%; border-radius: 100px; transition: width 0.6s ease; background: linear-gradient(90deg, #10B981, #06B6D4); }
+  .progress-bar { height: 4px; border-radius: 100px; overflow: hidden; background-color: var(--color-grid); }
+  .progress-fill {
+    height: 100%; border-radius: 100px; transition: width 0.6s ease;
+    background: linear-gradient(90deg, #67e8f9, var(--color-neon) 55%, #a78bfa);
+  }
 
   /* Misc */
-  .divider { border-top: 1px solid #F1F5F9; margin: 1rem 0; }
-  .glassmorphism { backdrop-filter: blur(20px) saturate(180%); background-color: rgba(255,255,255,0.8); border: 1px solid rgba(226,232,240,0.6); }
+  .divider { border-top: 1px solid var(--color-border-subtle); margin: 1rem 0; }
+  .glassmorphism {
+    backdrop-filter: blur(20px) saturate(160%);
+    background-color: rgba(11, 15, 22, 0.78);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
+  }
 
   /* Layout */
-  .sidebar-bg { background-color: #FAFBFC; border-right: 1px solid #E2E8F0; }
-  .topbar-bg { background-color: rgba(255,255,255,0.85); border-bottom: 1px solid #E2E8F0; backdrop-filter: blur(20px) saturate(180%); }
+  .sidebar-bg {
+    background-color: rgba(11, 15, 22, 0.86);
+    backdrop-filter: blur(18px);
+    border-right: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  }
+  .topbar-bg {
+    background-color: rgba(5, 7, 10, 0.78);
+    border-bottom: 1px solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+    backdrop-filter: blur(20px) saturate(160%);
+  }
 
   /* Inner Surfaces */
-  .surface-inner { background-color: #F8FAFC; border: 1px solid #F1F5F9; border-radius: 12px; }
+  .surface-inner {
+    background-color: var(--color-surface-2);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 7%, transparent);
+    border-radius: 12px;
+  }
 
-  /* Dark Panel */
-  .dark-panel { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #fff; }
+  /* Dark Panel (énfasis) */
+  .dark-panel {
+    background:
+      radial-gradient(120% 140% at 0% 0%, color-mix(in oklab, var(--color-neon) 10%, transparent), transparent 55%),
+      radial-gradient(120% 140% at 100% 100%, color-mix(in oklab, var(--color-violet-accent) 12%, transparent), transparent 55%),
+      linear-gradient(135deg, #0b0f16 0%, #10151f 100%);
+    color: var(--color-ink);
+    border: 1px solid color-mix(in oklab, var(--color-ink) 10%, transparent);
+  }
+}
+
+/* ==================== UTILITIES ==================== */
+@layer utilities {
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  }
+  .mask-fade-b {
+    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  }
+  .glow-neon {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-neon) 30%, transparent),
+      0 0 30px -6px color-mix(in oklab, var(--color-neon) 55%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

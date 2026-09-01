@@ -93,7 +93,7 @@ function ESGBar({ club, index, maxScore }: { club: Club; index: number; maxScore
       {/* Name */}
       <motion.span
         className="w-32 text-xs font-semibold truncate flex-shrink-0 transition-colors"
-        animate={{ color: hovered ? "#0d9488" : "#374151" }}
+        animate={{ color: hovered ? "#2dd4bf" : "#c0c9d6" }}
       >
         {club.name.split(" ").slice(0, 3).join(" ")}
       </motion.span>
@@ -207,7 +207,7 @@ export default function RankingPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all"
             style={showMethodology
               ? { background: "rgba(16,185,129,0.1)", borderColor: "rgba(16,185,129,0.3)", color: "#10B981" }
-              : { background: "#f8fafc", borderColor: "#e2e8f0", color: "#64748b" }
+              : { background: "#10151f", borderColor: "#232c3a", color: "#a8b3c4" }
             }
           >
             <Info size={14} /> Metodología
@@ -411,7 +411,7 @@ export default function RankingPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-white flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
-                      style={{ background: `linear-gradient(135deg, ${isMyClub ? "#10B981" : "#475569"}, ${isMyClub ? "#06B6D4" : "#64748b"})` }}
+                      style={{ background: `linear-gradient(135deg, ${isMyClub ? "#10B981" : "#475569"}, ${isMyClub ? "#06B6D4" : "#a8b3c4"})` }}
                     >
                       {club.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("")}
                     </div>
@@ -471,7 +471,7 @@ export default function RankingPage() {
                         <ArrowDownRight size={13} />{Math.abs(change)}
                       </span>
                     ) : (
-                      <Minus size={13} className="text-slate-200 inline" />
+                      <Minus size={13} className="text-slate-300 inline" />
                     )}
                   </div>
                 </motion.div>
@@ -508,7 +508,7 @@ export default function RankingPage() {
               >
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 70% 30%, #10B981 0%, transparent 70%)" }} />
                 <div className="relative flex items-center gap-4 w-full">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black text-white flex-shrink-0" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}>
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black text-white flex-shrink-0" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}>
                     {selectedClub.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("")}
                   </div>
                   <div className="flex-1 min-w-0">

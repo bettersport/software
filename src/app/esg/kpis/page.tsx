@@ -218,11 +218,11 @@ export default function KPIsPage() {
           <h3 className="font-semibold text-slate-800 text-sm mb-4">Evolución por dimensión ESG</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#232c3a" />
               <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[65, 95]} />
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
-              <Legend wrapperStyle={{ fontSize: "11px", color: "#64748b" }} />
+              <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
+              <Legend wrapperStyle={{ fontSize: "11px", color: "#a8b3c4" }} />
               <Line type="monotone" dataKey="Ambiental" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="Social" stroke="#06B6D4" strokeWidth={2.5} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="Gobernanza" stroke="#8B5CF6" strokeWidth={2.5} dot={{ r: 3 }} />
@@ -235,10 +235,10 @@ export default function KPIsPage() {
           <h3 className="font-semibold text-slate-800 text-sm mb-4">Perfil ESG actual</h3>
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="#e2e8f0" />
-              <PolarAngleAxis dataKey="dimension" tick={{ fill: "#64748b", fontSize: 11 }} />
+              <PolarGrid stroke="#232c3a" />
+              <PolarAngleAxis dataKey="dimension" tick={{ fill: "#a8b3c4", fontSize: 11 }} />
               <Radar name="Score" dataKey="score" stroke="#10B981" fill="#10B981" fillOpacity={0.2} strokeWidth={2} />
-              <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
+              <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
             </RadarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -258,7 +258,7 @@ export default function KPIsPage() {
               <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Categoría</label>
               <select className="input-field" value={newKpi.category} onChange={(e) => setNewKpi({ ...newKpi, category: e.target.value })}>
                 {["Ambiental", "Social", "Gobernanza"].map((c) => (
-                  <option key={c} value={c} style={{ backgroundColor: "#fff" }}>{c}</option>
+                  <option key={c} value={c} style={{ backgroundColor: "#10151f" }}>{c}</option>
                 ))}
               </select>
             </div>
@@ -352,7 +352,7 @@ export default function KPIsPage() {
                   )}
                 </div>
                 {sponsors.length === 0 ? (
-                  <div className="rounded-xl p-5 text-center" style={{ backgroundColor: "#f8fafc", border: "1.5px dashed #e2e8f0" }}>
+                  <div className="rounded-xl p-5 text-center" style={{ backgroundColor: "#10151f", border: "1.5px dashed #232c3a" }}>
                     <p className="text-sm text-slate-500">Aún no tienes sponsors vinculados</p>
                     <p className="text-xs text-slate-400 mt-1">Cierra un lead en Gestión Sponsorship para verlo aquí.</p>
                   </div>
@@ -367,7 +367,7 @@ export default function KPIsPage() {
                         className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all duration-150"
                         style={active
                           ? { backgroundColor: sp.color + "0d", border: `1.5px solid ${sp.color}30` }
-                          : { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0" }
+                          : { backgroundColor: "#10151f", border: "1.5px solid #232c3a" }
                         }
                       >
                         <div
@@ -384,7 +384,7 @@ export default function KPIsPage() {
                           className="w-5 h-5 rounded-full flex items-center justify-center transition-all flex-shrink-0"
                           style={active
                             ? { backgroundColor: sp.color, border: `2px solid ${sp.color}` }
-                            : { border: "2px solid #cbd5e1", backgroundColor: "transparent" }
+                            : { border: "2px solid #2a3442", backgroundColor: "transparent" }
                           }
                         >
                           {active && <CheckCheck size={10} className="text-white" />}

@@ -243,12 +243,12 @@ export default function BudgetPage() {
               <h3 className="font-semibold text-slate-800 text-sm mb-4">Presupuesto vs. Gasto por proyecto</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={budgetData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#232c3a" />
                   <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 9 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
-                  <Legend wrapperStyle={{ fontSize: "11px", color: "#64748b" }} />
-                  <Bar dataKey="presupuesto" name="Presupuesto" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
+                  <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
+                  <Legend wrapperStyle={{ fontSize: "11px", color: "#a8b3c4" }} />
+                  <Bar dataKey="presupuesto" name="Presupuesto" fill="#232c3a" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="gastado" name="Gastado" fill="#F59E0B" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -261,7 +261,7 @@ export default function BudgetPage() {
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
                       {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
                   </RechartsPie>
                 </ResponsiveContainer>
                 <div className="flex-1 space-y-2">
@@ -343,11 +343,11 @@ export default function BudgetPage() {
             <h3 className="font-semibold text-slate-800 text-sm mb-4">Presupuesto Sponsorship Anual y por Quarter</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={quarterlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#232c3a" />
                 <XAxis dataKey="q" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", color: "#0f172a", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} formatter={(v) => [`$${Number(v ?? 0).toLocaleString()}`, ""]} />
-                <Legend wrapperStyle={{ fontSize: "11px", color: "#64748b" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} formatter={(v) => [`$${Number(v ?? 0).toLocaleString()}`, ""]} />
+                <Legend wrapperStyle={{ fontSize: "11px", color: "#a8b3c4" }} />
                 <Bar dataKey="presupuesto" name="Presupuesto" fill="#C4B5FD" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="cerrado" name="Cerrado" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -388,7 +388,7 @@ export default function BudgetPage() {
 
             {/* Leads list */}
             {leads.length === 0 && (
-              <div className="py-10 text-center rounded-xl" style={{ backgroundColor: "#f8fafc", border: "1.5px dashed #e2e8f0" }}>
+              <div className="py-10 text-center rounded-xl" style={{ backgroundColor: "#10151f", border: "1.5px dashed #232c3a" }}>
                 <Handshake size={28} className="mx-auto text-slate-300 mb-2" />
                 <p className="text-sm font-medium text-slate-600">Aún no tienes marcas en seguimiento</p>
                 <p className="text-xs text-slate-400 mt-1">Agrega tu primera marca con el botón &quot;Nueva marca&quot; para empezar a gestionar tu pipeline.</p>

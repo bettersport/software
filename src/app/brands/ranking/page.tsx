@@ -75,7 +75,7 @@ export default function BrandsRankingPage() {
 
       {/* Table */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden">
-        <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
+        <div className="p-5 flex items-center gap-3" style={{ borderBottom: "1px solid #161d29" }}>
           <div className="w-10 text-xs text-slate-400 uppercase tracking-wider text-center">#</div>
           <div className="flex-1 text-xs text-slate-400 uppercase tracking-wider">Club</div>
           <div className="w-20 text-xs text-slate-400 uppercase tracking-wider text-center">Score</div>
@@ -90,7 +90,7 @@ export default function BrandsRankingPage() {
           const sector = dominantSector(club);
           return (
           <motion.div key={club.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-            className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors" style={{ borderBottom: "1px solid #f8fafc" }}>
+            className="flex items-center gap-3 px-5 py-4 hover:bg-slate-50 transition-colors" style={{ borderBottom: "1px solid #10151f" }}>
             <div className="w-10 text-center">
               <span className={`text-sm font-bold ${i === 0 ? "text-amber-400" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-600" : "text-slate-400"}`}>
                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
@@ -110,7 +110,7 @@ export default function BrandsRankingPage() {
             <div className="w-24 text-center text-sm font-medium text-slate-700 hidden lg:block">{club.flag} {club.country}</div>
             <div className="w-20 text-center text-sm text-slate-500 hidden lg:block">{club.transparency}%</div>
             <div className="w-20 text-center">
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: sector === "Ambiental" ? "#ECFDF5" : sector === "Social" ? "#EFF6FF" : "#FDF4FF", color: sector === "Ambiental" ? "#059669" : sector === "Social" ? "#2563EB" : "#7C3AED" }}>
+              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: sector === "Ambiental" ? "rgba(52,211,153,0.12)" : sector === "Social" ? "rgba(96,165,250,0.12)" : "rgba(167,139,250,0.12)", color: sector === "Ambiental" ? "#34d399" : sector === "Social" ? "#60a5fa" : "#a78bfa" }}>
                 {sector}
               </span>
             </div>

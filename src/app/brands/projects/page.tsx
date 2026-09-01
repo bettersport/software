@@ -224,7 +224,7 @@ export default function BrandsProjectsPage() {
                 <p className="text-sm font-bold text-teal-600">{p.esgScore > 0 ? p.esgScore : "—"}</p>
               </div>
             </div>
-            <div className="mt-3 pt-3 flex items-center justify-between" style={{ borderTop: "1px solid #f1f5f9" }}>
+            <div className="mt-3 pt-3 flex items-center justify-between" style={{ borderTop: "1px solid #161d29" }}>
               <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium">{p.category}</span>
               <span className="text-xs text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">Ver detalle <ExternalLink size={10} /></span>
             </div>

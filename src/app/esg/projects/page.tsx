@@ -185,7 +185,7 @@ export default function ESGProjectsPage() {
         />
         <div className="card p-16 text-center mt-6">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "#f1f5f9" }}>
+            style={{ background: "#161d29" }}>
             <Lock size={24} className="text-slate-400" />
           </div>
           <h3 className="text-lg font-bold text-slate-700 mb-2">Acceso restringido</h3>
@@ -366,7 +366,7 @@ export default function ESGProjectsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
-                      style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                      style={{ backgroundColor: "#10151f", border: "1px solid #232c3a" }}>
                       {categoryIcons[project.category]}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -526,7 +526,7 @@ export default function ESGProjectsPage() {
                           <div className="space-y-3">
                             {project.kpis.map((kpi) => (
                               <div key={kpi.id} className="p-3 rounded-xl"
-                                style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                                style={{ backgroundColor: "#10151f", border: "1px solid #232c3a" }}>
                                 <div className="flex justify-between items-center mb-1.5">
                                   <span className="text-xs font-medium text-slate-700">{kpi.name}</span>
                                   <span className={cn("text-xs font-semibold",
@@ -545,7 +545,7 @@ export default function ESGProjectsPage() {
                             )}
                           </div>
                           <div className="mt-4 p-3 rounded-xl"
-                            style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                            style={{ backgroundColor: "#10151f", border: "1px solid #232c3a" }}>
                             <h5 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                               Presupuesto
                             </h5>
@@ -608,7 +608,7 @@ export default function ESGProjectsPage() {
 
               <div className="p-6 space-y-5">
                 {/* Project reference */}
-                <div className="p-3 rounded-xl" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                <div className="p-3 rounded-xl" style={{ background: "#10151f", border: "1px solid #232c3a" }}>
                   <p className="text-xs text-slate-400 mb-0.5">Proyecto</p>
                   <p className="text-sm font-semibold text-slate-800">{editTarget.title}</p>
                   {CATEGORY_DIM[editTarget.category] && (

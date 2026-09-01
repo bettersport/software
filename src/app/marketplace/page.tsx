@@ -65,15 +65,15 @@ function MediaPartnerLogo({ name }: { name: string }) {
 }
 
 const sponsorStyles: Record<string, { bg: string; text: string; border: string }> = {
-  "Federación Rugby Chile": { bg: "#f0f4ff", text: "#3b82f6", border: "#bfdbfe" },
-  "AquaEco":               { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" },
-  "AQUA4D":                { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" },
-  "World Padel Tour":      { bg: "#fdf4ff", text: "#9333ea", border: "#e9d5ff" },
-  "Coca-Cola":             { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" },
-  "Santander":             { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" },
+  "Federación Rugby Chile": { bg: "rgba(96,165,250,0.12)", text: "#60a5fa", border: "rgba(96,165,250,0.3)" },
+  "AquaEco":               { bg: "rgba(74,222,128,0.12)", text: "#4ade80", border: "rgba(74,222,128,0.3)" },
+  "AQUA4D":                { bg: "rgba(96,165,250,0.12)", text: "#60a5fa", border: "rgba(96,165,250,0.3)" },
+  "World Padel Tour":      { bg: "rgba(192,132,252,0.12)", text: "#c084fc", border: "rgba(192,132,252,0.3)" },
+  "Coca-Cola":             { bg: "rgba(248,113,113,0.12)", text: "#f87171", border: "rgba(248,113,113,0.3)" },
+  "Santander":             { bg: "rgba(248,113,113,0.12)", text: "#f87171", border: "rgba(248,113,113,0.3)" },
 };
 function SponsorLogo({ name }: { name: string }) {
-  const style = sponsorStyles[name] ?? { bg: "#f8fafc", text: "#475569", border: "#e2e8f0" };
+  const style = sponsorStyles[name] ?? { bg: "#10151f", text: "#a8b3c4", border: "#232c3a" };
   const short = name.replace("Federación ", "Fed. ").replace("World ", "");
   return (
     <span
@@ -250,13 +250,13 @@ export default function MarketplacePage() {
               <div>
                 <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2">Deporte</label>
                 <select className="input-field" value={sportFilter} onChange={(e) => setSportFilter(e.target.value)}>
-                  {sports.map((s) => <option key={s} value={s} style={{ backgroundColor: "#fff" }}>{s}</option>)}
+                  {sports.map((s) => <option key={s} value={s} style={{ backgroundColor: "#10151f" }}>{s}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-xs text-slate-400 uppercase tracking-wider block mb-2">País</label>
                 <select className="input-field" value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)}>
-                  {countries.map((c) => <option key={c} value={c} style={{ backgroundColor: "#fff" }}>{c}</option>)}
+                  {countries.map((c) => <option key={c} value={c} style={{ backgroundColor: "#10151f" }}>{c}</option>)}
                 </select>
               </div>
               <div>
@@ -313,7 +313,7 @@ export default function MarketplacePage() {
                 )}
 
                 {/* Country badge */}
-                <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", color: "#0f172a" }}>
+                <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: "rgba(5,7,10,0.45)", backdropFilter: "blur(8px)", color: "#fff" }}>
                   <span>{event.flag}</span>
                   <span>{event.country}</span>
                 </div>
@@ -442,7 +442,7 @@ export default function MarketplacePage() {
                 <select className="input-field w-full" value={publishForm.category}
                   onChange={(e) => setPublishForm({ ...publishForm, category: e.target.value })}>
                   {PUBLISH_CATEGORIES.map((c) => (
-                    <option key={c} value={c} style={{ backgroundColor: "#fff" }}>
+                    <option key={c} value={c} style={{ backgroundColor: "#10151f" }}>
                       {categoryIcons[c]} {categoryLabels[c]}
                     </option>
                   ))}
@@ -482,7 +482,7 @@ export default function MarketplacePage() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">Imagen del evento</label>
                 <label className="group flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed cursor-pointer transition-all hover:border-teal-400 hover:bg-teal-50/40"
-                  style={{ borderColor: publishForm.image ? "#10B981" : "#e2e8f0", backgroundColor: publishForm.image ? "rgba(16,185,129,0.04)" : "#f8fafc" }}>
+                  style={{ borderColor: publishForm.image ? "#10B981" : "#232c3a", backgroundColor: publishForm.image ? "rgba(16,185,129,0.04)" : "#10151f" }}>
                   {publishForm.image ? (
                     <div className="flex flex-col items-center gap-1.5">
                       <img src={publishForm.image} alt="imagen del evento" className="h-16 w-auto object-cover rounded-lg" />
@@ -560,7 +560,7 @@ export default function MarketplacePage() {
                     { label: "Audiencia estimada", value: `${(selectedEvent.audience / 1000).toFixed(0)}K personas`, icon: <Users size={14} /> },
                     { label: "Días restantes", value: `${selectedEvent.daysLeft} días`, icon: <Calendar size={14} /> },
                   ].map((s) => (
-                    <div key={s.label} className="text-center p-3 rounded-xl" style={{ backgroundColor: "#f8fafc" }}>
+                    <div key={s.label} className="text-center p-3 rounded-xl" style={{ backgroundColor: "#10151f" }}>
                       <div className="flex justify-center text-slate-400 mb-1">{s.icon}</div>
                       <p className="text-sm font-bold text-slate-900">{s.value}</p>
                       <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>

@@ -23,7 +23,7 @@ function pctOf(target: string): number | null {
 function Sec({ n, icon, title, children }: { n: number; icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
     <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: n * 0.05 }} className="card p-7 print:shadow-none print:border">
-      <div className="flex items-center gap-3 mb-5"><span className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-900 text-xs font-bold" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}>{n}</span><span className="text-teal-600">{icon}</span><h2 className="font-bold text-slate-900 text-lg">{title}</h2></div>
+      <div className="flex items-center gap-3 mb-5"><span className="w-8 h-8 rounded-lg flex items-center justify-center text-[#04121a] text-xs font-bold" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}>{n}</span><span className="text-teal-600">{icon}</span><h2 className="font-bold text-slate-900 text-lg">{title}</h2></div>
       {children}
     </motion.section>
   );
@@ -55,7 +55,7 @@ function StatTile({ icon, label, value, sub, color }: { icon: React.ReactNode; l
   );
 }
 
-const tooltipStyle = { fontSize: 12, borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(15,23,42,0.08)" };
+const tooltipStyle = { fontSize: 12, borderRadius: 10, border: "1px solid #232c3a", boxShadow: "0 4px 12px rgba(15,23,42,0.08)" };
 
 /** Trayectoria de la meta: hitos con % acumulado → línea; si no son numéricos, lista. */
 function MilestoneTrack({ plan }: { plan: ChallengePlan }) {
@@ -83,8 +83,8 @@ function MilestoneTrack({ plan }: { plan: ChallengePlan }) {
       </div>
       <ResponsiveContainer width="100%" height={150}>
         <LineChart data={pts} margin={{ top: 14, right: 14, left: -18, bottom: 0 }}>
-          <CartesianGrid stroke="#F1F5F9" vertical={false} />
-          <XAxis dataKey="year" tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} />
+          <CartesianGrid stroke="#161d29" vertical={false} />
+          <XAxis dataKey="year" tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={{ stroke: "#232c3a" }} />
           <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false} unit="%" width={44} />
           <Tooltip contentStyle={tooltipStyle} formatter={(v) => [`${v}% acumulado`, plan.label]} labelFormatter={(y) => `Año ${y}`} />
           <Line type="monotone" dataKey="pct" stroke={color} strokeWidth={2} dot={{ r: 3.5, fill: color, strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 5 }} />
@@ -92,7 +92,7 @@ function MilestoneTrack({ plan }: { plan: ChallengePlan }) {
       </ResponsiveContainer>
       <div className="flex flex-wrap gap-1.5 mt-2">
         {pts.map((p) => (
-          <span key={p.year} title={`${p.m.label}: ${p.m.target}`} className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${color}12`, color: "#475569" }}>
+          <span key={p.year} title={`${p.m.label}: ${p.m.target}`} className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${color}12`, color: "#a8b3c4" }}>
             {p.year} · <span className="font-bold" style={{ color }}>{p.pct}%</span>
           </span>
         ))}
@@ -149,7 +149,7 @@ function PlanCard({ p }: { p: ChallengePlan }) {
               {p.proposedProjects.map((pr) => {
                 const lv = LEVEL_STYLE[pr.investmentLevel] ?? LEVEL_STYLE.medio;
                 return (
-                  <div key={pr.title} className="p-3.5 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: "1px solid #EEF2F7" }}>
+                  <div key={pr.title} className="p-3.5 rounded-xl" style={{ backgroundColor: "#10151f", border: "1px solid #EEF2F7" }}>
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <p className="text-sm font-semibold text-slate-800">{pr.title}</p>
                       <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide flex-shrink-0" style={{ backgroundColor: lv.bg, color: lv.color }}>{lv.label}</span>
@@ -164,7 +164,7 @@ function PlanCard({ p }: { p: ChallengePlan }) {
         </div>
 
         {/* Ficha operativa */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5 pt-4" style={{ borderTop: "1px dashed #E2E8F0" }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5 pt-4" style={{ borderTop: "1px dashed #232c3a" }}>
           <div className="flex items-start gap-2.5"><span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0"><Wallet size={13} /></span><div><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Presupuesto</p><p className="text-xs text-slate-700 font-medium mt-0.5">{p.budgetStatus === "si" && p.budgetAmount ? fmt(p.budgetAmount, p.budgetCurrency) : p.budgetStatus === "en_evaluacion" ? "En evaluación" : "Sin presupuesto — estimado por nivel"}</p></div></div>
           <div className="flex items-start gap-2.5"><span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0"><Users size={13} /></span><div><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">RR.HH.</p><p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{p.hrRecommendation}</p></div></div>
           <div className="flex items-start gap-2.5"><span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0"><UserCheck size={13} /></span><div><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Responsable sugerido</p><p className="text-xs text-slate-700 font-medium mt-0.5">{p.responsibleSuggested}</p></div></div>
@@ -230,7 +230,7 @@ export function StrategyDoc({ doc, status, onMaterialize, materializing }: { doc
         <p className="text-sm text-slate-600 leading-relaxed mb-5">{doc.diagnosis.narrative}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {doc.diagnosis.maturity.map((m) => (
-            <div key={m.pillar} className="p-4 rounded-xl flex items-center gap-4" style={{ backgroundColor: "#F8FAFC", borderTop: `3px solid ${PILLAR_COLOR[m.pillar]}` }}>
+            <div key={m.pillar} className="p-4 rounded-xl flex items-center gap-4" style={{ backgroundColor: "#10151f", borderTop: `3px solid ${PILLAR_COLOR[m.pillar]}` }}>
               <ScoreRing score={m.score} color={PILLAR_COLOR[m.pillar]} />
               <div className="min-w-0">
                 <p className="text-sm font-bold text-slate-800">{PILLAR_LABEL[m.pillar]}</p>
@@ -263,7 +263,7 @@ export function StrategyDoc({ doc, status, onMaterialize, materializing }: { doc
       <Sec n={5} icon={<Map size={16} />} title="Hoja de ruta consolidada">
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {doc.roadmap.map((r, ri) => (
-            <div key={r.year} className="p-4 rounded-xl" style={{ backgroundColor: ri === doc.roadmap.length - 1 ? "#F0FDF9" : "#F8FAFC", border: ri === doc.roadmap.length - 1 ? "1px solid #99F6E4" : "1px solid #F1F5F9" }}>
+            <div key={r.year} className="p-4 rounded-xl" style={{ backgroundColor: ri === doc.roadmap.length - 1 ? "#F0FDF9" : "#10151f", border: ri === doc.roadmap.length - 1 ? "1px solid #99F6E4" : "1px solid #161d29" }}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-lg font-black text-slate-900">{r.year}</p>
                 {ri === doc.roadmap.length - 1 && <span className="text-[9px] font-bold uppercase tracking-wide text-teal-700 bg-teal-100 px-1.5 py-0.5 rounded">Meta final</span>}
@@ -288,7 +288,7 @@ export function StrategyDoc({ doc, status, onMaterialize, materializing }: { doc
                 <BarChart data={pillarInvestment} layout="vertical" margin={{ top: 0, right: 104, left: 0, bottom: 0 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#475569", fontWeight: 600 }} tickLine={false} axisLine={false} width={92} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(Number(v), doc.investment.currency), "Declarado"]} cursor={{ fill: "#F8FAFC" }} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(Number(v), doc.investment.currency), "Declarado"]} cursor={{ fill: "#10151f" }} />
                   <Bar dataKey="declared" barSize={18} radius={[0, 4, 4, 0]}>
                     {pillarInvestment.map((b) => <Cell key={b.pillar} fill={PILLAR_COLOR[b.pillar]} />)}
                     <LabelList dataKey="declared" position="right" formatter={(v) => (typeof v === "number" && v ? fmt(v, doc.investment.currency) : "—")} style={{ fontSize: 11, fontWeight: 700, fill: "#334155" }} />
@@ -298,28 +298,28 @@ export function StrategyDoc({ doc, status, onMaterialize, materializing }: { doc
             ) : (
               <div className="space-y-2">
                 {pillarInvestment.map((b) => (
-                  <div key={b.pillar} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}>
+                  <div key={b.pillar} className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: "#10151f" }}>
                     <span className="text-sm text-slate-700 font-medium flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PILLAR_COLOR[b.pillar] }} />{b.name}</span>
                     <span className="text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide" style={{ backgroundColor: (LEVEL_STYLE[b.level] ?? LEVEL_STYLE.medio).bg, color: (LEVEL_STYLE[b.level] ?? LEVEL_STYLE.medio).color }}>Nivel {b.level}</span>
                   </div>))}
               </div>
             )}
-            <div className="flex items-center justify-between pt-3 mt-2 text-sm" style={{ borderTop: "1px solid #E2E8F0" }}><span className="font-bold text-slate-900">Total declarado</span><span className="font-black text-teal-600">{doc.investment.declaredTotal ? fmt(doc.investment.declaredTotal, doc.investment.currency) : "—"}</span></div>
+            <div className="flex items-center justify-between pt-3 mt-2 text-sm" style={{ borderTop: "1px solid #232c3a" }}><span className="font-bold text-slate-900">Total declarado</span><span className="font-black text-teal-600">{doc.investment.declaredTotal ? fmt(doc.investment.declaredTotal, doc.investment.currency) : "—"}</span></div>
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">Por año (declarado)</p>
             {yearInvestment.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={yearInvestment} margin={{ top: 18, right: 8, left: -14, bottom: 0 }}>
-                  <CartesianGrid stroke="#F1F5F9" vertical={false} />
-                  <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#94A3B8" }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} />
+                  <CartesianGrid stroke="#161d29" vertical={false} />
+                  <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#94A3B8" }} tickLine={false} axisLine={{ stroke: "#232c3a" }} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => (v >= 1e6 ? `${Math.round(v / 1e6)}M` : v >= 1e3 ? `${Math.round(v / 1e3)}K` : String(v))} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(Number(v), doc.investment.currency), "Declarado"]} cursor={{ fill: "#F8FAFC" }} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fmt(Number(v), doc.investment.currency), "Declarado"]} cursor={{ fill: "#10151f" }} />
                   <Bar dataKey="declared" fill="#0D9488" barSize={26} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-slate-400 p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}>Sin montos anuales declarados — la inversión se estima por nivel en cada proyecto propuesto.</p>
+              <p className="text-sm text-slate-400 p-3 rounded-xl" style={{ backgroundColor: "#10151f" }}>Sin montos anuales declarados — la inversión se estima por nivel en cada proyecto propuesto.</p>
             )}
           </div>
         </div>
@@ -327,7 +327,7 @@ export function StrategyDoc({ doc, status, onMaterialize, materializing }: { doc
 
       {/* 7. Alineación estratégica */}
       <Sec n={7} icon={<Shield size={16} />} title="Alineación estratégica">
-        {doc.strategicAlignment.length ? <div className="space-y-3">{doc.strategicAlignment.map((a, i) => <div key={a.objective} className="p-4 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#F8FAFC" }}><span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0" style={{ background: i === 0 ? "linear-gradient(135deg, #10B981, #06B6D4)" : "#E2E8F0", color: "#0f172a" }}>{i + 1}</span><div><p className="text-sm font-semibold text-slate-800">{a.objective}</p><p className="text-xs text-slate-500 mt-1">{a.how}</p></div></div>)}</div> : <p className="text-sm text-slate-400">No se declararon objetivos estratégicos.</p>}
+        {doc.strategicAlignment.length ? <div className="space-y-3">{doc.strategicAlignment.map((a, i) => <div key={a.objective} className="p-4 rounded-xl flex items-start gap-3" style={{ backgroundColor: "#10151f" }}><span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0" style={{ background: i === 0 ? "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" : "#232c3a", color: i === 0 ? "#0f172a" : "#f4f7fb" }}>{i + 1}</span><div><p className="text-sm font-semibold text-slate-800">{a.objective}</p><p className="text-xs text-slate-500 mt-1">{a.how}</p></div></div>)}</div> : <p className="text-sm text-slate-400">No se declararon objetivos estratégicos.</p>}
       </Sec>
 
       {/* 8. Alineación global */}
@@ -351,7 +351,7 @@ export function StrategyDoc({ doc, status, onMaterialize, materializing }: { doc
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card overflow-hidden print:hidden">
           <div className="p-6 flex items-center justify-between gap-4 flex-wrap" style={{ background: "linear-gradient(135deg, #ECFDF5, #ECFEFF)" }}>
             <div className="flex items-start gap-3">
-              <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}><Sparkles size={18} /></span>
+              <span className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}><Sparkles size={18} /></span>
               <div>
                 <p className="font-bold text-slate-900">Activa tu estrategia en la plataforma</p>
                 <p className="text-sm text-slate-600 mt-0.5 max-w-xl">Convierte los {nProjects} proyectos propuestos en proyectos ESG con hitos y KPIs de seguimiento — alimentan automáticamente Gestión ESG, tus indicadores y el puntaje del club.</p>

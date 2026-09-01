@@ -154,10 +154,10 @@ export default function AIStrategyPage() {
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <button key={n} onClick={() => n < step && setStep(n)} className="flex items-center gap-2 flex-shrink-0">
                   <span className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                    style={n < step ? { background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" } : n === step ? { background: "linear-gradient(135deg, #8B5CF6, #06B6D4)", color: "#fff", boxShadow: "0 0 0 4px rgba(139,92,246,0.15)" } : { backgroundColor: "#F1F5F9", color: "#94A3B8" }}>
+                    style={n < step ? { background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#0f172a" } : n === step ? { background: "linear-gradient(135deg, #8B5CF6, #06B6D4)", color: "#fff", boxShadow: "0 0 0 4px rgba(139,92,246,0.15)" } : { backgroundColor: "#161d29", color: "#94A3B8" }}>
                     {n < step ? <CheckCircle size={14} /> : n}</span>
                   <span className={`text-xs hidden lg:block ${n === step ? "text-slate-900 font-semibold" : "text-slate-400"}`}>{STEP_TITLES[n]}</span>
-                  {n < 6 && <span className="w-6 h-px mx-1" style={{ backgroundColor: n < step ? "#10B981" : "#E2E8F0" }} />}
+                  {n < 6 && <span className="w-6 h-px mx-1" style={{ backgroundColor: n < step ? "#10B981" : "#232c3a" }} />}
                 </button>
               ))}
             </div>
@@ -171,7 +171,7 @@ export default function AIStrategyPage() {
               {step === 5 && <Step5 s={strategy} frameworks={config.frameworks} save={save} />}
               {step === 6 && <Step6 s={strategy} save={save} />}
 
-              <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: "1px solid #F1F5F9" }}>
+              <div className="flex items-center justify-between mt-8 pt-6" style={{ borderTop: "1px solid #161d29" }}>
                 <button onClick={back} disabled={step === 1} className="btn-secondary flex items-center gap-2 disabled:opacity-40"><ChevronLeft size={16} /> Atrás</button>
                 <button onClick={next} className="btn-primary flex items-center gap-2">
                   {step < 6 ? <>Continuar <ChevronRight size={16} /></> : <><Sparkles size={16} /> Generar mi Estrategia ESG</>}

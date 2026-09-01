@@ -12,7 +12,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <UserProvider>
-      <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#F8FAFC" }}>
+      <div className="flex h-screen overflow-hidden" style={{ backgroundColor: "#10151f" }}>
         {/* Mobile backdrop */}
         {mobileOpen && (
           <div
@@ -39,9 +39,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           position="top-right"
           toastOptions={{
             style: {
-              background: "#ffffff",
-              color: "#0F172A",
-              border: "1px solid #E2E8F0",
+              background: "#10151f",
+              color: "#f4f7fb",
+              border: "1px solid #232c3a",
               borderRadius: "12px",
               boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
               fontSize: "13px",

@@ -342,7 +342,7 @@ export default function FanZonePage() {
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0"
                       style={isUnlocked
                         ? { background: `${t.color}20`, border: `1px solid ${t.color}40` }
-                        : { backgroundColor: "#F1F5F9", border: "1px solid #E2E8F0" }
+                        : { backgroundColor: "#161d29", border: "1px solid #232c3a" }
                       }>
                       {t.emoji}
                     </div>
@@ -452,7 +452,7 @@ export default function FanZonePage() {
               <button key={tab.id} onClick={() => setActionTab(tab.id)}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={actionTab === tab.id
-                  ? { backgroundColor: "#fff", color: "#0F172A", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+                  ? { backgroundColor: "#161d29", color: "#f4f7fb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
                   : { color: "#94A3B8" }}>
                 {tab.label}
               </button>
@@ -542,7 +542,7 @@ export default function FanZonePage() {
               <button key={tab.id} onClick={() => setRewardTab(tab.id)}
                 className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                 style={rewardTab === tab.id
-                  ? { backgroundColor: "#fff", color: "#0F172A", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+                  ? { backgroundColor: "#161d29", color: "#f4f7fb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
                   : { color: "#94A3B8" }}>
                 {tab.label}
               </button>

@@ -173,7 +173,7 @@ export default function AdminClubDetailPage({ params }: { params: Promise<{ club
           <button key={id} onClick={() => setTab(id)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
             style={tab === id
-              ? { backgroundColor: "#fff", color: "#0F172A", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+              ? { backgroundColor: "#161d29", color: "#f4f7fb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
               : { color: "#94A3B8" }}>
             <Icon size={14} /> {label}
           </button>

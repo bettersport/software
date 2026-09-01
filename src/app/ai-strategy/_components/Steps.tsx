@@ -29,7 +29,7 @@ function YesNo({ value, onChange, options = [["si", "Sí"], ["no", "No"]] }: { v
     <div className="flex gap-2 flex-wrap">
       {options.map(([v, l]) => (
         <button key={v} type="button" onClick={() => onChange(v)} className="px-3.5 py-2 rounded-lg text-sm font-medium transition-all"
-          style={value === v ? { background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" } : { backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569" }}>{l}</button>
+          style={value === v ? { background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#0f172a" } : { backgroundColor: "#10151f", border: "1px solid #232c3a", color: "#a8b3c4" }}>{l}</button>
       ))}
     </div>
   );
@@ -37,7 +37,7 @@ function YesNo({ value, onChange, options = [["si", "Sí"], ["no", "No"]] }: { v
 function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <button type="button" onClick={() => onChange(!on)} className="flex items-center gap-3 text-left">
-      <span className="relative w-10 h-6 rounded-full transition-colors flex-shrink-0" style={{ backgroundColor: on ? "#10B981" : "#CBD5E1" }}>
+      <span className="relative w-10 h-6 rounded-full transition-colors flex-shrink-0" style={{ backgroundColor: on ? "#10B981" : "#2a3442" }}>
         <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: on ? "translateX(16px)" : "translateX(0)" }} />
       </span>
       <span className="text-sm text-slate-700">{label}</span>
@@ -133,13 +133,13 @@ export function Step2({ challenges, gri, onChange }: { challenges: ChallengeInpu
                 const on = !!challenges.find((c) => c.key === r.key);
                 return (
                   <button key={r.key} type="button" onClick={() => toggle(r)} className="text-left p-3 rounded-xl text-sm transition-all flex items-start gap-2.5"
-                    style={on ? { backgroundColor: `${color}12`, border: `1.5px solid ${color}55` } : { backgroundColor: "#F8FAFC", border: "1.5px solid #E2E8F0" }}>
-                    <span className="mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: on ? color : "#fff", border: `1.5px solid ${on ? color : "#CBD5E1"}` }}>{on && <CheckCircle2 size={12} className="text-white" />}</span>
+                    style={on ? { backgroundColor: `${color}12`, border: `1.5px solid ${color}55` } : { backgroundColor: "#10151f", border: "1.5px solid #232c3a" }}>
+                    <span className="mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: on ? color : "#fff", border: `1.5px solid ${on ? color : "#2a3442"}` }}>{on && <CheckCircle2 size={12} className="text-white" />}</span>
                     <span><span className="text-slate-800 font-medium">{r.label}</span><span className="block text-[11px] text-slate-400 mt-0.5">{r.griStandard} · {r.griTitle}</span></span>
                   </button>
                 );
               })}
-              <button type="button" onClick={() => addCustom(pillar)} className="text-left p-3 rounded-xl text-sm text-slate-500 hover:text-slate-800" style={{ border: "1.5px dashed #CBD5E1" }}>+ Otro (especificar)</button>
+              <button type="button" onClick={() => addCustom(pillar)} className="text-left p-3 rounded-xl text-sm text-slate-500 hover:text-slate-800" style={{ border: "1.5px dashed #2a3442" }}>+ Otro (especificar)</button>
             </div>
             {selected.map((c) => <ChallengeDiagnosis key={c.key} c={c} color={color} onChange={(p) => update(c.key, p)} onRemove={() => onChange((prev) => prev.filter((x) => x.key !== c.key))} />)}
           </section>
@@ -191,7 +191,7 @@ function ChallengeDiagnosis({ c, color, onChange, onRemove }: { c: ChallengeInpu
   };
 
   return (
-    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-3 p-4 rounded-xl" style={{ backgroundColor: "#fff", border: `1px solid ${color}40` }}>
+    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mt-3 p-4 rounded-xl" style={{ backgroundColor: "#10151f", border: `1px solid ${color}40` }}>
       <div className="flex items-center justify-between mb-3"><p className="text-sm font-semibold text-slate-800">Diagnóstico · {c.label}</p><button onClick={onRemove} className="text-slate-300 hover:text-red-400"><X size={14} /></button></div>
       <div className="space-y-3">
         {[[q1, "hasBaseline"], [q2, "hasDiagnosis"], [q3, "hasHistorical"]].map(([q, k]) => (
@@ -232,9 +232,9 @@ export function Step3({ challenges, s, onChange }: { challenges: ChallengeInput[
           <div key={c.key} className="card p-6" style={{ borderLeft: `3px solid ${color}` }}>
             <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
               <div><p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color }}>{PILLAR_LABEL[c.pillar]} · desafío {i + 1} de {challenges.length}</p><h3 className="font-bold text-slate-900 mt-0.5">{c.label}</h3></div>
-              <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={maturity === "con línea base" ? { backgroundColor: "#ECFDF5", color: "#059669" } : { backgroundColor: "#FFFBEB", color: "#B45309" }}>{maturity}</span>
+              <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={maturity === "con línea base" ? { backgroundColor: "#ECFDF5", color: "#34d399" } : { backgroundColor: "#FFFBEB", color: "#B45309" }}>{maturity}</span>
             </div>
-            <div className="p-3.5 rounded-xl mb-4 flex items-start gap-3" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+            <div className="p-3.5 rounded-xl mb-4 flex items-start gap-3" style={{ backgroundColor: "#10151f", border: "1px solid #232c3a" }}>
               <span className="text-xs font-bold px-2 py-1 rounded-md flex-shrink-0" style={{ backgroundColor: `${color}18`, color }}>{c.griStandard || "GRI · a definir por el motor"}</span>
               <div className="text-xs text-slate-500">{c.griTitle && <p className="font-medium text-slate-700">{c.griTitle}</p>}{c.indicators.length > 0 && <p className="mt-0.5">Indicadores: {c.indicators.join(" · ")}</p>}{c.sdgs.length > 0 && <p className="mt-0.5">ODS: {c.sdgs.join(", ")}</p>}{c.isCustom && <p className="mt-0.5 italic">Desafío personalizado: el motor propondrá el estándar GRI más cercano.</p>}</div>
             </div>
@@ -276,14 +276,14 @@ export function Step4({ objectives, onChange }: { objectives: string[]; onChange
       <DevNote>Selecciona qué busca tu organización con la estrategia y ordénalos por prioridad. Esto define el <strong>“para qué”</strong> y ajusta el énfasis del documento (ej. si priorizas patrocinios, se refuerza el capítulo de valor para marcas).</DevNote>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {all.map((k) => { const on = objectives.includes(k); return (
-          <button key={k} type="button" onClick={() => toggle(k)} className="text-left p-3.5 rounded-xl text-sm flex items-start gap-2.5 transition-all" style={on ? { backgroundColor: "#ECFDF5", border: "1.5px solid #6EE7B7" } : { backgroundColor: "#F8FAFC", border: "1.5px solid #E2E8F0" }}>
-            <span className="mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: on ? "#10B981" : "#fff", border: `1.5px solid ${on ? "#10B981" : "#CBD5E1"}` }}>{on && <CheckCircle2 size={12} className="text-white" />}</span><span className="text-slate-800">{OBJECTIVE_LABEL[k]}</span>
+          <button key={k} type="button" onClick={() => toggle(k)} className="text-left p-3.5 rounded-xl text-sm flex items-start gap-2.5 transition-all" style={on ? { backgroundColor: "#ECFDF5", border: "1.5px solid #6EE7B7" } : { backgroundColor: "#10151f", border: "1.5px solid #232c3a" }}>
+            <span className="mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: on ? "#10B981" : "#fff", border: `1.5px solid ${on ? "#10B981" : "#2a3442"}` }}>{on && <CheckCircle2 size={12} className="text-white" />}</span><span className="text-slate-800">{OBJECTIVE_LABEL[k]}</span>
           </button>); })}
       </div>
       {objectives.length > 0 && (
         <div className="card p-5"><p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Prioridad (1 = principal)</p>
           <ol className="space-y-2">{objectives.map((k, i) => (
-            <li key={k} className="flex items-center gap-3 p-2.5 rounded-lg" style={{ backgroundColor: "#F8FAFC" }}><span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style={{ background: i === 0 ? "linear-gradient(135deg, #10B981, #06B6D4)" : "#E2E8F0", color: "#0f172a" }}>{i + 1}</span><span className="text-sm text-slate-700 flex-1">{OBJECTIVE_LABEL[k]}</span>
+            <li key={k} className="flex items-center gap-3 p-2.5 rounded-lg" style={{ backgroundColor: "#10151f" }}><span className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style={{ background: i === 0 ? "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" : "#232c3a", color: i === 0 ? "#0f172a" : "#f4f7fb" }}>{i + 1}</span><span className="text-sm text-slate-700 flex-1">{OBJECTIVE_LABEL[k]}</span>
               <button onClick={() => move(i, -1)} className="btn-ghost p-1"><ArrowUp size={14} /></button><button onClick={() => move(i, 1)} className="btn-ghost p-1"><ArrowDown size={14} /></button></li>))}
           </ol></div>
       )}
@@ -300,7 +300,7 @@ export function Step5({ s, frameworks, save }: { s: Strategy; frameworks: Framew
         <div className="card p-6" style={{ borderLeft: "3px solid #06B6D4" }}>
           <div className="flex items-start gap-3"><div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#ECFEFF" }}><Globe size={18} className="text-cyan-600" /></div>
             <div><p className="text-xs text-slate-400 uppercase tracking-wider">Detectado por tu deporte · {s.sport}</p><h3 className="font-bold text-slate-900 mt-0.5">{fw.organism}</h3><p className="text-sm text-slate-600 mt-1">{fw.framework}</p>{fw.summary && <p className="text-xs text-slate-400 mt-2">{fw.summary}</p>}</div></div>
-          <div className="mt-5 p-4 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}>
+          <div className="mt-5 p-4 rounded-xl" style={{ backgroundColor: "#10151f" }}>
             <p className="text-sm font-medium text-slate-800 mb-3">¿Quieres que tu estrategia ESG se alinee con los lineamientos de sostenibilidad de {fw.organism}?</p>
             <Toggle on={s.alignGlobal} onChange={(v) => save({ alignGlobal: v, globalBody: v ? fw.organism : null })} label={s.alignGlobal ? "Sí — el documento explicitará qué metas locales se conectan con este marco global" : "No — la estrategia se basará solo en GRI y contexto local"} />
           </div>

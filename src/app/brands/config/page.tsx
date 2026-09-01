@@ -111,8 +111,8 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
       style={active
-        ? { background: "rgba(16,185,129,0.12)", borderColor: "rgba(16,185,129,0.4)", color: "#059669" }
-        : { backgroundColor: "#fff", borderColor: "#E2E8F0", color: "#64748B" }
+        ? { background: "rgba(16,185,129,0.12)", borderColor: "rgba(16,185,129,0.4)", color: "#34d399" }
+        : { backgroundColor: "#10151f", borderColor: "#232c3a", color: "#a8b3c4" }
       }
     >
       {children}
@@ -125,7 +125,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
     <button
       onClick={onClick}
       className="relative flex-shrink-0 w-9 h-5 rounded-full transition-colors duration-200"
-      style={{ backgroundColor: on ? "#10B981" : "#CBD5E1" }}
+      style={{ backgroundColor: on ? "#10B981" : "#2a3442" }}
       role="switch"
       aria-checked={on}
     >
@@ -204,7 +204,7 @@ export default function BrandConfigPage() {
               ? <CheckCircle2 size={13} className="text-teal-500" />
               : <AlertCircle size={13} className="text-amber-500" />}
             <span className="text-xs font-semibold"
-              style={{ color: done === total ? "#059669" : "#D97706" }}>
+              style={{ color: done === total ? "#34d399" : "#D97706" }}>
               {done}/{total} secciones completas
             </span>
           </div>
@@ -234,7 +234,7 @@ export default function BrandConfigPage() {
           <button key={t.id} onClick={() => setTab(t.id)}
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
             style={tab === t.id
-              ? { backgroundColor: "#fff", color: "#0F172A", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+              ? { backgroundColor: "#161d29", color: "#f4f7fb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
               : { color: "#94A3B8" }}>
             {t.label}
           </button>
@@ -350,13 +350,13 @@ export default function BrandConfigPage() {
                     className="flex items-center gap-4 p-4 rounded-2xl border text-left transition-all"
                     style={active
                       ? { backgroundColor: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.35)" }
-                      : { backgroundColor: "#fff", borderColor: "#E2E8F0" }
+                      : { backgroundColor: "#10151f", borderColor: "#232c3a" }
                     }
                   >
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={active
                         ? { background: "linear-gradient(135deg,#10B981,#06B6D4)", color: "#fff" }
-                        : { backgroundColor: "#F1F5F9", color: "#94A3B8" }
+                        : { backgroundColor: "#161d29", color: "#94A3B8" }
                       }>
                       <Icon size={18} />
                     </div>
@@ -368,7 +368,7 @@ export default function BrandConfigPage() {
                       <p className="text-xs text-slate-400 mt-0.5">{desc}</p>
                     </div>
                     <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                      style={active ? { background: "#10B981", borderColor: "#10B981" } : { borderColor: "#CBD5E1" }}>
+                      style={active ? { background: "#10B981", borderColor: "#10B981" } : { borderColor: "#2a3442" }}>
                       {active && <Check size={10} className="text-white" />}
                     </div>
                   </button>

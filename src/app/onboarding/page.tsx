@@ -116,8 +116,8 @@ function Tag({ active, onClick, children }: { active: boolean; onClick: () => vo
       onClick={onClick}
       className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
       style={active
-        ? { background: "rgba(16,185,129,0.12)", borderColor: "rgba(16,185,129,0.4)", color: "#059669" }
-        : { backgroundColor: "#fff", borderColor: "#E2E8F0", color: "#64748B" }
+        ? { background: "rgba(16,185,129,0.12)", borderColor: "rgba(16,185,129,0.4)", color: "#34d399" }
+        : { backgroundColor: "#10151f", borderColor: "#232c3a", color: "#a8b3c4" }
       }
     >
       {children}
@@ -130,7 +130,7 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
     <button
       onClick={onClick}
       className="relative flex-shrink-0 w-9 h-5 rounded-full transition-colors duration-200"
-      style={{ backgroundColor: on ? "#10B981" : "#CBD5E1" }}
+      style={{ backgroundColor: on ? "#10B981" : "#2a3442" }}
       aria-checked={on}
       role="switch"
     >
@@ -180,7 +180,7 @@ export default function OnboardingPage() {
   if (done) return <SuccessScreen onGo={goToDashboard} onSources={goToSources} />;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#F8FAFC" }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#10151f" }}>
       {/* Top nav */}
       <nav className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-50">
         <img src="/logo.svg" alt="BetterSport" className="h-8 w-auto object-contain" />
@@ -217,13 +217,13 @@ export default function OnboardingPage() {
                         ? { background: "#10B981", borderColor: "#10B981", color: "#fff" }
                         : isActive
                         ? { background: "#0F172A", borderColor: "#0F172A", color: "#fff" }
-                        : { background: "#fff", borderColor: "#CBD5E1", color: "#94A3B8" }
+                        : { background: "#10151f", borderColor: "#2a3442", color: "#94A3B8" }
                     }
                   >
                     {isDone ? <Check size={12} /> : i + 1}
                   </div>
                   <div>
-                    <p className="text-sm font-medium" style={{ color: isActive ? "#059669" : isDone ? "#0F172A" : "#94A3B8" }}>{s.label}</p>
+                    <p className="text-sm font-medium" style={{ color: isActive ? "#34d399" : isDone ? "#0F172A" : "#94A3B8" }}>{s.label}</p>
                     <p className="text-[11px] text-slate-400">{s.sub}</p>
                   </div>
                 </button>
@@ -264,7 +264,7 @@ export default function OnboardingPage() {
             {step < STEPS.length - 1 ? (
               <button
                 className="h-10 px-5 rounded-xl font-semibold text-white flex items-center gap-2 text-sm"
-                style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}
+                style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}
                 onClick={() => setStep((s) => s + 1)}
               >
                 Continuar <ArrowRight size={14} />
@@ -420,12 +420,12 @@ function Step3({ cfg, set }: { cfg: BrandConfig; set: <K extends keyof BrandConf
               className="flex items-center gap-4 p-4 rounded-2xl border text-left transition-all"
               style={active
                 ? { backgroundColor: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.35)" }
-                : { backgroundColor: "#fff", borderColor: "#E2E8F0" }
+                : { backgroundColor: "#10151f", borderColor: "#232c3a" }
               }
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-                style={active ? { background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#fff" } : { backgroundColor: "#F1F5F9", color: "#94A3B8" }}
+                style={active ? { background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#fff" } : { backgroundColor: "#161d29", color: "#94A3B8" }}
               >
                 <Icon size={18} />
               </div>
@@ -435,7 +435,7 @@ function Step3({ cfg, set }: { cfg: BrandConfig; set: <K extends keyof BrandConf
               </div>
               <div
                 className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
-                style={active ? { background: "#10B981", borderColor: "#10B981" } : { borderColor: "#CBD5E1" }}
+                style={active ? { background: "#10B981", borderColor: "#10B981" } : { borderColor: "#2a3442" }}
               >
                 {active && <Check size={10} className="text-white" />}
               </div>
@@ -541,7 +541,7 @@ function Step5({ cfg, onEdit }: { cfg: BrandConfig; onEdit: (step: number) => vo
 
 function SuccessScreen({ onGo, onSources }: { onGo: () => void; onSources: () => void }) {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#F8FAFC" }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#10151f" }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -572,7 +572,7 @@ function SuccessScreen({ onGo, onSources }: { onGo: () => void; onSources: () =>
         <button
           onClick={onGo}
           className="w-full h-12 rounded-2xl font-semibold text-white flex items-center justify-center gap-2"
-          style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}
+          style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 4px 20px rgba(16,185,129,0.3)" }}
         >
           Ir al dashboard <ArrowRight size={16} />
         </button>

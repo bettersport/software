@@ -289,10 +289,10 @@ export default function DashboardPage() {
         className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
       >
         <div>
-          <h1 className="text-[22px] sm:text-[28px] lg:text-[34px] font-extrabold" style={{ color: "#0F172A", letterSpacing: "-0.03em" }}>
+          <h1 className="text-[22px] sm:text-[28px] lg:text-[34px] font-extrabold" style={{ color: "#f4f7fb", letterSpacing: "-0.03em" }}>
             {greeting}, {(activeUser?.name ?? "").split(" ")[0]} 👋
           </h1>
-          <p className="text-[15px] mt-2" style={{ color: "#64748B" }}>
+          <p className="text-[15px] mt-2" style={{ color: "#a8b3c4" }}>
             {roleSubtitle[role]} · {new Date().toLocaleDateString("es-CL", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
@@ -352,19 +352,19 @@ export default function DashboardPage() {
       {(role === "club" || role === "manager") && !isDemo && !hasClubData && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-10 text-center">
           <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#ECFDF5" }}>
-            <Leaf size={24} style={{ color: "#059669" }} />
+            <Leaf size={24} style={{ color: "#34d399" }} />
           </div>
-          <h3 className="font-bold text-lg" style={{ color: "#0F172A" }}>Listo para crear tu estrategia ESG</h3>
-          <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#64748B" }}>
+          <h3 className="font-bold text-lg" style={{ color: "#f4f7fb" }}>Listo para crear tu estrategia ESG</h3>
+          <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#a8b3c4" }}>
             Todo parte por la estrategia: define tus desafíos, metas bajo estándares GRI y plan de inversión. De ahí nacen los proyectos que financian las marcas y alimentan tu Ranking.
           </p>
           <div className="flex items-center justify-center gap-3 mt-5 flex-wrap">
             <Link href="/ai-strategy" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold"
-              style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}>
+              style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#04121a" }}>
               <Brain size={15} /> Crear mi estrategia ESG
             </Link>
             <Link href="/esg/projects" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-slate-600"
-              style={{ backgroundColor: "#F1F5F9" }}>
+              style={{ backgroundColor: "#161d29" }}>
               <Leaf size={15} /> Ir a proyectos
             </Link>
           </div>
@@ -377,17 +377,17 @@ export default function DashboardPage() {
         {/* Radar */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Perfil ESG</h3>
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Perfil ESG</h3>
             <span className="badge badge-green">{(isDemo ? 85.3 : (liveClub?.esgScore ?? 0)).toFixed(1)} pts</span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <RadarChart data={clubRadar}>
-              <PolarGrid stroke="#e2e8f0" strokeDasharray="3 3" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: "#64748b", fontSize: 11, fontWeight: 500 }} />
+              <PolarGrid stroke="#232c3a" strokeDasharray="3 3" />
+              <PolarAngleAxis dataKey="subject" tick={{ fill: "#a8b3c4", fontSize: 11, fontWeight: 500 }} />
               <Radar name="ESG" dataKey="value" stroke="#10B981" fill="#10B981" fillOpacity={0.12} strokeWidth={2} />
             </RadarChart>
           </ResponsiveContainer>
-          <div className="grid grid-cols-2 gap-3 mt-4 pt-4" style={{ borderTop: "1px solid #f1f5f9" }}>
+          <div className="grid grid-cols-2 gap-3 mt-4 pt-4" style={{ borderTop: "1px solid #161d29" }}>
             {[
               { label: "Ambiental", value: clubRadar[0].value, color: "#10B981" },
               { label: "Social", value: clubRadar[1].value, color: "#06B6D4" },
@@ -396,7 +396,7 @@ export default function DashboardPage() {
             ].map((item) => (
               <div key={item.label}>
                 <div className="flex justify-between text-xs mb-1.5">
-                  <span style={{ color: "#64748b" }}>{item.label}</span>
+                  <span style={{ color: "#a8b3c4" }}>{item.label}</span>
                   <span style={{ color: item.color }} className="font-bold">{item.value}</span>
                 </div>
                 <ProgressBar value={item.value} color={item.color} showPercent={false} />
@@ -408,7 +408,7 @@ export default function DashboardPage() {
         {/* Area chart — historical trend (demo only; real accounts have no history yet) */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8 lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Evolución puntaje ESG</h3>
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Evolución puntaje ESG</h3>
             <span className="badge badge-cyan">{isDemo ? "Últimos 8 meses" : "En construcción"}</span>
           </div>
           {isDemo ? (
@@ -420,11 +420,11 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                 <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} domain={[60, 100]} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", color: "#0F172A", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }}
+                  contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", color: "#f4f7fb", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }}
                   formatter={(value) => [`${value} pts`, "Puntaje"]}
                 />
                 <Area type="monotone" dataKey="score" stroke="#10B981" strokeWidth={2.5} fill="url(#colorScore)" dot={{ fill: "#10B981", strokeWidth: 0, r: 4 }} activeDot={{ r: 6, fill: "#10B981", strokeWidth: 2, stroke: "#fff" }} />
@@ -432,7 +432,7 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center text-center" style={{ height: 260 }}>
-              <p className="text-sm font-medium" style={{ color: "#64748B" }}>Tu historial se construirá con el tiempo</p>
+              <p className="text-sm font-medium" style={{ color: "#a8b3c4" }}>Tu historial se construirá con el tiempo</p>
               <p className="text-xs mt-1.5 max-w-xs" style={{ color: "#94A3B8" }}>
                 A medida que avances tus proyectos ESG, tu puntaje mensual se registrará aquí.
               </p>
@@ -447,7 +447,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-7">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Crecimiento de la plataforma</h3>
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Crecimiento de la plataforma</h3>
             <span className="badge badge-green">{growth.length >= 2 ? `${growth.length} meses` : "En construcción"}</span>
           </div>
           {growth.length >= 2 ? (
@@ -459,16 +459,16 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                 <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
                 <Area type="monotone" dataKey="clubs" name="Clubes nuevos" stroke="#3B82F6" strokeWidth={2} fill="url(#colorClubs)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center text-center" style={{ height: 260 }}>
-              <p className="text-sm font-medium" style={{ color: "#64748B" }}>Historial en construcción</p>
+              <p className="text-sm font-medium" style={{ color: "#a8b3c4" }}>Historial en construcción</p>
               <p className="text-xs mt-1.5 max-w-xs" style={{ color: "#94A3B8" }}>
                 El crecimiento mensual de clubes se mostrará cuando existan al menos dos meses de registros.
               </p>
@@ -478,7 +478,7 @@ export default function DashboardPage() {
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Top clubes por ESG</h3>
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Top clubes por ESG</h3>
             <span className="badge badge-cyan">{clubs.length} clubes</span>
           </div>
           <div className="space-y-4">
@@ -488,7 +488,7 @@ export default function DashboardPage() {
                   {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}`}
                 </span>
                 <span className="text-sm">{club.flag}</span>
-                <p className="text-sm font-medium flex-1 truncate" style={{ color: "#475569" }}>{club.name}</p>
+                <p className="text-sm font-medium flex-1 truncate" style={{ color: "#a8b3c4" }}>{club.name}</p>
                 <div className="w-24">
                   <ProgressBar value={club.esgScore} showPercent={false} height={4} />
                 </div>
@@ -506,14 +506,14 @@ export default function DashboardPage() {
         {!isDemo && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-10 text-center">
             <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#ECFEFF" }}>
-              <Briefcase size={24} style={{ color: "#0891B2" }} />
+              <Briefcase size={24} style={{ color: "#22d3ee" }} />
             </div>
-            <h3 className="font-bold text-lg" style={{ color: "#0F172A" }}>Aún no tienes patrocinios activos</h3>
-            <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#64748B" }}>
+            <h3 className="font-bold text-lg" style={{ color: "#f4f7fb" }}>Aún no tienes patrocinios activos</h3>
+            <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#a8b3c4" }}>
               Explora los clubes y eventos recomendados para iniciar tu primera colaboración sostenible.
             </p>
             <Link href="/marketplace" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl text-sm font-semibold"
-              style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}>
+              style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#04121a" }}>
               <ShoppingBag size={15} /> Explorar marketplace
             </Link>
           </motion.div>
@@ -522,15 +522,15 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-7">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Inversión por categoría</h3>
+              <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Inversión por categoría</h3>
               <span className="badge badge-green">YTD</span>
             </div>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={investmentData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                 <XAxis dataKey="category" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
+                <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "10px 14px", fontSize: "13px" }} />
                 <Bar dataKey="invested" name="Inversión ($)" fill="#06B6D4" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -539,7 +539,7 @@ export default function DashboardPage() {
           {/* Sports distribution pie chart */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Distribución por deporte</h3>
+              <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Distribución por deporte</h3>
               <span className="badge badge-cyan">Inversión actual</span>
             </div>
             <div className="flex items-center gap-6">
@@ -550,7 +550,7 @@ export default function DashboardPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: "#fff", border: "1px solid #E2E8F0", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", fontSize: "13px" }} formatter={(v) => [`${v}%`, ""]} />
+                  <Tooltip contentStyle={{ backgroundColor: "#10151f", border: "1px solid #232c3a", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", fontSize: "13px" }} formatter={(v) => [`${v}%`, ""]} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex-1 space-y-4">
@@ -559,7 +559,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between text-sm mb-1.5">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                        <span className="font-medium" style={{ color: "#475569" }}>{d.name}</span>
+                        <span className="font-medium" style={{ color: "#a8b3c4" }}>{d.name}</span>
                       </div>
                       <span className="font-bold" style={{ color: d.color }}>{d.value}%</span>
                     </div>
@@ -576,18 +576,18 @@ export default function DashboardPage() {
           {/* Clubes recomendados */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card p-8">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Clubes recomendados para patrocinio</h3>
+              <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Clubes recomendados para patrocinio</h3>
               <span className="badge badge-cyan">Por ESG score</span>
             </div>
             <div className="space-y-3">
               {clubs.slice(0, 5).map((club) => (
                 <Link key={club.id} href="/brands/projects"
                   className="flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-slate-50 hover:shadow-sm cursor-pointer group"
-                  style={{ border: "1px solid #f1f5f9" }}
+                  style={{ border: "1px solid #161d29" }}
                 >
                   <span className="text-lg">{club.flag}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#0f172a" }}>{club.name}</p>
+                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#f4f7fb" }}>{club.name}</p>
                     <p className="text-xs" style={{ color: "#94a3b8" }}>{club.country} · {club.sport}</p>
                   </div>
                   <div className="text-right">
@@ -603,7 +603,7 @@ export default function DashboardPage() {
           {/* Eventos recomendados para patrocinio */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card p-8">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Eventos recomendados para patrocinio</h3>
+              <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Eventos recomendados para patrocinio</h3>
               <span className="badge badge-green">Por presupuesto</span>
             </div>
             {recommendedEvents.length === 0 && (
@@ -615,11 +615,11 @@ export default function DashboardPage() {
               {recommendedEvents.map((event) => (
                 <Link key={event.id} href="/marketplace"
                   className="flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-slate-50 hover:shadow-sm cursor-pointer group"
-                  style={{ border: "1px solid #f1f5f9" }}
+                  style={{ border: "1px solid #161d29" }}
                 >
                   <span className="text-lg">{event.flag}</span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#0f172a" }}>{event.title}</p>
+                    <p className="text-sm font-semibold truncate group-hover:text-teal-600 transition-colors" style={{ color: "#f4f7fb" }}>{event.title}</p>
                     <p className="text-xs" style={{ color: "#94a3b8" }}>{event.country} · {event.sport}</p>
                   </div>
                   <div className="text-right">
@@ -641,12 +641,12 @@ export default function DashboardPage() {
           <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "#EFF6FF" }}>
             <ClipboardCheck size={24} style={{ color: "#3B82F6" }} />
           </div>
-          <h3 className="font-bold text-lg" style={{ color: "#0F172A" }}>Sin registros de auditoría aún</h3>
-          <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#64748B" }}>
+          <h3 className="font-bold text-lg" style={{ color: "#f4f7fb" }}>Sin registros de auditoría aún</h3>
+          <p className="text-sm mt-2 max-w-md mx-auto" style={{ color: "#a8b3c4" }}>
             Cuando los clubes registren proyectos, KPIs y documentación verificable, aquí verás su cumplimiento y las alertas de auditoría.
           </p>
           <Link href="/ranking" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl text-sm font-semibold text-slate-600"
-            style={{ backgroundColor: "#F1F5F9" }}>
+            style={{ backgroundColor: "#161d29" }}>
             <Trophy size={15} /> Ver ranking de clubes
           </Link>
         </motion.div>
@@ -657,7 +657,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-7">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="card p-8 lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-base" style={{ color: "#0F172A" }}>Cumplimiento por club (últimas auditorías)</h3>
+            <h3 className="font-bold text-base" style={{ color: "#f4f7fb" }}>Cumplimiento por club (últimas auditorías)</h3>
             <span className="badge badge-green">Q3 2024</span>
           </div>
           <div className="space-y-4">
@@ -666,7 +666,7 @@ export default function DashboardPage() {
               return (
                 <div key={club.id} className="flex items-center gap-3">
                   <span className="text-sm">{club.flag}</span>
-                  <p className="text-sm font-medium w-40 truncate" style={{ color: "#475569" }}>{club.name}</p>
+                  <p className="text-sm font-medium w-40 truncate" style={{ color: "#a8b3c4" }}>{club.name}</p>
                   <div className="flex-1">
                     <ProgressBar value={compliance} color={compliance > 90 ? "#10B981" : compliance > 80 ? "#F59E0B" : "#EF4444"} showPercent={false} height={6} />
                   </div>
@@ -681,20 +681,20 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="card p-8">
-          <h3 className="font-bold text-base mb-5" style={{ color: "#0F172A" }}>Resumen de auditoría</h3>
+          <h3 className="font-bold text-base mb-5" style={{ color: "#f4f7fb" }}>Resumen de auditoría</h3>
           {[
             { label: "Documentos verificados", value: "156", icon: <FileCheck size={16} />, color: "#10B981" },
             { label: "KPIs auditados", value: "89", icon: <BarChart3 size={16} />, color: "#3B82F6" },
             { label: "No conformidades", value: "12", icon: <AlertTriangle size={16} />, color: "#F59E0B" },
             { label: "Acciones correctivas", value: "8", icon: <CheckCircle size={16} />, color: "#8B5CF6" },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
+            <div key={item.label} className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid #161d29" }}>
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: item.color + "10" }}>
                 <span style={{ color: item.color }}>{item.icon}</span>
               </div>
               <div className="flex-1">
                 <p className="text-xs" style={{ color: "#94a3b8" }}>{item.label}</p>
-                <p className="text-sm font-bold" style={{ color: "#0f172a" }}>{item.value}</p>
+                <p className="text-sm font-bold" style={{ color: "#f4f7fb" }}>{item.value}</p>
               </div>
             </div>
           ))}
@@ -708,9 +708,9 @@ export default function DashboardPage() {
         {/* Active projects */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card p-8 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-base flex items-center gap-3" style={{ color: "#0F172A" }}>
+            <h3 className="font-bold text-base flex items-center gap-3" style={{ color: "#f4f7fb" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#ECFDF5" }}>
-                <Target size={16} style={{ color: "#059669" }} />
+                <Target size={16} style={{ color: "#34d399" }} />
               </div>
               {role === "admin" ? "Proyectos ESG recientes (plataforma)" : "Proyectos ESG activos"}
             </h3>
@@ -721,28 +721,28 @@ export default function DashboardPage() {
           {projects.length === 0 && (
             <div className="text-center py-10">
               <p className="text-sm" style={{ color: "#94A3B8" }}>Aún no tienes proyectos ESG.</p>
-              <Link href="/esg/projects" className="inline-block mt-3 text-sm font-semibold hover:underline" style={{ color: "#059669" }}>
+              <Link href="/esg/projects" className="inline-block mt-3 text-sm font-semibold hover:underline" style={{ color: "#34d399" }}>
                 Crear mi primer proyecto →
               </Link>
             </div>
           )}
           <div className="space-y-5">
             {projects.map((project) => (
-              <div key={project.id} className="p-5 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+              <div key={project.id} className="p-5 rounded-xl" style={{ backgroundColor: "#10151f", border: "1px solid #161d29" }}>
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">{categoryIcons[project.category]}</span>
                     <div>
-                      <p className="text-sm font-bold" style={{ color: "#0f172a" }}>{project.title}</p>
+                      <p className="text-sm font-bold" style={{ color: "#f4f7fb" }}>{project.title}</p>
                       <p className="text-xs mt-1" style={{ color: "#94a3b8" }}>Resp: {project.responsible}</p>
                     </div>
                   </div>
                   <span className={getStatusColor(project.status)}>{getStatusLabel(project.status)}</span>
                 </div>
                 <ProgressBar value={project.progress} showPercent={true} label={categoryLabels[project.category]} />
-                <div className="flex items-center gap-5 mt-3 pt-3" style={{ borderTop: "1px solid #F1F5F9" }}>
-                  <span className="text-xs" style={{ color: "#94a3b8" }}>Presupuesto: <span className="font-semibold" style={{ color: "#0f172a" }}>${project.budget.toLocaleString()}</span></span>
-                  <span className="text-xs" style={{ color: "#94a3b8" }}>Gastado: <span className="font-semibold" style={{ color: "#059669" }}>${project.spent.toLocaleString()}</span></span>
+                <div className="flex items-center gap-5 mt-3 pt-3" style={{ borderTop: "1px solid #161d29" }}>
+                  <span className="text-xs" style={{ color: "#94a3b8" }}>Presupuesto: <span className="font-semibold" style={{ color: "#f4f7fb" }}>${project.budget.toLocaleString()}</span></span>
+                  <span className="text-xs" style={{ color: "#94a3b8" }}>Gastado: <span className="font-semibold" style={{ color: "#34d399" }}>${project.spent.toLocaleString()}</span></span>
                   <span className="text-xs ml-auto" style={{ color: "#94A3B8" }}>Hasta: {new Date(project.endDate).toLocaleDateString("es-CL")}</span>
                 </div>
               </div>
@@ -754,9 +754,9 @@ export default function DashboardPage() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="space-y-6">
           {/* Alerts */}
           <div className="card p-8">
-            <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#0F172A" }}>
+            <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#f4f7fb" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#FFF7ED" }}>
-                <AlertTriangle size={16} style={{ color: "#d97706" }} />
+                <AlertTriangle size={16} style={{ color: "#fbbf24" }} />
               </div>
               Alertas y avisos
             </h3>
@@ -772,7 +772,7 @@ export default function DashboardPage() {
                     {alert.type === "info" && <Zap size={16} className="text-blue-400" />}
                   </div>
                   <div>
-                    <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>{alert.msg}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#a8b3c4" }}>{alert.msg}</p>
                     <p className="text-xs mt-1.5" style={{ color: "#94A3B8" }}>{alert.time}</p>
                   </div>
                 </div>
@@ -782,7 +782,7 @@ export default function DashboardPage() {
 
           {/* Ranking */}
           <div className="card p-8">
-            <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#0F172A" }}>
+            <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#f4f7fb" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#FFF7ED" }}>
                 <Trophy size={16} style={{ color: "#D97706" }} />
               </div>
@@ -801,17 +801,17 @@ export default function DashboardPage() {
                   <span className="text-sm flex-shrink-0">{club.flag}</span>
                   <p
                     className={cn("text-[13px] flex-1 truncate", club.id === myClub.id ? "font-bold" : "font-medium")}
-                    style={{ color: club.id === myClub.id ? "#059669" : "#475569" }}>
+                    style={{ color: club.id === myClub.id ? "#34d399" : "#475569" }}>
                     {club.name}
                   </p>
                   <span className={cn("text-[13px] font-bold flex-shrink-0 tabular-nums min-w-[36px] text-right")}
-                    style={{ color: club.id === myClub.id ? "#059669" : "#94A3B8" }}>
+                    style={{ color: club.id === myClub.id ? "#34d399" : "#94A3B8" }}>
                     {club.esgScore}
                   </span>
                 </div>
               ))}
             </div>
-            <Link href="/ranking" className="flex items-center justify-center gap-2 w-full mt-6 pt-5 text-sm font-semibold transition-colors hover:underline" style={{ color: "#3B82F6", borderTop: "1px solid #F1F5F9" }}>
+            <Link href="/ranking" className="flex items-center justify-center gap-2 w-full mt-6 pt-5 text-sm font-semibold transition-colors hover:underline" style={{ color: "#3B82F6", borderTop: "1px solid #161d29" }}>
               Ver ranking completo <ArrowUpRight size={13} />
             </Link>
           </div>
@@ -822,9 +822,9 @@ export default function DashboardPage() {
       {/* ── Auditor alerts (demo sample) ── */}
       {role === "auditor" && isDemo && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="card p-8">
-          <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#0F172A" }}>
+          <h3 className="font-bold text-base flex items-center gap-3 mb-6" style={{ color: "#f4f7fb" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#FFF7ED" }}>
-              <AlertTriangle size={16} style={{ color: "#d97706" }} />
+              <AlertTriangle size={16} style={{ color: "#fbbf24" }} />
             </div>
             Alertas de auditoría
           </h3>
@@ -837,7 +837,7 @@ export default function DashboardPage() {
                   {alert.type === "info" && <Zap size={16} className="text-blue-400" />}
                 </div>
                 <div>
-                  <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>{alert.msg}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "#a8b3c4" }}>{alert.msg}</p>
                   <p className="text-xs mt-1.5" style={{ color: "#94A3B8" }}>{alert.time}</p>
                 </div>
               </div>
@@ -850,9 +850,9 @@ export default function DashboardPage() {
       {role === "brand" && isDemo && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="card p-8">
           <div className="flex items-center justify-between mb-7">
-            <h3 className="font-bold text-base flex items-center gap-3" style={{ color: "#0F172A" }}>
+            <h3 className="font-bold text-base flex items-center gap-3" style={{ color: "#f4f7fb" }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#F0FDF4" }}>
-                <Briefcase size={16} style={{ color: "#059669" }} />
+                <Briefcase size={16} style={{ color: "#34d399" }} />
               </div>
               Colaboraciones activas
             </h3>
@@ -862,15 +862,15 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {clubs.slice(0, 4).map((club, idx) => (
-              <div key={club.id} className="flex items-center gap-4 p-5 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+              <div key={club.id} className="flex items-center gap-4 p-5 rounded-xl" style={{ backgroundColor: "#10151f", border: "1px solid #161d29" }}>
                 <span className="text-2xl">{club.flag}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate" style={{ color: "#0f172a" }}>{club.name}</p>
+                  <p className="text-sm font-bold truncate" style={{ color: "#f4f7fb" }}>{club.name}</p>
                   <p className="text-xs mt-1" style={{ color: "#94a3b8" }}>Patrocinio ESG activo</p>
                   <ProgressBar value={brandCollabProgress[idx]} showPercent={true} height={4} />
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold" style={{ color: "#059669" }}>${brandCollabInvested[idx]}K</p>
+                  <p className="text-sm font-bold" style={{ color: "#34d399" }}>${brandCollabInvested[idx]}K</p>
                   <p className="text-xs" style={{ color: "#94a3b8" }}>invertido</p>
                 </div>
               </div>
@@ -883,9 +883,9 @@ export default function DashboardPage() {
       {(role === "club" || role === "manager" || role === "admin") && (
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} className="card p-8">
         <div className="flex items-center justify-between mb-7">
-          <h3 className="font-bold text-base flex items-center gap-3" style={{ color: "#0F172A" }}>
+          <h3 className="font-bold text-base flex items-center gap-3" style={{ color: "#f4f7fb" }}>
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#ECFEFF" }}>
-              <ShoppingBag size={16} style={{ color: "#0891B2" }} />
+              <ShoppingBag size={16} style={{ color: "#22d3ee" }} />
             </div>
             Mis eventos en marketplace
           </h3>
@@ -896,25 +896,25 @@ export default function DashboardPage() {
         {openEvents.length === 0 && (
           <div className="text-center py-8">
             <p className="text-sm" style={{ color: "#94A3B8" }}>Aún no has publicado eventos en el marketplace.</p>
-            <Link href="/marketplace/my-events" className="inline-block mt-3 text-sm font-semibold hover:underline" style={{ color: "#0891B2" }}>
+            <Link href="/marketplace/my-events" className="inline-block mt-3 text-sm font-semibold hover:underline" style={{ color: "#22d3ee" }}>
               Publicar mi primer evento →
             </Link>
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {openEvents.map((event) => (
-            <div key={event.id} className="flex items-center gap-5 p-5 rounded-xl transition-all hover:shadow-md" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+            <div key={event.id} className="flex items-center gap-5 p-5 rounded-xl transition-all hover:shadow-md" style={{ backgroundColor: "#10151f", border: "1px solid #161d29" }}>
               <div
                 className="w-20 h-20 rounded-2xl flex-shrink-0 bg-cover bg-center"
                 style={{ backgroundImage: `url(${event.image})` }}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold truncate" style={{ color: "#0f172a" }}>{event.title}</p>
+                <p className="text-sm font-bold truncate" style={{ color: "#f4f7fb" }}>{event.title}</p>
                 <span className={cn("text-xs", categoryColors[event.category])}>{categoryIcons[event.category]} {categoryLabels[event.category]}</span>
                 <div className="mt-3">
                   <ProgressBar value={event.funded} max={event.budget} showPercent={false} height={4} />
                   <div className="flex justify-between text-xs mt-1.5">
-                    <span className="font-semibold" style={{ color: "#059669" }}>${event.funded.toLocaleString()} financiado</span>
+                    <span className="font-semibold" style={{ color: "#34d399" }}>${event.funded.toLocaleString()} financiado</span>
                     <span className="font-semibold" style={{ color: "#dc2626" }}>${event.remaining.toLocaleString()} restante</span>
                   </div>
                 </div>

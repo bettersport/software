@@ -75,7 +75,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#f8fafc" }}>
+    <div className="min-h-screen flex" style={{ backgroundColor: "#10151f" }}>
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
         {/* Background gradient */}
@@ -197,7 +197,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 className="w-full h-14 rounded-2xl font-semibold text-slate-800 flex items-center justify-center gap-2 text-base transition-all duration-200 disabled:opacity-70"
-                style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}
+                style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}
               >
                 {loading ? (
                   <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -226,7 +226,7 @@ export default function LoginPage() {
             <button
               onClick={() => setShowDemo(!showDemo)}
               className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl text-sm font-medium transition-all"
-              style={{ backgroundColor: "#f1f5f9", border: "1px solid #e2e8f0", color: "#475569" }}
+              style={{ backgroundColor: "#161d29", border: "1px solid #232c3a", color: "#a8b3c4" }}
             >
               <span className="flex items-center gap-2">
                 <ShieldCheck size={16} className="text-teal-600" />
@@ -259,8 +259,8 @@ export default function LoginPage() {
                           disabled={isSelected}
                           className="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all hover:scale-[1.01] disabled:opacity-70"
                           style={{
-                            backgroundColor: isSelected ? rc.bg : "#f8fafc",
-                            border: `1px solid ${isSelected ? rc.color + "50" : "#e2e8f0"}`,
+                            backgroundColor: isSelected ? rc.bg : "#10151f",
+                            border: `1px solid ${isSelected ? rc.color + "50" : "#232c3a"}`,
                           }}
                         >
                           <div

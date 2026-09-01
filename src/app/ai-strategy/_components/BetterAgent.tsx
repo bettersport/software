@@ -45,8 +45,8 @@ export function BetterAgent({ step, orgType, sport }: { step: number; orgType?: 
   return (
     <>
       <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-slate-900 shadow-lg"
-        style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 8px 30px rgba(16,185,129,0.4)" }}>
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full font-semibold text-[#04121a] shadow-lg"
+        style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 8px 30px rgba(16,185,129,0.4)" }}>
         <Bot size={18} /> Better Agent
       </motion.button>
       <AnimatePresence>
@@ -55,7 +55,7 @@ export function BetterAgent({ step, orgType, sport }: { step: number; orgType?: 
             className="fixed bottom-24 right-6 z-40 w-[360px] max-w-[calc(100vw-2rem)] card overflow-hidden flex flex-col" style={{ height: 480 }}>
             <div className="p-4 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #0B1628, #0D1F3C)" }}>
               <div className="flex items-center gap-2 text-white">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}><Sparkles size={15} className="text-slate-900" /></div>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}><Sparkles size={15} className="text-[#04121a]" /></div>
                 <div><p className="text-sm font-bold leading-none">Better Agent</p><p className="text-[11px] mt-1" style={{ color: "#8FA3C2" }}>Guía del proceso · paso {step === 7 ? "final" : step}</p></div>
               </div>
               <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white"><X size={16} /></button>
@@ -64,7 +64,7 @@ export function BetterAgent({ step, orgType, sport }: { step: number; orgType?: 
               {msgs.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed"
-                    style={m.role === "user" ? { background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" } : { backgroundColor: "#F1F5F9", color: "#334155" }}>
+                    style={m.role === "user" ? { background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#0f172a" } : { backgroundColor: "#161d29", color: "#c0c9d6" }}>
                     {m.text}
                   </div>
                 </div>
@@ -77,7 +77,7 @@ export function BetterAgent({ step, orgType, sport }: { step: number; orgType?: 
                 <button key={s} onClick={() => ask(s)} className="text-[11px] px-2.5 py-1 rounded-full text-teal-700 hover:bg-teal-100" style={{ backgroundColor: "#ECFDF5", border: "1px solid #A7F3D0" }}>{s}</button>
               ))}
             </div>
-            <form onSubmit={(e) => { e.preventDefault(); ask(q); }} className="p-3 flex gap-2" style={{ borderTop: "1px solid #F1F5F9" }}>
+            <form onSubmit={(e) => { e.preventDefault(); ask(q); }} className="p-3 flex gap-2" style={{ borderTop: "1px solid #161d29" }}>
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Escribe tu duda…" className="input-field h-10 text-sm flex-1" />
               <button type="submit" disabled={busy || !q.trim()} className="btn-primary h-10 w-10 p-0 justify-center disabled:opacity-50"><Send size={15} /></button>
             </form>

@@ -857,7 +857,7 @@ export default function DataIntelligencePage() {
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={growthData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                     <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                     <Tooltip />
@@ -1269,7 +1269,7 @@ export default function DataIntelligencePage() {
 
             {/* VS */}
             <div className="flex flex-col items-center justify-center gap-2 py-4">
-              <div className="w-10 h-10 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm">VS</div>
+              <div className="w-10 h-10 rounded-full bg-surface-3 text-white flex items-center justify-center font-bold text-sm">VS</div>
               <div className="text-center">
                 <p className="font-mono text-[9px] text-slate-400">Score diff</p>
                 <p className="font-mono text-xs font-bold text-emerald-600">+2.4 pts</p>
@@ -1330,7 +1330,7 @@ export default function DataIntelligencePage() {
               <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Engagement por iniciativa — Comparativa</p>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={compareEngagementData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                   <XAxis dataKey="initiative" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
@@ -1344,7 +1344,7 @@ export default function DataIntelligencePage() {
               <p className="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Relación Inversión → ROI Reputacional</p>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={roiData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip />
@@ -1506,7 +1506,7 @@ export default function DataIntelligencePage() {
                   </p>
                   <p className="font-semibold text-slate-800 mb-2">{c.title}</p>
                   <p className="text-sm text-slate-500 leading-relaxed mb-3">{c.desc}</p>
-                  <div className="bg-slate-800 rounded-lg px-3 py-2">
+                  <div className="bg-surface-3 rounded-lg px-3 py-2">
                     <code className="font-mono text-xs text-teal-300">{c.query}</code>
                   </div>
                 </div>
@@ -1600,7 +1600,7 @@ export default function DataIntelligencePage() {
                   </div>
                   <div>
                     <p className="font-mono text-xs text-slate-400 uppercase tracking-widest mb-2">Respuesta ejemplo</p>
-                    <pre className="font-mono text-xs text-teal-600 bg-slate-800 p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre-wrap">
+                    <pre className="font-mono text-xs text-teal-600 bg-surface-3 p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre-wrap">
                       {ep.response}
                     </pre>
                   </div>

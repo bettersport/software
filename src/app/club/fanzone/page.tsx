@@ -93,7 +93,7 @@ const TOOLTIP_STYLE = {
   border: "1px solid rgba(255,255,255,0.1)",
   borderRadius: "8px",
   fontSize: "11px",
-  color: "#F1F5F9",
+  color: "#161d29",
 };
 
 // ── page ──────────────────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ export default function ClubFanZonePage() {
             Cuando tus hinchas se registren y comiencen a completar acciones ESG, aquí verás sus estadísticas de participación, ranking y campañas.
           </p>
           <Link href="/club/fanzone/config" className="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}>
+            style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#0f172a" }}>
             Configurar mi Fan Zone
           </Link>
         </div>
@@ -158,7 +158,7 @@ export default function ClubFanZonePage() {
           <button key={v} onClick={() => setView(v)}
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
             style={view === v
-              ? { backgroundColor: "#fff", color: "#0F172A", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+              ? { backgroundColor: "#161d29", color: "#f4f7fb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
               : { color: "#94A3B8" }}>
             {v}
           </button>
@@ -214,7 +214,7 @@ export default function ClubFanZonePage() {
                       <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                   <XAxis dataKey="mes" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
@@ -232,7 +232,7 @@ export default function ClubFanZonePage() {
               </div>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={actionsData} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                   <XAxis dataKey="tipo" tick={{ fontSize: 9, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={TOOLTIP_STYLE} />
@@ -283,7 +283,7 @@ export default function ClubFanZonePage() {
                       className="flex items-center gap-4 p-4 rounded-2xl"
                       style={i === 0
                         ? { background: `linear-gradient(135deg, ${t.color}15, ${t.color}05)`, border: `1px solid ${t.color}30` }
-                        : { backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }
+                        : { backgroundColor: "#10151f", border: "1px solid #232c3a" }
                       }
                     >
                       <span className="text-2xl">{podiumEmoji}</span>
@@ -441,7 +441,7 @@ export default function ClubFanZonePage() {
             <p className="text-sm text-slate-800 font-semibold mb-4">Fans activados vs completitud</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={campaignData} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#161d29" />
                 <XAxis dataKey="nombre" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="left"  tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} domain={[0,100]} />

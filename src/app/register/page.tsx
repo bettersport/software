@@ -104,7 +104,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: "#F8FAFC" }}>
+    <div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: "#10151f" }}>
       {/* Decorative bg */}
       <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-8" style={{ background: "radial-gradient(circle, #10B981, transparent)", filter: "blur(80px)" }} />
       <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full opacity-8" style={{ background: "radial-gradient(circle, #06B6D4, transparent)", filter: "blur(80px)" }} />
@@ -126,9 +126,9 @@ export default function RegisterPage() {
               <div className="flex items-center gap-1.5">
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={i < step ? { background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }
+                  style={i < step ? { background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#0f172a" }
                     : i === step ? { background: "linear-gradient(135deg, #8B5CF6, #06B6D4)", color: "#0f172a" }
-                    : { backgroundColor: "#f1f5f9", color: "#94a3b8" }
+                    : { backgroundColor: "#161d29", color: "#94a3b8" }
                   }
                 >
                   {i < step ? <CheckCircle size={14} /> : i + 1}
@@ -159,14 +159,14 @@ export default function RegisterPage() {
                       className="w-full text-left p-4 rounded-2xl transition-all duration-200 flex items-center gap-4"
                       style={active
                         ? { background: role.bg, border: `1.5px solid ${role.border}` }
-                        : { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0" }
+                        : { backgroundColor: "#10151f", border: "1.5px solid #232c3a" }
                       }
                     >
                       <div
                         className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200"
                         style={active
                           ? { background: `linear-gradient(135deg, ${role.color}, ${role.color}99)`, color: "#fff", boxShadow: `0 0 16px ${role.color}55` }
-                          : { background: "#f1f5f9", color: "#94a3b8" }
+                          : { background: "#161d29", color: "#94a3b8" }
                         }
                       >
                         <Icon size={20} />
@@ -177,7 +177,7 @@ export default function RegisterPage() {
                       </div>
                       <div
                         className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200"
-                        style={active ? { borderColor: role.color, background: role.color } : { borderColor: "#cbd5e1", background: "transparent" }}
+                        style={active ? { borderColor: role.color, background: role.color } : { borderColor: "#2a3442", background: "transparent" }}
                       >
                         {active && <CheckCircle size={12} className="text-white" />}
                       </div>
@@ -242,7 +242,7 @@ export default function RegisterPage() {
                   <label className="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">País</label>
                   <select className="input-field" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })}>
                     {["Chile", "Argentina", "España", "Colombia", "México", "Perú", "Uruguay"].map((c) => (
-                      <option key={c} value={c} style={{ backgroundColor: "#fff" }}>{c}</option>
+                      <option key={c} value={c} style={{ backgroundColor: "#10151f" }}>{c}</option>
                     ))}
                   </select>
                 </div>
@@ -302,7 +302,7 @@ export default function RegisterPage() {
               <button
                 onClick={() => setStep(step + 1)}
                 className="flex-1 h-11 rounded-xl font-semibold text-slate-800 flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}
+                style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}
               >
                 Continuar <ArrowRight size={16} />
               </button>
@@ -311,7 +311,7 @@ export default function RegisterPage() {
                 onClick={handleSubmit}
                 disabled={loading}
                 className="flex-1 h-11 rounded-xl font-semibold text-slate-800 flex items-center justify-center gap-2 disabled:opacity-70"
-                style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}
+                style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}
               >
                 {loading ? <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : <>Crear cuenta <ArrowRight size={16} /></>}
               </button>

@@ -17,12 +17,12 @@ interface StatCardProps {
 }
 
 const colorMap = {
-  green:  { bg: "#ecfdf5", border: "#a7f3d0", text: "#059669" },
-  cyan:   { bg: "#ecfeff", border: "#a5f3fc", text: "#0891b2" },
-  orange: { bg: "#fffbeb", border: "#fde68a", text: "#d97706" },
-  purple: { bg: "#f5f3ff", border: "#ddd6fe", text: "#7c3aed" },
-  blue:   { bg: "#eff6ff", border: "#bfdbfe", text: "#2563eb" },
-  red:    { bg: "#fef2f2", border: "#fecaca", text: "#dc2626" },
+  green:  { bg: "rgba(52,211,153,0.10)", border: "rgba(52,211,153,0.28)", text: "#34d399" },
+  cyan:   { bg: "rgba(34,211,238,0.10)", border: "rgba(34,211,238,0.28)", text: "#22d3ee" },
+  orange: { bg: "rgba(251,191,36,0.10)", border: "rgba(251,191,36,0.28)", text: "#fbbf24" },
+  purple: { bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)", text: "#a78bfa" },
+  blue:   { bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)", text: "#60a5fa" },
+  red:    { bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.28)", text: "#f87171" },
 };
 
 export function StatCard({ title, value, subtitle, icon, trend, color = "green", className, delay = 0 }: StatCardProps) {
@@ -38,7 +38,7 @@ export function StatCard({ title, value, subtitle, icon, trend, color = "green",
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#94A3B8" }}>{title}</p>
-          <p className="text-[26px] md:text-[32px] font-extrabold leading-none" style={{ color: "#0F172A", letterSpacing: "-0.03em" }}>
+          <p className="text-[26px] md:text-[32px] font-extrabold leading-none" style={{ color: "#f4f7fb", letterSpacing: "-0.03em" }}>
             {value}
           </p>
           {subtitle && <p className="text-[13px] mt-1" style={{ color: "#94A3B8" }}>{subtitle}</p>}
@@ -54,19 +54,19 @@ export function StatCard({ title, value, subtitle, icon, trend, color = "green",
       </div>
 
       {trend && (
-        <div className="flex items-center gap-2.5 pt-4" style={{ borderTop: "1px solid #F1F5F9" }}>
+        <div className="flex items-center gap-2.5 pt-4" style={{ borderTop: "1px solid #161d29" }}>
           {trend.value > 0 ? (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ backgroundColor: "#ECFDF5" }}>
-              <TrendingUp size={12} style={{ color: "#059669" }} />
-              <span className="text-xs font-bold" style={{ color: "#059669" }}>+{trend.value}%</span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(52,211,153,0.12)" }}>
+              <TrendingUp size={12} style={{ color: "#34d399" }} />
+              <span className="text-xs font-bold" style={{ color: "#34d399" }}>+{trend.value}%</span>
             </div>
           ) : trend.value < 0 ? (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ backgroundColor: "#FEF2F2" }}>
-              <TrendingDown size={12} style={{ color: "#DC2626" }} />
-              <span className="text-xs font-bold" style={{ color: "#DC2626" }}>{trend.value}%</span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(248,113,113,0.12)" }}>
+              <TrendingDown size={12} style={{ color: "#f87171" }} />
+              <span className="text-xs font-bold" style={{ color: "#f87171" }}>{trend.value}%</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ backgroundColor: "#F1F5F9" }}>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ backgroundColor: "#161d29" }}>
               <Minus size={12} style={{ color: "#94A3B8" }} />
               <span className="text-xs font-bold" style={{ color: "#94A3B8" }}>{trend.value}%</span>
             </div>
@@ -95,17 +95,17 @@ export function ProgressBar({ value, max = 100, label, showPercent = true, heigh
     <div className="w-full">
       {(label || showPercent) && (
         <div className="flex justify-between items-center mb-2">
-          {label && <span className="text-xs font-medium" style={{ color: "#64748b" }}>{label}</span>}
-          {showPercent && <span className="text-xs font-bold" style={{ color: "#0f172a" }}>{percent.toFixed(0)}%</span>}
+          {label && <span className="text-xs font-medium" style={{ color: "#a8b3c4" }}>{label}</span>}
+          {showPercent && <span className="text-xs font-bold" style={{ color: "#f4f7fb" }}>{percent.toFixed(0)}%</span>}
         </div>
       )}
-      <div className="rounded-full overflow-hidden" style={{ height, backgroundColor: "#F1F5F9" }}>
+      <div className="rounded-full overflow-hidden" style={{ height, backgroundColor: "#161d29" }}>
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percent}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="h-full rounded-full"
-          style={{ background: color || "linear-gradient(90deg, #10B981, #06B6D4)" }}
+          style={{ background: color || "linear-gradient(90deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}
         />
       </div>
     </div>
@@ -139,7 +139,7 @@ export function SectionHeader({ icon, title, subtitle, action }: SectionHeaderPr
           {icon && <span>{icon}</span>}
           {title}
         </h1>
-        {subtitle && <p className="text-sm mt-1.5 ml-9" style={{ color: "#64748b" }}>{subtitle}</p>}
+        {subtitle && <p className="text-sm mt-1.5 ml-9" style={{ color: "#a8b3c4" }}>{subtitle}</p>}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}
     </div>
@@ -155,7 +155,7 @@ interface TabsProps {
 
 export function Tabs({ tabs, active, onChange }: TabsProps) {
   return (
-    <div className="flex items-center gap-1 p-1 rounded-xl flex-wrap" style={{ backgroundColor: "#F1F5F9" }}>
+    <div className="flex items-center gap-1 p-1 rounded-xl flex-wrap" style={{ backgroundColor: "#161d29" }}>
       {tabs.map((tab) => (
         <button
           key={tab.value}
@@ -165,8 +165,8 @@ export function Tabs({ tabs, active, onChange }: TabsProps) {
           )}
           style={
             active === tab.value
-              ? { background: "#ffffff", color: "#0F172A", fontWeight: 600, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }
-              : { background: "transparent", color: "#64748B" }
+              ? { background: "#10151f", color: "#f4f7fb", fontWeight: 600, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }
+              : { background: "transparent", color: "#a8b3c4" }
           }
         >
           {tab.icon && <span>{tab.icon}</span>}
@@ -183,7 +183,7 @@ export function LoadingSpinner({ size = 24 }: { size?: number }) {
     <div className="flex items-center justify-center">
       <div
         className="animate-spin rounded-full border-2"
-        style={{ width: size, height: size, borderColor: "#E2E8F0", borderTopColor: "#10B981" }}
+        style={{ width: size, height: size, borderColor: "#232c3a", borderTopColor: "#22d3ee" }}
       />
     </div>
   );
@@ -199,7 +199,7 @@ export function EmptyState({ icon, title, description, action }: {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       {icon && <div className="text-4xl mb-4 opacity-50">{icon}</div>}
-      <p className="font-semibold text-base" style={{ color: "#0f172a" }}>{title}</p>
+      <p className="font-semibold text-base" style={{ color: "#f4f7fb" }}>{title}</p>
       {description && <p className="text-sm mt-2 max-w-sm" style={{ color: "#94a3b8" }}>{description}</p>}
       {action && <div className="mt-8">{action}</div>}
     </div>

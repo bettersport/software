@@ -36,7 +36,7 @@ export function Welcome({ strategy, onStart, onResume, onView, starting }: {
             <div className="flex flex-wrap items-center gap-3 mt-8">
               {hasDoc ? (
                 <>
-                  <button onClick={onView} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-900" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
+                  <button onClick={onView} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-[#04121a]" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
                     <FileCheck size={18} /> Ver mi estrategia {strategy?.vigenciaInicio}–{strategy?.vigenciaFin}
                   </button>
                   <button onClick={onStart} disabled={starting} className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-white" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}>
@@ -45,7 +45,7 @@ export function Welcome({ strategy, onStart, onResume, onView, starting }: {
                 </>
               ) : hasDraft ? (
                 <>
-                  <button onClick={onResume} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-900" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
+                  <button onClick={onResume} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-[#04121a]" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
                     <PlayCircle size={18} /> Continuar borrador (paso {strategy!.currentStep} de 6)
                   </button>
                   <button onClick={onStart} disabled={starting} className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-white" style={{ backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}>
@@ -53,7 +53,7 @@ export function Welcome({ strategy, onStart, onResume, onView, starting }: {
                   </button>
                 </>
               ) : (
-                <button onClick={onStart} disabled={starting} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-900 disabled:opacity-70" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
+                <button onClick={onStart} disabled={starting} className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-[#04121a] disabled:opacity-70" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 0 24px rgba(16,185,129,0.35)" }}>
                   {starting ? <div className="w-4 h-4 rounded-full border-2 border-slate-900/30 border-t-slate-900 animate-spin" /> : <ArrowRight size={18} />}
                   Comenzar mi estrategia ESG
                 </button>
@@ -69,13 +69,13 @@ export function Welcome({ strategy, onStart, onResume, onView, starting }: {
             <ol className="space-y-3">
               {STEPS.map((s) => (
                 <li key={s.n} className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ backgroundColor: "#ECFDF5", color: "#059669", border: "1px solid #A7F3D0" }}>{s.n}</span>
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style={{ backgroundColor: "#ECFDF5", color: "#34d399", border: "1px solid #A7F3D0" }}>{s.n}</span>
                   <span className="text-sm text-slate-700">{s.t}</span>
                 </li>
               ))}
               <li className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)", color: "#0f172a" }}><Sparkles size={13} /></span>
-                <span className="text-sm font-semibold text-slate-900">Generación de tu Estrategia ESG profesional</span>
+                <span className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", color: "#0f172a" }}><Sparkles size={13} /></span>
+                <span className="text-sm font-semibold text-[#04121a]">Generación de tu Estrategia ESG profesional</span>
               </li>
             </ol>
           </div>
@@ -88,7 +88,7 @@ export function Welcome({ strategy, onStart, onResume, onView, starting }: {
               { i: <Users size={15} />, t: "Plan de inversión, RR.HH. y proyectos que las marcas pueden financiar" },
               { i: <Shield size={15} />, t: "Better Agent: asistente para resolver dudas en cada paso" },
             ].map((x) => (
-              <div key={x.t} className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+              <div key={x.t} className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: "#10151f", border: "1px solid #161d29" }}>
                 <span className="mt-0.5 text-teal-600">{x.i}</span>
                 <span className="text-sm text-slate-600">{x.t}</span>
               </div>

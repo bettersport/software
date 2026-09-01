@@ -300,7 +300,7 @@ function RewardForm({ initial, onSave, onClose }: RewardFormProps) {
                   <input type="checkbox" className="sr-only" checked={form.available}
                     onChange={(e) => set("available", e.target.checked)} />
                   <div className="w-10 h-5 rounded-full transition-colors"
-                    style={{ backgroundColor: form.available ? "#10B981" : "#CBD5E1" }}>
+                    style={{ backgroundColor: form.available ? "#10B981" : "#2a3442" }}>
                     <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                       style={{ transform: form.available ? "translateX(20px)" : "translateX(0)" }} />
                   </div>
@@ -439,7 +439,7 @@ export default function FanZoneConfigPage() {
           <button
             onClick={handleSaveAll}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-            style={{ background: saved ? "#059669" : "linear-gradient(135deg,#10B981,#059669)" }}
+            style={{ background: saved ? "#34d399" : "linear-gradient(135deg,#10B981,#059669)" }}
           >
             {saved ? <><CheckCircle2 size={14} /> Guardado</> : <><Save size={14} /> Publicar cambios</>}
           </button>
@@ -505,7 +505,7 @@ export default function FanZoneConfigPage() {
             <button key={id} onClick={() => setTab(id)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
               style={tab === id
-                ? { backgroundColor: "#fff", color: "#0F172A", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
+                ? { backgroundColor: "#161d29", color: "#f4f7fb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }
                 : { color: "#94A3B8" }}>
               <Icon size={14} /> {label}
             </button>

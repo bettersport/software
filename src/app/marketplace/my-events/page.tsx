@@ -63,7 +63,7 @@ function LogoUpload({ label, value, onChange }: { label: string; value: string; 
     <div>
       <label className="block text-xs text-slate-400 mb-1.5 uppercase tracking-wider">{label}</label>
       <label className="group relative flex flex-col items-center justify-center h-20 rounded-xl border-2 border-dashed cursor-pointer transition-all hover:border-teal-400 hover:bg-teal-50/40"
-        style={{ borderColor: value ? "#10B981" : "#e2e8f0", backgroundColor: value ? "rgba(16,185,129,0.04)" : "#f8fafc" }}>
+        style={{ borderColor: value ? "#10B981" : "#232c3a", backgroundColor: value ? "rgba(16,185,129,0.04)" : "#10151f" }}>
         {value ? (
           <div className="flex flex-col items-center gap-1.5">
             <img src={value} alt="logo" className="h-9 w-auto object-contain rounded" />
@@ -372,7 +372,7 @@ export default function MyEventsPage() {
                           className="text-xs px-3 py-1.5 rounded-full font-semibold border transition-all"
                           style={active
                             ? { backgroundColor: "#10B981", color: "#fff", borderColor: "#10B981" }
-                            : { backgroundColor: "#f8fafc", color: "#64748b", borderColor: "#e2e8f0" }}
+                            : { backgroundColor: "#10151f", color: "#a8b3c4", borderColor: "#232c3a" }}
                         >
                           {obj}
                         </button>
@@ -461,7 +461,7 @@ export default function MyEventsPage() {
                           style={
                             active
                               ? { backgroundColor: "#10B981", color: "#fff", borderColor: "#10B981" }
-                              : { backgroundColor: "#f8fafc", color: "#64748b", borderColor: "#e2e8f0" }
+                              : { backgroundColor: "#10151f", color: "#a8b3c4", borderColor: "#232c3a" }
                           }
                         >
                           {obj}

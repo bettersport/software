@@ -208,9 +208,9 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, onMob
       )}
     >
       {/* Logo */}
-      <div className="flex-shrink-0 px-4 py-5 flex items-center gap-2" style={{ borderBottom: "1px solid #E2E8F0" }}>
+      <div className="flex-shrink-0 px-4 py-5 flex items-center gap-2" style={{ borderBottom: "1px solid #232c3a" }}>
         {collapsed ? (
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: "linear-gradient(135deg, #10B981, #06B6D4)" }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)" }}>
             <Leaf size={18} color="#fff" />
           </div>
         ) : (
