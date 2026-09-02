@@ -317,7 +317,7 @@
         color-mix(in oklab, var(--color-ink) 5%, transparent) 0%,
         color-mix(in oklab, var(--color-ink) 2%, transparent) 100%
       ),
-      var(--color-surface-1);
+      rgba(11, 15, 22, 0.74);
     border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
     backdrop-filter: blur(14px);
     box-shadow:
@@ -336,7 +336,7 @@
         color-mix(in oklab, var(--color-ink) 5%, transparent) 0%,
         color-mix(in oklab, var(--color-ink) 2%, transparent) 100%
       ),
-      var(--color-surface-1);
+      rgba(11, 15, 22, 0.74);
     border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
     backdrop-filter: blur(14px);
     box-shadow:
@@ -366,7 +366,7 @@
         color-mix(in oklab, var(--color-ink) 5%, transparent) 0%,
         color-mix(in oklab, var(--color-ink) 2%, transparent) 100%
       ),
-      var(--color-surface-1);
+      rgba(11, 15, 22, 0.74);
     border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
     border-radius: 16px;
     backdrop-filter: blur(14px);
