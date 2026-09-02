@@ -130,6 +130,27 @@ export function CountUp({
   );
 }
 
+/** Cinta infinita: el contenido se duplica y se desplaza el 50%. */
+export function Marquee({
+  children, className, speed = 46,
+}: {
+  children: ReactNode; className?: string; speed?: number;
+}) {
+  return (
+    <div className={cn("mask-fade-x overflow-hidden", className)}>
+      <div
+        className="flex w-max animate-marquee items-center"
+        style={{ animationDuration: `${speed}s` }}
+      >
+        <div className="flex items-center">{children}</div>
+        <div className="flex items-center" aria-hidden>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Resplandor que sigue al cursor dentro de la tarjeta. */
 export function Spotlight({ children, className }: { children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
