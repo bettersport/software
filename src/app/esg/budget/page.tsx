@@ -203,7 +203,7 @@ export default function BudgetPage() {
             whileTap={{ scale: 0.97 }}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
-              activeTab === tab.key ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"
+              activeTab === tab.key ? "bg-slate-50 text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"
             )}
           >
             {tab.icon}

@@ -101,7 +101,7 @@ function ActionForm({ initial, onSave, onClose }: ActionFormProps) {
       style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+        className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -222,7 +222,7 @@ function RewardForm({ initial, onSave, onClose }: RewardFormProps) {
       style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+        className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h3 className="font-bold text-slate-900">{initial.id ? "Editar recompensa" : "Nueva recompensa"}</h3>
@@ -301,7 +301,7 @@ function RewardForm({ initial, onSave, onClose }: RewardFormProps) {
                     onChange={(e) => set("available", e.target.checked)} />
                   <div className="w-10 h-5 rounded-full transition-colors"
                     style={{ backgroundColor: form.available ? "#10B981" : "#2a3442" }}>
-                    <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                    <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-slate-50 rounded-full shadow transition-transform"
                       style={{ transform: form.available ? "translateX(20px)" : "translateX(0)" }} />
                   </div>
                 </div>
@@ -670,7 +670,7 @@ export default function FanZoneConfigPage() {
             style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center"
+              className="bg-slate-50 rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center"
             >
               <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                 <Trash2 size={20} className="text-red-500" />

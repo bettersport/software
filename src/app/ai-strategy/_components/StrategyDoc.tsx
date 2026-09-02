@@ -113,7 +113,7 @@ function PlanCard({ p }: { p: ChallengePlan }) {
             <h4 className="font-bold text-slate-900 leading-snug">{p.label}</h4>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-md text-white" style={{ backgroundColor: color }}>{p.griStandard}</span>
-              {p.griTitle && <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-slate-500 border border-slate-200">{p.griTitle}</span>}
+              {p.griTitle && <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 border border-slate-200">{p.griTitle}</span>}
               {p.sdgs.map((s) => <span key={s} className="text-[10px] px-2 py-0.5 rounded-md font-semibold" style={{ backgroundColor: "#EFF6FF", color: "#1D4ED8" }}>{s}</span>)}
             </div>
           </div>
@@ -121,7 +121,7 @@ function PlanCard({ p }: { p: ChallengePlan }) {
         {p.goalPreliminary && <span className="text-[11px] px-2.5 py-1 rounded-full font-semibold flex-shrink-0" style={{ backgroundColor: "#FFFBEB", color: "#B45309", border: "1px solid #FDE68A" }}>Preliminar — sujeta a validación</span>}
       </div>
 
-      <div className="p-5 bg-white">
+      <div className="p-5 bg-slate-50">
         {/* Meta destacada */}
         <div className="p-4 rounded-xl flex items-start gap-3" style={{ backgroundColor: `${color}0D`, borderLeft: `3px solid ${color}` }}>
           <Target size={16} className="mt-0.5 flex-shrink-0" style={{ color }} />

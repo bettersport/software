@@ -182,7 +182,7 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#10151f" }}>
       {/* Top nav */}
-      <nav className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-50">
+      <nav className="h-14 bg-slate-50 border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-50">
         <img src="/logo.svg" alt="BetterSport" className="h-8 w-auto object-contain" />
         <span className="text-xs text-slate-400 font-mono">paso {step + 1} / {STEPS.length}</span>
       </nav>
@@ -198,7 +198,7 @@ export default function OnboardingPage() {
       {/* Shell */}
       <div className="flex flex-1 max-w-5xl mx-auto w-full">
         {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 bg-white px-5 py-8 gap-1">
+        <aside className="hidden md:flex flex-col w-64 border-r border-slate-200 bg-slate-50 px-5 py-8 gap-1">
           <p className="text-[10px] font-semibold tracking-widest text-slate-400 uppercase mb-4 px-3">Configuración</p>
           {STEPS.map((s, i) => {
             const isDone   = i < step;

@@ -307,7 +307,7 @@ export default function KPIsPage() {
             initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+            className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
           >
             {/* Modal header */}
             <div className="flex items-center justify-between p-6 border-b border-slate-100">

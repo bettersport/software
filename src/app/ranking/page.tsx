@@ -146,7 +146,7 @@ function FilterSelect({ label, value, options, onChange, icon }: {
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="appearance-none pl-8 pr-8 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 cursor-pointer min-w-[140px] transition-all"
+          className="appearance-none pl-8 pr-8 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 cursor-pointer min-w-[140px] transition-all"
         >
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
@@ -509,7 +509,7 @@ export default function RankingPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
               transition={{ type: "spring", stiffness: 320, damping: 26 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Gradient header */}

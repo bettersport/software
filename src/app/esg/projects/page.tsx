@@ -588,7 +588,7 @@ export default function ESGProjectsPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 16 }}
               transition={{ type: "spring", stiffness: 320, damping: 26 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div
@@ -631,7 +631,7 @@ export default function ESGProjectsPage() {
                           "py-2 px-3 rounded-xl text-xs font-semibold transition-all border",
                           editStatus === s.value
                             ? "border-teal-400 text-teal-600 bg-teal-50"
-                            : "border-slate-200 text-slate-500 bg-white hover:border-slate-300"
+                            : "border-slate-200 text-slate-500 bg-slate-50 hover:border-slate-300"
                         )}
                       >
                         {s.label}

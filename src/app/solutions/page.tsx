@@ -202,7 +202,7 @@ export default function SolutionsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar solución..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
             />
           </div>
 
@@ -214,7 +214,7 @@ export default function SolutionsPage() {
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="pl-8 pr-7 py-2.5 rounded-xl text-sm border border-slate-200 bg-white text-slate-700 focus:outline-none focus:border-teal-400 appearance-none cursor-pointer min-w-[160px]"
+              className="pl-8 pr-7 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:border-teal-400 appearance-none cursor-pointer min-w-[160px]"
             >
               {countries.map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -231,7 +231,7 @@ export default function SolutionsPage() {
                 onClick={() => setView(v)}
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                  view === v ? "bg-white text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  view === v ? "bg-slate-50 text-slate-800 shadow-sm" : "text-slate-400 hover:text-slate-600"
                 )}
               >
                 {v === "list" ? <LayoutList size={13} /> : <LayoutGrid size={13} />}
@@ -485,7 +485,7 @@ export default function SolutionsPage() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 24 }}
               transition={{ type: "spring", stiffness: 320, damping: 26 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[88vh] overflow-y-auto"
+              className="bg-slate-50 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[88vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Gradient header */}
@@ -590,7 +590,7 @@ export default function SolutionsPage() {
                       rel="noopener noreferrer"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 border border-slate-200 bg-slate-50 hover:bg-slate-50 transition-colors"
                     >
                       <Globe size={14} /> Web <ExternalLink size={11} className="text-slate-400" />
                     </motion.a>
@@ -605,7 +605,7 @@ export default function SolutionsPage() {
                       value={contactMessage}
                       onChange={(e) => setContactMessage(e.target.value)}
                       placeholder="Cuéntale al proveedor qué necesitas y cómo pueden contactarte..."
-                      className="w-full text-sm rounded-lg border border-slate-200 bg-white p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-200"
+                      className="w-full text-sm rounded-lg border border-slate-200 bg-slate-50 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-200"
                     />
                     <div className="flex gap-2 justify-end">
                       <button onClick={() => setContactOpen(false)} disabled={sendingContact} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-50">Cancelar</button>
