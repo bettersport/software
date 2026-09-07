@@ -70,6 +70,9 @@ model User {
   notifications Notification[]
   sponsorRequests  SponsorRequest[]  @relation("sponsorRequests")
   solutionContacts SolutionContact[] @relation("solutionContacts")
+  subscriptions    Subscription[]
+  /// Vigencia del plan pagado (null = sin plan activo).
+  planUntil        DateTime?
 }
 
 model Club {
@@ -523,4 +526,30 @@ model KpiHistory {
   recordedAt DateTime @default(now())
 
   @@index([kpiId])
+}
+
+/// Suscripción al Plan General (cobro vía Flow.cl). Montos en CLP enteros.
+model Subscription {
+  id            String    @id @default(cuid())
+  plan          String    @default("general")
+  amountNet     Int
+  amountTax     Int
+  amountTotal   Int
+  currency      String    @default("CLP")
+  /// pending | paid | rejected | cancelled
+  status        String    @default("pending")
+  commerceOrder String    @unique
+  flowToken     String?   @unique
+  flowOrder     Int?
+  payerEmail    String?
+  paidAt        DateTime?
+  periodStart   DateTime?
+  periodEnd     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId])
 }

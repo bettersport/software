@@ -75,11 +75,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#10151f" }}>
+    <div className="min-h-screen flex relative overflow-hidden" style={{ backgroundColor: "#05070a" }}>
+      {/* Foto deportiva de fondo en toda la sección, difuminada bajo un overlay oscuro */}
+      <div aria-hidden className="absolute inset-0 pointer-events-none">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=2000&q=70"
+          alt=""
+          className="w-full h-full object-cover"
+          style={{ opacity: 0.55, filter: "blur(3px) saturate(0.75)", transform: "scale(1.04)" }}
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(5,7,10,0.78) 0%, rgba(5,7,10,0.86) 50%, rgba(5,7,10,0.94) 100%)" }} />
+      </div>
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0D1E35 0%, #0B1628 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(13,30,53,0.45) 0%, rgba(11,22,40,0.35) 100%)" }} />
         <div className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #10B981 0%, transparent 70%)", filter: "blur(60px)" }} />
         <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #06B6D4 0%, transparent 70%)", filter: "blur(60px)" }} />
 

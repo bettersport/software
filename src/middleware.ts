@@ -4,7 +4,8 @@ import { jwtVerify } from "jose";
 const SESSION_COOKIE = "bettersport_session";
 
 // Public paths that never require a session.
-const PUBLIC_PREFIXES = ["/login", "/register", "/home", "/api/auth", "/api/public"];
+// /api/billing/flow: callbacks de Flow.cl (llegan sin sesión; verifican el estado contra la API firmada de Flow).
+const PUBLIC_PREFIXES = ["/login", "/register", "/home", "/api/auth", "/api/public", "/api/billing/flow"];
 const PUBLIC_EXACT = new Set(["/"]);
 
 function isPublic(pathname: string) {

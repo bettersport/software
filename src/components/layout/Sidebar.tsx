@@ -31,6 +31,7 @@ import {
   SlidersHorizontal,
   Database,
   LineChart,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -160,6 +161,12 @@ const navSections: NavSection[] = [
         href: "/fanzone",
         icon: <Users size={18} />,
         roles: ["admin", "club"],
+      },
+      {
+        label: "Plan y pagos",
+        href: "/billing",
+        icon: <CreditCard size={18} />,
+        roles: ["club", "brand", "manager", "admin"],
       },
       {
         label: "Mi Club",
