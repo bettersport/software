@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ChevronDown, ShieldCheck, Building2, Tag, Wrench, Star } from "lucide-react";
+import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ShieldCheck, Building2, Tag, Wrench, Star, Mail, Lock, Sparkles } from "lucide-react";
+import { CountUp } from "@/components/fx";
 import Link from "next/link";
 import type { UserRole } from "@/lib/types";
 
@@ -26,12 +27,12 @@ const features = [
   { icon: <Brain size={20} />, title: "Motor IA", desc: "IA que genera tu estrategia ESG personalizada" },
 ];
 
-const roleConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode; desc: string }> = {
-  admin:   { label: "Administrador",  color: "#8B5CF6", bg: "rgba(139,92,246,0.12)",  icon: <ShieldCheck size={15} />,  desc: "Acceso total a la plataforma" },
-  club:    { label: "Club Deportivo", color: "#10B981", bg: "rgba(16,185,129,0.12)",  icon: <Building2 size={15} />,    desc: "Gestión ESG del club" },
-  brand:   { label: "Marca",          color: "#06B6D4", bg: "rgba(6,182,212,0.12)",   icon: <Tag size={15} />,          desc: "Patrocinios y eventos" },
-  solucion: { label: "Proveedor de Soluciones", color: "#F97316", bg: "rgba(249,115,22,0.12)", icon: <Wrench size={15} />, desc: "Ofrece soluciones sostenibles" },
-  hincha:  { label: "Fan / Hincha",    color: "#EC4899", bg: "rgba(236,72,153,0.12)",  icon: <Star size={15} />,         desc: "Zona fan y recompensas" },
+const roleConfig: Record<string, { label: string; short: string; color: string; bg: string; icon: React.ReactNode; desc: string }> = {
+  admin:   { label: "Administrador", short: "Admin",  color: "#8B5CF6", bg: "rgba(139,92,246,0.12)",  icon: <ShieldCheck size={15} />,  desc: "Acceso total a la plataforma" },
+  club:    { label: "Club Deportivo", short: "Club", color: "#10B981", bg: "rgba(16,185,129,0.12)",  icon: <Building2 size={15} />,    desc: "Gestión ESG del club" },
+  brand:   { label: "Marca", short: "Marca",          color: "#06B6D4", bg: "rgba(6,182,212,0.12)",   icon: <Tag size={15} />,          desc: "Patrocinios y eventos" },
+  solucion: { label: "Proveedor de Soluciones", short: "Proveedor", color: "#F97316", bg: "rgba(249,115,22,0.12)", icon: <Wrench size={15} />, desc: "Ofrece soluciones sostenibles" },
+  hincha:  { label: "Fan / Hincha", short: "Hincha",    color: "#EC4899", bg: "rgba(236,72,153,0.12)",  icon: <Star size={15} />,         desc: "Zona fan y recompensas" },
 };
 
 export default function LoginPage() {
@@ -40,7 +41,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showDemo, setShowDemo] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -76,238 +76,204 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex relative overflow-hidden" style={{ backgroundColor: "#05070a" }}>
-      {/* Foto deportiva de fondo en toda la sección, difuminada bajo un overlay oscuro */}
+      {/* ── Foto deportiva nítida con degradé cinematográfico (sin blur) ── */}
       <div aria-hidden className="absolute inset-0 pointer-events-none">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=2000&q=70"
+          src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=2200&q=80"
           alt=""
           className="w-full h-full object-cover"
-          style={{ opacity: 0.55, filter: "blur(3px) saturate(0.75)", transform: "scale(1.04)" }}
+          style={{ opacity: 0.7, filter: "saturate(0.85) contrast(1.05)", transform: "scale(1.02)" }}
         />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(5,7,10,0.78) 0%, rgba(5,7,10,0.86) 50%, rgba(5,7,10,0.94) 100%)" }} />
+        {/* oscurece hacia la derecha (donde va el formulario) y hacia abajo */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(100deg, rgba(5,7,10,0.55) 0%, rgba(5,7,10,0.72) 45%, rgba(5,7,10,0.9) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(5,7,10,0.25) 0%, transparent 35%, rgba(5,7,10,0.85) 100%)" }} />
+        {/* resplandores neón */}
+        <div className="absolute -top-40 -left-32 w-[36rem] h-[36rem] rounded-full animate-drift" style={{ background: "radial-gradient(circle, rgba(34,211,238,0.18), transparent 65%)", filter: "blur(80px)" }} />
+        <div className="absolute -bottom-40 right-[20%] w-[30rem] h-[30rem] rounded-full animate-drift" style={{ animationDelay: "-10s", background: "radial-gradient(circle, rgba(139,92,246,0.16), transparent 65%)", filter: "blur(80px)" }} />
+        <div className="grid-plane absolute inset-0 opacity-30 mask-fade-b" />
       </div>
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(13,30,53,0.45) 0%, rgba(11,22,40,0.35) 100%)" }} />
-        <div className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #10B981 0%, transparent 70%)", filter: "blur(60px)" }} />
-        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #06B6D4 0%, transparent 70%)", filter: "blur(60px)" }} />
 
-        <div className="relative z-10">
+      {/* ── Panel izquierdo: marca + propuesta de valor ── */}
+      <div className="hidden lg:flex lg:w-[52%] flex-col justify-between p-12 xl:p-16 relative z-10">
+        <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="BetterSport" className="h-9 w-auto object-contain" style={{ filter: "brightness(0) invert(1)" }} />
         </div>
 
-        <div className="relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <h1 className="text-4xl font-bold text-white leading-tight mb-4" style={{ fontFamily: "'Manrope', sans-serif" }}>
-              La plataforma ESG<br />
-              <span className="text-gradient">para el deporte sostenible</span>
+        <div>
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
+            <p className="eyebrow flex items-center gap-2 mb-5">
+              <span className="relative flex w-2 h-2">
+                <span className="absolute inline-flex w-full h-full rounded-full animate-pulse-ring" style={{ backgroundColor: "#22d3ee" }} />
+                <span className="relative inline-flex w-2 h-2 rounded-full" style={{ backgroundColor: "#22d3ee" }} />
+              </span>
+              Plataforma ESG para el deporte
+            </p>
+            <h1 className="text-[2.75rem] xl:text-5xl font-extrabold text-white leading-[1.05] tracking-tight mb-5" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              Deporte que<br />
+              <span className="text-gradient">impacta y crece.</span>
             </h1>
-            <p className="text-white/60 text-lg leading-relaxed max-w-md">
-              Gestiona proyectos, conecta con patrocinadores y lidera el ranking de clubes más sostenibles de Latinoamérica.
+            <p className="text-base xl:text-lg leading-relaxed max-w-md" style={{ color: "rgba(244,247,251,0.68)" }}>
+              Gestiona proyectos ESG, conecta con patrocinadores y lidera el ranking de clubes más sostenibles de Latinoamérica.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 gap-4 mt-10">
+          <div className="grid grid-cols-2 gap-3 mt-10 max-w-xl">
             {features.map((f, i) => (
               <motion.div
                 key={f.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 + i * 0.1 }}
-                className="p-4 rounded-2xl"
-                style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+                transition={{ duration: 0.5, delay: 0.25 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="glass glass-hover p-4 !rounded-xl"
               >
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: "rgba(16,185,129,0.15)", color: "#10B981" }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: "rgba(34,211,238,0.12)", color: "#22d3ee", border: "1px solid rgba(34,211,238,0.25)" }}>
                   {f.icon}
                 </div>
                 <p className="text-sm font-semibold text-white">{f.title}</p>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">{f.desc}</p>
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: "rgba(244,247,251,0.55)" }}>{f.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 flex items-center gap-6">
-          {[{ n: "500+", l: "Clubes" }, { n: "1.2K", l: "Proyectos" }, { n: "$2.5M", l: "Patrocinios" }].map((s) => (
-            <div key={s.l}>
-              <p className="text-2xl font-bold text-gradient">{s.n}</p>
-              <p className="text-xs text-white/50 mt-0.5">{s.l}</p>
+        <div className="flex items-center gap-8">
+          {[{ n: 500, s: "+", l: "Clubes" }, { n: 1200, s: "", l: "Proyectos" }, { n: 2.5, s: "M", l: "Patrocinios USD", p: "$" }].map((st) => (
+            <div key={st.l}>
+              <p className="text-2xl font-extrabold text-gradient tnum">
+                <CountUp to={st.n} decimals={st.n % 1 ? 1 : 0} prefix={st.p ?? ""} suffix={st.s} />
+              </p>
+              <p className="eyebrow mt-1">{st.l}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right panel — Login form */}
-      <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
+      {/* ── Panel derecho: formulario ── */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 overflow-y-auto relative z-10">
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-lg py-10"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full max-w-md py-6"
         >
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-10">
+          {/* Logo móvil */}
+          <div className="lg:hidden flex justify-center mb-8">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="BetterSport" className="h-9 w-auto object-contain" />
+            <img src="/logo.svg" alt="BetterSport" className="h-9 w-auto object-contain" style={{ filter: "brightness(0) invert(1)" }} />
           </div>
 
-          <div className="card p-10">
-            <div className="mb-10">
-              <h2 className="text-2xl font-bold text-slate-900" style={{ fontFamily: "'Manrope', sans-serif" }}>Bienvenido de vuelta</h2>
-              <p className="text-slate-400 text-sm mt-2">Ingresa tus credenciales para continuar</p>
-            </div>
+          <div className="glass ring-gradient p-8 sm:p-10" style={{ backgroundColor: "rgba(11,15,22,0.82)" }}>
+            <p className="eyebrow mb-3">Acceso a la plataforma</p>
+            <h2 className="text-2xl font-extrabold tracking-tight" style={{ color: "#f4f7fb", fontFamily: "'Manrope', sans-serif" }}>Bienvenido de vuelta</h2>
+            <p className="text-sm mt-1.5 mb-8" style={{ color: "#8b95a5" }}>Ingresa tus credenciales para continuar</p>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-5">
               {error && (
-                <div className="px-4 py-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#dc2626" }}>
+                <div className="px-4 py-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.3)", color: "#f87171" }}>
                   {error}
                 </div>
               )}
               <div>
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2.5">Correo electrónico</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
-                  placeholder="tu@club.com"
-                  required
-                />
+                <label className="eyebrow block mb-2">Correo electrónico</label>
+                <div className="relative">
+                  <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#6b7789" }} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-field !pl-10 !py-3"
+                    placeholder="tu@club.com"
+                    autoComplete="email"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider block mb-2.5">Contraseña</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="eyebrow">Contraseña</label>
+                  <button type="button" onClick={() => setError("Recuperación de contraseña: escríbenos a soporte@bettersport.cl y la restablecemos por ti.")} className="text-[11px] transition-colors hover:text-teal-500" style={{ color: "#2dd4bf" }}>
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
                 <div className="relative">
+                  <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#6b7789" }} />
                   <input
                     type={showPass ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="input-field pr-10"
+                    className="input-field !pl-10 !pr-11 !py-3"
                     placeholder="••••••••"
+                    autoComplete="current-password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md transition-colors"
+                    style={{ color: "#6b7789" }}
+                    aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <div className="flex justify-end mt-2">
-                  <button type="button" onClick={() => setError("Recuperación de contraseña: escríbenos a soporte@bettersport.cl y la restablecemos por ti.")} className="text-xs text-teal-600 hover:text-teal-500 transition-colors">
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-14 rounded-2xl font-semibold text-slate-800 flex items-center justify-center gap-2 text-base transition-all duration-200 disabled:opacity-70"
-                style={{ background: "linear-gradient(100deg, #67e8f9, #22d3ee 55%, #a78bfa)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}
-              >
+              <button type="submit" disabled={loading} className="btn-primary w-full justify-center !py-3.5 !text-[15px] !rounded-xl disabled:opacity-70">
                 {loading ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: "rgba(4,18,26,0.25)", borderTopColor: "#04121a" }} />
                 ) : (
-                  <>
-                    Iniciar sesión
-                    <ArrowRight size={18} />
-                  </>
+                  <>Iniciar sesión <ArrowRight size={17} /></>
                 )}
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-slate-100">
-              <p className="text-center text-sm text-slate-400">
-                ¿No tienes cuenta?{" "}
-                <Link href="/register" className="text-teal-600 hover:text-teal-500 font-medium transition-colors">
-                  Registra tu club
-                </Link>
-              </p>
-            </div>
+            <p className="text-center text-sm mt-7" style={{ color: "#8b95a5" }}>
+              ¿No tienes cuenta?{" "}
+              <Link href="/register" className="font-semibold transition-colors hover:text-teal-500" style={{ color: "#2dd4bf" }}>
+                Registra tu club
+              </Link>
+            </p>
           </div>
 
-          {/* ── Demo Profiles (solo con NEXT_PUBLIC_ENABLE_DEMO=true) ── */}
+          {/* ── Acceso rápido demo: siempre visible como chips (solo con NEXT_PUBLIC_ENABLE_DEMO=true) ── */}
           {DEMO_ENABLED && (
-          <div className="mt-6">
-            <button
-              onClick={() => setShowDemo(!showDemo)}
-              className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl text-sm font-medium transition-all"
-              style={{ backgroundColor: "#161d29", border: "1px solid #232c3a", color: "#a8b3c4" }}
-            >
-              <span className="flex items-center gap-2">
-                <ShieldCheck size={16} className="text-teal-600" />
-                Acceso rápido demo — elige un perfil
-              </span>
-              <motion.div animate={{ rotate: showDemo ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown size={16} className="text-slate-400" />
-              </motion.div>
-            </button>
-
-            <AnimatePresence>
-              {showDemo && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: -8, height: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-2 space-y-2">
-                    {DEMO_ACCOUNTS.map((user, i) => {
-                      const rc = roleConfig[user.role];
-                      const isSelected = selectedDemo === user.id;
-                      return (
-                        <motion.button
-                          key={user.id}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.06 }}
-                          onClick={() => loginAs(user)}
-                          disabled={isSelected}
-                          className="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all hover:scale-[1.01] disabled:opacity-70"
-                          style={{
-                            backgroundColor: isSelected ? rc.bg : "#10151f",
-                            border: `1px solid ${isSelected ? rc.color + "50" : "#232c3a"}`,
-                          }}
-                        >
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-800 font-bold text-sm flex-shrink-0"
-                            style={{ background: `linear-gradient(135deg, ${rc.color}, ${rc.color}88)` }}
-                          >
-                            {user.name.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-semibold text-slate-900">{user.name}</span>
-                              <span
-                                className="text-xs px-2 py-0.5 rounded-full font-semibold flex items-center gap-1"
-                                style={{ backgroundColor: rc.bg, color: rc.color, border: `1px solid ${rc.color}40` }}
-                              >
-                                {rc.icon} {rc.label}
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-400 mt-0.5 truncate">{user.email}</p>
-                            <p className="text-xs mt-0.5" style={{ color: rc.color + "99" }}>{rc.desc}</p>
-                          </div>
-                          <div className="flex-shrink-0">
-                            {isSelected ? (
-                              <div className="w-4 h-4 rounded-full border-2 border-white/20 animate-spin" style={{ borderTopColor: rc.color }} />
-                            ) : (
-                              <ArrowRight size={14} className="text-slate-300" />
-                            )}
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mt-6">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="h-px flex-1" style={{ backgroundColor: "rgba(244,247,251,0.1)" }} />
+                <span className="eyebrow flex items-center gap-1.5"><Sparkles size={11} /> Explorar con un perfil demo</span>
+                <span className="h-px flex-1" style={{ backgroundColor: "rgba(244,247,251,0.1)" }} />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {DEMO_ACCOUNTS.map((user, i) => {
+                  const rc = roleConfig[user.role];
+                  const isSelected = selectedDemo === user.id;
+                  return (
+                    <motion.button
+                      key={user.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + i * 0.05 }}
+                      onClick={() => loginAs(user)}
+                      disabled={!!selectedDemo}
+                      title={`${user.name} · ${user.email}`}
+                      className="glass glass-hover !rounded-xl flex items-center gap-2.5 px-3 py-2.5 text-left disabled:opacity-60"
+                      style={{ borderColor: isSelected ? `${rc.color}66` : undefined, backgroundColor: "rgba(11,15,22,0.7)" }}
+                    >
+                      <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ color: rc.color, backgroundColor: `${rc.color}1f`, border: `1px solid ${rc.color}40` }}>
+                        {isSelected ? <div className="w-3.5 h-3.5 rounded-full border-2 animate-spin" style={{ borderColor: `${rc.color}40`, borderTopColor: rc.color }} /> : rc.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-xs font-semibold truncate" style={{ color: "#f4f7fb" }}>{rc.short}</span>
+                        <span className="block text-[10px] truncate" style={{ color: "#6b7789" }}>{user.name.split(" ")[0]}</span>
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
           )}
         </motion.div>
       </div>
