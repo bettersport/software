@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap, Leaf, Recycle, BookOpen, Users, Bike, Star,
+  Zap, Leaf, Recycle, BookOpen, Users, Bike, Star, Droplets, Sprout, Scale, BadgeCheck,
   CheckCircle, LayoutList, LayoutGrid, X, Phone, Globe,
   ExternalLink, MapPin, Search, SlidersHorizontal, ArrowUpRight,
   Sparkles, ShieldCheck,
@@ -21,21 +21,27 @@ const EMPTY: Provider[] = [];
 
 /* ─── Category icon map (Lucide) ─── */
 const categoryIcons: Record<string, React.ElementType> = {
-  eficiencia_hidrica: Leaf,
+  eficiencia_hidrica: Droplets,
   eficiencia_energetica: Zap,
+  huella_carbono: Sprout,
   gestion_residuos: Recycle,
   educacion_ambiental: BookOpen,
   impacto_social: Users,
   movilidad_sostenible: Bike,
+  regulatorio: Scale,
+  certificaciones: BadgeCheck,
 };
 
 const categoryColors: Record<string, string> = {
   eficiencia_hidrica: "#0EA5E9",
   eficiencia_energetica: "#F59E0B",
+  huella_carbono: "#34d399",
   gestion_residuos: "#10B981",
   educacion_ambiental: "#8B5CF6",
   impacto_social: "#EC4899",
   movilidad_sostenible: "#06B6D4",
+  regulatorio: "#60a5fa",
+  certificaciones: "#a78bfa",
 };
 
 const countries = ["Todos los países", "Chile", "Argentina", "Colombia", "México", "España"];
@@ -52,15 +58,21 @@ const categoryOptions = [
   { value: "all", label: "Todos" },
   { value: "eficiencia_hidrica", label: "Huella hídrica" },
   { value: "eficiencia_energetica", label: "Energía" },
+  { value: "huella_carbono", label: "Huella de carbono" },
   { value: "gestion_residuos", label: "Residuos" },
   { value: "educacion_ambiental", label: "Educación" },
   { value: "impacto_social", label: "Impacto social" },
   { value: "movilidad_sostenible", label: "Movilidad" },
-  { value: "regulatorio", label: "Regulatorio" },
+  { value: "regulatorio", label: "Legal y gobernanza" },
+  { value: "certificaciones", label: "Certificaciones" },
 ];
 
 /* ─── Sub-components ─── */
 function StarRating({ stars, size = 13 }: { stars: number; size?: number }) {
+  // Sin valoración: no mostramos 5 estrellas vacías (se leería como mala nota).
+  if (!stars) {
+    return <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: "#6b7789" }}>Sin valoración</span>;
+  }
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (

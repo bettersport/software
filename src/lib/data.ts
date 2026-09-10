@@ -794,15 +794,19 @@ import type { SolutionProvider } from "./types";
 export const solutionCategoryLabels: Record<string, string> = {
   eficiencia_hidrica: "Eficiencia hídrica",
   eficiencia_energetica: "Eficiencia energética",
+  huella_carbono: "Huella de carbono",
   gestion_residuos: "Gestión de residuos",
   educacion_ambiental: "Educación ambiental",
   impacto_social: "Impacto social",
   movilidad_sostenible: "Movilidad sostenible",
+  regulatorio: "Legal y gobernanza",
+  certificaciones: "Certificaciones",
 };
 
 export const solutionCategoryIcons: Record<string, string> = {
   eficiencia_hidrica: "💧",
   eficiencia_energetica: "⚡",
+  huella_carbono: "🌱",
   gestion_residuos: "♻️",
   educacion_ambiental: "🌿",
   impacto_social: "🤝",
