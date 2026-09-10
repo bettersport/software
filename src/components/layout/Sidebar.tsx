@@ -137,9 +137,10 @@ const navSections: NavSection[] = [
         ],
       },
       {
+        // Solo para proveedores: el admin ya llega a lo mismo desde "Soluciones" y "Ranking".
         label: "Mis Soluciones",
         icon: <Wrench size={18} />,
-        roles: ["admin", "solucion"],
+        roles: ["solucion"],
         children: [
           { label: "Catálogo de soluciones", href: "/solutions", icon: <Wrench size={15} /> },
           { label: "Ver clubes",             href: "/ranking",   icon: <Eye size={15} /> },
