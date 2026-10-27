@@ -32,6 +32,7 @@ import {
   Database,
   LineChart,
   CreditCard,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -64,7 +65,7 @@ const navSections: NavSection[] = [
       {
         label: "Ranking",
         icon: <Trophy size={18} />,
-        roles: allRoles,
+        roles: [...allRoles, "institucion"],
         children: [
           { label: "Clubes", href: "/ranking", icon: <Trophy size={15} /> },
           { label: "Mi posición", href: "/ranking/position", icon: <BarChart3 size={15} />, roles: ["club", "admin"] },
@@ -75,6 +76,13 @@ const navSections: NavSection[] = [
         href: "/ai-strategy",
         icon: <Brain size={18} />,
         roles: ["admin", "club"],
+      },
+      {
+        // Ministerio del Deporte y Comité Olímpico.
+        label: "Panel institucional",
+        href: "/institutional",
+        icon: <Landmark size={18} />,
+        roles: ["institucion", "admin"],
       },
     ],
   },

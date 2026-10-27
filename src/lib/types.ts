@@ -1,6 +1,8 @@
 // ===== TYPES =====
 
-export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha" | "auditor" | "manager";
+export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha" | "auditor" | "manager" | "institucion";
+
+export type OrgType = "club" | "federacion" | "evento";
 
 export type ProjectStatus = "planning" | "in_progress" | "completed" | "paused";
 

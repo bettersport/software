@@ -39,6 +39,17 @@ export async function middleware(req: NextRequest) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
   }
+  // Organismos rectores: su panel es privativo, y /dashboard los lleva ahí.
+  if (pathname.startsWith("/institutional") || pathname.startsWith("/api/institutional")) {
+    if (role !== "institucion" && role !== "admin") {
+      if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+  }
+  if (role === "institucion" && pathname === "/dashboard") {
+    return NextResponse.redirect(new URL("/institutional", req.url));
+  }
+
   // Área de administración: solo admin (el rol viaja en el JWT; los endpoints /api/admin re-verifican en DB).
   if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
     if (role !== "admin") {

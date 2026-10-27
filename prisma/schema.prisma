@@ -16,6 +16,15 @@ enum UserRole {
   hincha
   auditor
   manager
+  /// Organismos rectores del deporte: Ministerio del Deporte, Comité Olímpico.
+  institucion
+}
+
+/// Naturaleza de la organización que reporta (el modelo Club las agrupa a todas).
+enum OrgType {
+  club
+  federacion
+  evento
 }
 
 enum ESGCategory {
@@ -78,6 +87,8 @@ model User {
 model Club {
   id            String  @id @default(cuid())
   name          String
+  /// Club, federación o evento deportivo — define cómo se cuenta en los reportes institucionales.
+  orgType       OrgType @default(club)
   sport         String
   country       String
   flag          String
