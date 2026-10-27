@@ -1,11 +1,12 @@
 "use client";
 
 import { use, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Gavel, ArrowLeft, Users, MapPin, Calendar, Wallet, Sparkles, Globe,
-  CheckCircle2, AlertTriangle, Send, ShieldCheck, Info,
+  CheckCircle2, AlertTriangle, Send, ShieldCheck, Info, Trash2,
 } from "lucide-react";
 import { SectionHeader } from "@/components/ui";
 import { RankBar } from "@/components/viz";
@@ -54,10 +55,13 @@ const BID_STATUS: Record<string, { label: string; color: string }> = {
 
 export default function TenderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { activeUser, loaded } = useUser();
   const { data, reload } = useResource<Detail | null>(loaded && activeUser ? `/api/tenders/${id}` : null, null);
   const [bid, setBid] = useState({ amount: "", message: "", approach: "" });
   const [sending, setSending] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const t = data?.tender;
 
@@ -75,6 +79,19 @@ export default function TenderDetailPage({ params }: { params: Promise<{ id: str
       toast.error(e instanceof Error ? e.message : "No se pudo enviar la oferta");
     } finally {
       setSending(false);
+    }
+  };
+
+  const removeTender = async () => {
+    setDeleting(true);
+    try {
+      await apiSend(`/api/tenders/${id}`, "DELETE");
+      toast.success("Licitación eliminada");
+      router.push("/tenders");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar");
+      setDeleting(false);
+      setConfirmDelete(false);
     }
   };
 
@@ -283,6 +300,34 @@ export default function TenderDetailPage({ params }: { params: Promise<{ id: str
                 );
               })}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Eliminar (quien licita, sin ofertas recibidas) ── */}
+      {data.isOwner && t.bids.length === 0 && (
+        <div className="card p-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "#f4f7fb" }}>Eliminar licitación</p>
+            <p className="text-xs mt-1" style={{ color: "#6b7789" }}>
+              Se puede eliminar porque todavía no recibe ofertas. Después solo podrás cancelarla.
+            </p>
+          </div>
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <button onClick={removeTender} disabled={deleting}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors"
+                style={{ color: "#f87171", backgroundColor: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.4)" }}>
+                <Trash2 size={14} /> {deleting ? "Eliminando…" : "Confirmar"}
+              </button>
+              <button onClick={() => setConfirmDelete(false)} className="btn-secondary !rounded-xl !text-xs">Cancelar</button>
+            </div>
+          ) : (
+            <button onClick={() => setConfirmDelete(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors hover:bg-red-50"
+              style={{ color: "#f87171", border: "1px solid rgba(248,113,113,0.3)" }}>
+              <Trash2 size={14} /> Eliminar
+            </button>
           )}
         </div>
       )}

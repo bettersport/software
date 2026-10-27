@@ -96,3 +96,30 @@ export async function PATCH(req: Request, { params }: Params) {
   if (!status) return badRequest("Estado no válido");
   return json(await prisma.tender.update({ where: { id }, data: { status } }));
 }
+
+/**
+ * DELETE: elimina la licitación. Solo mientras no haya ofertas recibidas —
+ * una vez que las productoras postularon, el historial de la negociación no
+ * se borra; para cerrarla está el estado "cancelada".
+ */
+export async function DELETE(_req: Request, { params }: Params) {
+  const ctx = await withUser();
+  if ("res" in ctx) return ctx.res;
+  const denied = requireRole(ctx.user, ["brand", "admin"]);
+  if (denied) return denied;
+
+  const { id } = await params;
+  const tender = await prisma.tender.findUnique({
+    where: { id },
+    select: { id: true, brandId: true, _count: { select: { bids: true } } },
+  });
+  if (!tender || (tender.brandId !== ctx.user.id && ctx.user.role !== "admin")) {
+    return notFound("Licitación no encontrada");
+  }
+  if (tender._count.bids > 0) {
+    return badRequest("Ya recibió ofertas: en vez de eliminarla, márcala como cancelada");
+  }
+
+  await prisma.tender.delete({ where: { id } });
+  return json({ ok: true });
+}
