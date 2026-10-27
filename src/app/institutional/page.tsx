@@ -29,7 +29,7 @@ interface Overview {
     clubs: { id: string; name: string; sport: string; country: string; flag: string; esgScore: number }[];
     federations: { id: string; name: string; sport: string; country: string; flag: string; esgScore: number }[];
   };
-  benchmark: { country: string; flag: string; score: number; isChile: boolean; reference: boolean }[];
+  benchmark: { country: string; flag: string; score: number | null; isChile: boolean; reference: boolean }[];
   regionAverage: number;
   generatedAt: string;
 }
@@ -229,7 +229,7 @@ export default function InstitutionalPage() {
                   return (
                     <TipShell>
                       <TipTitle>{d.flag} {d.country}</TipTitle>
-                      <TipRow color={d.isChile ? "#22d3ee" : "#566173"} label="Puntaje ESG" value={d.score.toFixed(1)} />
+                      <TipRow color={d.isChile ? "#22d3ee" : "#566173"} label="Puntaje ESG" value={d.score === null ? "Sin datos" : d.score.toFixed(1)} />
                       {d.reference && <p className="text-[10px] mt-1.5" style={{ color: "#6b7789" }}>Valor de referencia</p>}
                     </TipShell>
                   );
@@ -248,6 +248,11 @@ export default function InstitutionalPage() {
             <span className="flex items-center gap-1.5 text-[11px]" style={{ color: "#8b95a5" }}>
               <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "#22d3ee" }} /> Chile (datos de la plataforma)
             </span>
+            {data?.benchmark.find((b) => b.isChile)?.score === null && (
+              <span className="text-[11px]" style={{ color: "#fbbf24" }}>
+                Chile aún sin puntajes ESG registrados
+              </span>
+            )}
             <span className="flex items-center gap-1.5 text-[11px]" style={{ color: "#8b95a5" }}>
               <span className="w-4 h-0.5" style={{ backgroundColor: "#fbbf24" }} /> Promedio regional {data?.regionAverage ?? 0}
             </span>

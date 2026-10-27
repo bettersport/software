@@ -12,7 +12,7 @@ const REPORTING = {
   OR: [{ esgProjects: { some: {} } }, { kpis: { some: {} } }],
 };
 
-/** Las categorías de proyecto que no nacen de un desafío se asignan a su pilar. */
+/** Pilar al que pertenece cada categoría de proyecto. */
 const CATEGORY_PILLAR: Record<string, "ambiental" | "social" | "gobernanza"> = {
   huella_hidrica: "ambiental",
   huella_carbono: "ambiental",
@@ -35,7 +35,8 @@ export interface InstitutionalOverview {
     clubs: { id: string; name: string; sport: string; country: string; flag: string; esgScore: number }[];
     federations: { id: string; name: string; sport: string; country: string; flag: string; esgScore: number }[];
   };
-  benchmark: { country: string; flag: string; score: number; isChile: boolean; reference: boolean }[];
+  /** `score` en null = todavía sin datos suficientes para ese país. */
+  benchmark: { country: string; flag: string; score: number | null; isChile: boolean; reference: boolean }[];
   regionAverage: number;
   generatedAt: string;
 }
@@ -87,7 +88,9 @@ export async function getInstitutionalOverview(): Promise<InstitutionalOverview>
   let total = 0;
   let executed = 0;
   for (const p of projects) {
-    const pillar = p.challenge?.pillar ?? CATEGORY_PILLAR[p.category] ?? "gobernanza";
+    // La categoría del proyecto describe directamente el destino del gasto; el
+    // pilar del desafío solo se usa cuando la categoría no mapea a ninguno.
+    const pillar = CATEGORY_PILLAR[p.category] ?? p.challenge?.pillar ?? "gobernanza";
     byPillar[pillar] += p.budget || 0;
     total += p.budget || 0;
     executed += p.spent || 0;
@@ -96,18 +99,21 @@ export async function getInstitutionalOverview(): Promise<InstitutionalOverview>
   const clubsRanked = chileClubs.filter((c) => c.orgType === "club");
   const fedsRanked = chileClubs.filter((c) => c.orgType === "federacion");
 
-  // Chile se calcula con los datos reales de la plataforma.
+  // Chile se calcula con los datos reales de la plataforma. Sin organizaciones
+  // puntuadas queda en null: mostrar un cero junto a referencias de 60+ sería engañoso.
   const chileScore = chileClubs.length
-    ? chileClubs.reduce((s, c) => s + c.esgScore, 0) / chileClubs.length
-    : 0;
+    ? Number((chileClubs.reduce((s, c) => s + c.esgScore, 0) / chileClubs.length).toFixed(1))
+    : null;
 
-  const benchmark = [
-    { country: "Chile", flag: "🇨🇱", score: Number(chileScore.toFixed(1)), isChile: true, reference: false },
+  const benchmark: InstitutionalOverview["benchmark"] = [
+    { country: "Chile", flag: "🇨🇱", score: chileScore, isChile: true, reference: false },
     ...REGIONAL_REFERENCE.map((r) => ({ ...r, isChile: false, reference: true })),
-  ].sort((a, b) => b.score - a.score);
+  ].sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
 
-  const regionAverage = benchmark.length
-    ? Number((benchmark.reduce((s, b) => s + b.score, 0) / benchmark.length).toFixed(1))
+  // El promedio solo considera países con puntaje.
+  const scored = benchmark.filter((b) => b.score !== null);
+  const regionAverage = scored.length
+    ? Number((scored.reduce((s, b) => s + (b.score ?? 0), 0) / scored.length).toFixed(1))
     : 0;
 
   const strip = ({ orgType: _o, ...rest }: (typeof chileClubs)[number]) => rest;
