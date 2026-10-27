@@ -1,6 +1,6 @@
 // ===== TYPES =====
 
-export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha" | "auditor" | "manager" | "institucion";
+export type UserRole = "admin" | "club" | "brand" | "solucion" | "hincha" | "auditor" | "manager" | "institucion" | "productora";
 
 export type OrgType = "club" | "federacion" | "evento";
 

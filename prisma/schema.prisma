@@ -18,6 +18,8 @@ enum UserRole {
   manager
   /// Organismos rectores del deporte: Ministerio del Deporte, Comité Olímpico.
   institucion
+  /// Productoras de eventos deportivos que ofertan en licitaciones.
+  productora
 }
 
 /// Naturaleza de la organización que reporta (el modelo Club las agrupa a todas).
@@ -81,6 +83,8 @@ model User {
   solutionContacts SolutionContact[] @relation("solutionContacts")
   subscriptions    Subscription[]
   licenses         License[]         @relation("brandLicenses")
+  producer         Producer?
+  tenders          Tender[]          @relation("brandTenders")
   /// Vigencia del plan pagado (null = sin plan activo).
   planUntil        DateTime?
 }
@@ -602,4 +606,109 @@ model License {
 
   @@index([brandId])
   @@index([clubId])
+}
+
+
+/// Estado de una licitación de producción de evento deportivo.
+enum TenderStatus {
+  /// Publicada y recibiendo ofertas.
+  abierta
+  /// Cerrada a nuevas ofertas, en evaluación.
+  evaluacion
+  /// Con productora seleccionada.
+  adjudicada
+  cancelada
+}
+
+enum BidStatus {
+  enviada
+  preseleccionada
+  descartada
+  adjudicada
+}
+
+/// Productora de eventos deportivos. Se registra sola o llega del catálogo inicial.
+model Producer {
+  id            String   @id @default(cuid())
+  name          String
+  initials      String   @default("")
+  color         String   @default("#22d3ee")
+  description   String   @default("")
+  website       String?
+  country       String   @default("Chile")
+  flag          String   @default("🇨🇱")
+  /// Regiones donde opera; "Nacional" cubre todo el país.
+  regions       String[]
+  /// Tipos de evento que produce: corrida, maratón, torneo, campeonato, etc.
+  specialties   String[]
+  /// Capacidades sostenibles declaradas, del vocabulario de SUSTAINABILITY_TAGS.
+  capabilities  String[]
+  certifications String[]
+  /// Máximo de participantes que ha manejado en un evento.
+  maxCapacity   Int      @default(0)
+  eventsProduced Int     @default(0)
+  /// Declara que reporta el impacto en la plataforma Bettersport.
+  reportsOnPlatform Boolean @default(false)
+  verified      Boolean  @default(false)
+  /// Dato sembrado del catálogo inicial, pendiente de confirmación de la empresa.
+  demo          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  /// Cuenta que administra el perfil, cuando la productora se registró sola.
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @unique
+
+  bids TenderBid[]
+}
+
+/// Licitación que publica una marca para producir un evento deportivo.
+model Tender {
+  id            String       @id @default(cuid())
+  title         String
+  description   String       @default("")
+  /// Tipo de evento a producir (corrida, torneo, campeonato…).
+  eventType     String
+  sport         String       @default("")
+  participants  Int          @default(0)
+  region        String       @default("Nacional")
+  eventDate     String       @default("")
+  budget        Int          @default(0)
+  /// Requisitos de producción tradicional, en texto libre.
+  requirements  String       @default("")
+  /// Requisitos sostenibles exigidos, del vocabulario de SUSTAINABILITY_TAGS.
+  sustainability String[]
+  deadline      String       @default("")
+  status        TenderStatus @default(abierta)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  brand   User   @relation("brandTenders", fields: [brandId], references: [id], onDelete: Cascade)
+  brandId String
+
+  bids TenderBid[]
+
+  @@index([brandId])
+  @@index([status])
+}
+
+/// Oferta de una productora a una licitación.
+model TenderBid {
+  id        String    @id @default(cuid())
+  message   String    @default("")
+  amount    Int       @default(0)
+  /// Cómo cumple los requisitos sostenibles exigidos.
+  approach  String    @default("")
+  status    BidStatus @default(enviada)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  tender   Tender @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  tenderId String
+
+  producer   Producer @relation(fields: [producerId], references: [id], onDelete: Cascade)
+  producerId String
+
+  @@unique([tenderId, producerId])
+  @@index([tenderId])
 }

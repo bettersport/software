@@ -34,6 +34,8 @@ import {
   CreditCard,
   Landmark,
   KeyRound,
+  Gavel,
+  Factory,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -61,7 +63,7 @@ const navSections: NavSection[] = [
         label: "Dashboard",
         href: "/dashboard",
         icon: <LayoutDashboard size={18} />,
-        roles: [...allRoles, "hincha"],
+        roles: [...allRoles, "hincha", "productora"],
       },
       {
         label: "Ranking",
@@ -133,6 +135,19 @@ const navSections: NavSection[] = [
         href: "/solutions",
         icon: <Wrench size={18} />,
         roles: allRoles,
+      },
+      {
+        // La marca publica; la productora oferta.
+        label: "Licitaciones",
+        href: "/tenders",
+        icon: <Gavel size={18} />,
+        roles: ["brand", "admin", "productora"],
+      },
+      {
+        label: "Mi productora",
+        href: "/producers/profile",
+        icon: <Factory size={18} />,
+        roles: ["productora"],
       },
       {
         label: "Marcas",
