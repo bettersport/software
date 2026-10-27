@@ -80,6 +80,7 @@ model User {
   sponsorRequests  SponsorRequest[]  @relation("sponsorRequests")
   solutionContacts SolutionContact[] @relation("solutionContacts")
   subscriptions    Subscription[]
+  licenses         License[]         @relation("brandLicenses")
   /// Vigencia del plan pagado (null = sin plan activo).
   planUntil        DateTime?
 }
@@ -124,6 +125,7 @@ model Club {
   documents   Document[]
   fanProfiles FanProfile[]
   strategies  EsgStrategy[]
+  licenses    License[]
 }
 
 model ESGProject {
@@ -563,4 +565,41 @@ model Subscription {
   userId String
 
   @@index([userId])
+}
+
+
+/// Estado de una licencia Bettersport dentro del Technology Licensing Model.
+enum LicenseStatus {
+  /// Comprada por la marca, aún sin asignar a una organización.
+  disponible
+  /// Entregada a un club, federación o evento.
+  asignada
+  /// Fuera de su período de vigencia.
+  vencida
+}
+
+/// Licencia anual que una marca compra y entrega a los patrocinados de su
+/// portafolio para que gestionen y reporten su impacto ESG.
+model License {
+  id          String        @id @default(cuid())
+  status      LicenseStatus @default(disponible)
+  /// Inversión de la marca por esta licencia, en CLP.
+  amount      Int           @default(0)
+  periodStart DateTime
+  periodEnd   DateTime
+  assignedAt  DateTime?
+  notes       String        @default("")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  /// Marca que financia la licencia.
+  brand   User   @relation("brandLicenses", fields: [brandId], references: [id], onDelete: Cascade)
+  brandId String
+
+  /// Organización que la recibe. Null mientras está disponible.
+  club   Club?   @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  clubId String?
+
+  @@index([brandId])
+  @@index([clubId])
 }

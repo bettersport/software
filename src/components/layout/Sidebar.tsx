@@ -33,6 +33,7 @@ import {
   LineChart,
   CreditCard,
   Landmark,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/lib/userContext";
@@ -139,6 +140,7 @@ const navSections: NavSection[] = [
         roles: ["admin", "brand"],
         children: [
           { label: "Mercado ESG",           href: "/brands/market",   icon: <LineChart size={15} /> },
+          { label: "Licencias",             href: "/brands/licenses", icon: <KeyRound size={15} /> },
           { label: "Ranking clubes",        href: "/brands/ranking",  icon: <Trophy size={15} /> },
           { label: "Proyectos sostenibles", href: "/brands/projects", icon: <Leaf size={15} /> },
           { label: "Mi configuración",      href: "/brands/config",   icon: <SlidersHorizontal size={15} />, roles: ["brand"] },
