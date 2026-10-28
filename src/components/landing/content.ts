@@ -57,6 +57,12 @@ export const COPY = {
     ctaAwards: { es: "Bettersport Awards 2026", en: "Bettersport Awards 2026" },
     partners: { es: "Nos apoyan", en: "Backed by" },
     brands: { es: "Marcas que han construido su ADN con nosotros", en: "Brands that have built their DNA with us" },
+    scroll: { es: "Desliza", en: "Scroll" },
+    /** Cinta de hechos bajo el hero: solo afirmaciones verificables del documento. */
+    facts: {
+      es: ["Alianza con el Ministerio del Deporte", "Comité Olímpico de Chile", "Technology Licensing Model", "Impacto medible, trazable y reportable", "Latinoamérica y Estados Unidos"],
+      en: ["Partnership with Chile's Ministry of Sport", "Chilean Olympic Committee", "Technology Licensing Model", "Measurable, traceable, reportable impact", "Latin America and the United States"],
+    },
   },
 
   what: {
@@ -89,6 +95,11 @@ export const COPY = {
 
   how: {
     eyebrow: { es: "Cómo lo hacemos", en: "How we do it" },
+    stepsEyebrow: { es: "El modelo, paso a paso", en: "The model, step by step" },
+    flow: {
+      es: ["Marca", "Licencias", "Patrocinados", "Reporte"],
+      en: ["Brand", "Licences", "Sponsored orgs", "Report"],
+    },
     quote: {
       es: "La tecnología nos permite escalar. Nuestro equipo hace que el impacto suceda.",
       en: "Technology lets us scale. Our team makes the impact happen.",
@@ -201,6 +212,8 @@ export const COPY = {
       en: "Events where sport drives sustainability and climate action.",
     },
     channel: { es: "Ver más en YouTube", en: "See more on YouTube" },
+    play: { es: "Ver video", en: "Watch video" },
+    close: { es: "Cerrar", en: "Close" },
   },
 
   awards: {

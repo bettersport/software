@@ -541,3 +541,74 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Web pública (landing) — lenguaje editorial propio, fuera de las capas
+   del sistema para que no interfiera con el panel.
+   ══════════════════════════════════════════════════════════════════════════ */
+html { scroll-behavior: smooth; }
+
+.font-display {
+  font-family: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  font-variation-settings: "opsz" 96;
+  letter-spacing: -0.035em;
+}
+.font-accent {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Sección clara ("papel"): el contraste con el fondo oscuro es parte del ritmo. */
+.paper { background: #f4f7fb; color: #05070a; }
+.paper .eyebrow { color: #0e7490; }
+.paper-card {
+  background: #ffffff;
+  border: 1px solid rgba(5, 7, 10, 0.08);
+  border-radius: 1.75rem;
+  box-shadow: 0 1px 2px rgba(5, 7, 10, 0.04), 0 30px 70px -40px rgba(5, 7, 10, 0.35);
+}
+
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(244, 247, 251, 0.22);
+}
+.paper .text-outline { -webkit-text-stroke: 1px rgba(5, 7, 10, 0.14); }
+
+/* Grano fotográfico fijo sobre toda la página. */
+.grain { position: relative; }
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 200px 200px;
+}
+
+@keyframes kenburns {
+  from { transform: scale(1.12) translate3d(0, 0, 0); }
+  to   { transform: scale(1.02) translate3d(-1%, -1.5%, 0); }
+}
+.animate-kenburns { animation: kenburns 24s ease-in-out infinite alternate; will-change: transform; }
+
+@keyframes scrollhint {
+  0%   { transform: translateY(-6px); opacity: 0; }
+  35%  { opacity: 1; }
+  100% { transform: translateY(14px); opacity: 0; }
+}
+.animate-scrollhint { animation: scrollhint 1.9s ease-in-out infinite; }
+
+@keyframes flow-dash { to { stroke-dashoffset: -28; } }
+.animate-flow { stroke-dasharray: 6 8; animation: flow-dash 1.4s linear infinite; }
+
+.lp-logo { filter: grayscale(1) opacity(0.65); transition: filter 0.35s ease, transform 0.35s ease; }
+.lp-logo:hover { filter: none; transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-kenburns, .animate-scrollhint, .animate-flow { animation: none; }
+}
