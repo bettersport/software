@@ -3,8 +3,9 @@ import prisma from "./prisma";
 
 /* ============================================================================
    Agregados para el panel institucional (Ministerio del Deporte / COCH).
-   Todo sale de datos reales de la plataforma. Lo único declarado aparte son
-   los valores de referencia regional, marcados como tales en REGIONAL_REFERENCE.
+   Todo sale de datos de la plataforma (reales para cuentas reales; la cuenta
+   demo ve además el catálogo de muestra). Lo único declarado aparte son los
+   valores de referencia regional, marcados como tales en REGIONAL_REFERENCE.
    ========================================================================= */
 
 /** Una organización "reporta" cuando tiene al menos un proyecto ESG o un KPI cargado. */
@@ -55,7 +56,12 @@ const REGIONAL_REFERENCE = [
   { country: "Ecuador", flag: "🇪🇨", score: 54.3 },
 ];
 
-export async function getInstitutionalOverview(): Promise<InstitutionalOverview> {
+/**
+ * `scope` es el `catalogFilter` del usuario: `{ demo: false }` para una cuenta
+ * real (solo organizaciones reales) y `{}` para la cuenta demo, que además ve
+ * el catálogo de muestra para poder presentar el panel con datos.
+ */
+export async function getInstitutionalOverview(scope: { demo?: boolean } = { demo: false }): Promise<InstitutionalOverview> {
   const now = new Date();
 
   const [
@@ -64,20 +70,20 @@ export async function getInstitutionalOverview(): Promise<InstitutionalOverview>
     activeLicenses, paidSubs,
     projects, chileClubs,
   ] = await Promise.all([
-    prisma.club.count({ where: { demo: false, orgType: "club", ...REPORTING } }),
-    prisma.club.count({ where: { demo: false, orgType: "federacion", ...REPORTING } }),
-    prisma.club.count({ where: { demo: false, orgType: "evento", ...REPORTING } }),
-    prisma.club.count({ where: { demo: false, orgType: "club" } }),
-    prisma.club.count({ where: { demo: false, orgType: "federacion" } }),
-    prisma.club.count({ where: { demo: false, orgType: "evento" } }),
-    prisma.user.count({ where: { demo: false, planUntil: { gt: now } } }),
-    prisma.subscription.aggregate({ where: { status: "paid" }, _sum: { amountTotal: true } }),
+    prisma.club.count({ where: { ...scope, orgType: "club", ...REPORTING } }),
+    prisma.club.count({ where: { ...scope, orgType: "federacion", ...REPORTING } }),
+    prisma.club.count({ where: { ...scope, orgType: "evento", ...REPORTING } }),
+    prisma.club.count({ where: { ...scope, orgType: "club" } }),
+    prisma.club.count({ where: { ...scope, orgType: "federacion" } }),
+    prisma.club.count({ where: { ...scope, orgType: "evento" } }),
+    prisma.user.count({ where: { ...scope, planUntil: { gt: now } } }),
+    prisma.subscription.aggregate({ where: { status: "paid", user: scope }, _sum: { amountTotal: true } }),
     prisma.eSGProject.findMany({
-      where: { club: { demo: false } },
+      where: { club: scope },
       select: { budget: true, spent: true, category: true, challenge: { select: { pillar: true } } },
     }),
     prisma.club.findMany({
-      where: { demo: false, esgScore: { gt: 0 } },
+      where: { ...scope, esgScore: { gt: 0 } },
       select: { id: true, name: true, sport: true, country: true, flag: true, esgScore: true, orgType: true },
       orderBy: { esgScore: "desc" },
     }),

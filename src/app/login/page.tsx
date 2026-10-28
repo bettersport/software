@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ShieldCheck, Building2, Tag, Wrench, Star, Mail, Lock, Sparkles } from "lucide-react";
+import { Leaf, Eye, EyeOff, ArrowRight, Trophy, BarChart3, Brain, ShieldCheck, Building2, Tag, Wrench, Star, Mail, Lock, Sparkles, Landmark } from "lucide-react";
 import { CountUp } from "@/components/fx";
 import Link from "next/link";
 import type { UserRole } from "@/lib/types";
@@ -18,6 +18,7 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
   { id: "u3", name: "Alejandro Reyes", email: "alejandro@greensportsa.com", role: "brand" },
   { id: "u5", name: "Sergio Blanco", email: "sergio@ecosolutions.com", role: "solucion" },
   { id: "u7", name: "Martina Herrera", email: "martina@fanzone.com", role: "hincha" },
+  { id: "u8", name: "Paula Fuentes", email: "paula@ministeriodeporte.cl", role: "institucion" },
 ];
 
 const features = [
@@ -33,6 +34,7 @@ const roleConfig: Record<string, { label: string; short: string; color: string; 
   brand:   { label: "Marca", short: "Marca",          color: "#06B6D4", bg: "rgba(6,182,212,0.12)",   icon: <Tag size={15} />,          desc: "Patrocinios y eventos" },
   solucion: { label: "Proveedor de Soluciones", short: "Proveedor", color: "#F97316", bg: "rgba(249,115,22,0.12)", icon: <Wrench size={15} />, desc: "Ofrece soluciones sostenibles" },
   hincha:  { label: "Fan / Hincha", short: "Hincha",    color: "#EC4899", bg: "rgba(236,72,153,0.12)",  icon: <Star size={15} />,         desc: "Zona fan y recompensas" },
+  institucion: { label: "Organismo rector", short: "Ministerio", color: "#F59E0B", bg: "rgba(245,158,11,0.12)", icon: <Landmark size={15} />, desc: "Panel MINDEP / COCH" },
 };
 
 export default function LoginPage() {

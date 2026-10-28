@@ -61,6 +61,15 @@ export const mockUsers: User[] = [
     country: "Chile",
     clubId: "c4",
   },
+  {
+    id: "u8",
+    name: "Paula Fuentes",
+    email: "paula@ministeriodeporte.cl",
+    role: "institucion",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Paula",
+    club: "Ministerio del Deporte",
+    country: "Chile",
+  },
 ];
 
 // ===== MOCK CLUBS (RANKING) =====

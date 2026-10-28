@@ -1,4 +1,4 @@
-import { withUser, json, requireRole } from "@/lib/server-data";
+import { withUser, json, requireRole, catalogFilter } from "@/lib/server-data";
 import { getInstitutionalOverview } from "@/lib/institutional";
 
 /** Roles con acceso al panel de organismos rectores. */
@@ -11,5 +11,6 @@ export async function GET() {
   const denied = requireRole(ctx.user, INSTITUTIONAL_ROLES);
   if (denied) return denied;
 
-  return json(await getInstitutionalOverview());
+  // Regla de oro: una cuenta real solo agrega organizaciones reales.
+  return json(await getInstitutionalOverview(catalogFilter(ctx.user)));
 }
