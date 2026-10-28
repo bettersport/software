@@ -13,29 +13,35 @@ import { cn } from "@/lib/utils";
 
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
-/** Titular que entra palabra por palabra desde una máscara. */
+/**
+ * Titular que entra palabra por palabra desde una máscara.
+ * `inView`: anima al entrar en pantalla (framer). Sin `inView` anima al
+ * montar con CSS puro: la entrada del hero no puede depender de la
+ * hidratación (en carga fría las animaciones con retardo se quedaban en 0).
+ */
 export function WordReveal({
   text, className, delay = 0, stagger = 0.055, once = true, inView = false,
 }: {
-  text: string; className?: string; delay?: number; stagger?: number; once?: boolean;
-  /** `true`: anima al entrar en pantalla; `false`: anima al montar (hero). */
-  inView?: boolean;
+  text: string; className?: string; delay?: number; stagger?: number; once?: boolean; inView?: boolean;
 }) {
   const words = text.split(" ");
   return (
     <span className={className} aria-label={text}>
       {words.map((w, i) => (
         <span key={`${w}-${i}`} className="inline-block overflow-hidden align-bottom pb-[0.1em] -mb-[0.1em] mr-[0.26em]">
-          <motion.span
-            className="inline-block"
-            initial={{ y: "110%", rotate: 2 }}
-            {...(inView
-              ? { whileInView: { y: 0, rotate: 0 }, viewport: { once, margin: "-80px" } }
-              : { animate: { y: 0, rotate: 0 } })}
-            transition={{ duration: 0.9, delay: delay + i * stagger, ease: EASE }}
-          >
-            {w}
-          </motion.span>
+          {inView ? (
+            <motion.span
+              className="inline-block"
+              initial={{ y: "110%", rotate: 2 }}
+              whileInView={{ y: 0, rotate: 0 }}
+              viewport={{ once, margin: "-80px" }}
+              transition={{ duration: 0.9, delay: delay + i * stagger, ease: EASE }}
+            >
+              {w}
+            </motion.span>
+          ) : (
+            <span className="inline-block lp-rise" style={{ animationDelay: `${delay + i * stagger}s` }}>{w}</span>
+          )}
         </span>
       ))}
     </span>

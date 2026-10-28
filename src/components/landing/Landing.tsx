@@ -131,16 +131,13 @@ export function Landing() {
       <section id="inicio">
         <HeroSlider slides={t(SLIDES)} className="min-h-[100svh]">
           <div className="max-w-7xl mx-auto px-5 lg:px-8 min-h-[100svh] flex flex-col justify-end pb-28 pt-32">
-            <motion.p
-              className="eyebrow flex items-center gap-2 mb-7"
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7, ease: EASE }}
-            >
+            <p className="eyebrow flex items-center gap-2 mb-7 lp-fade-up" style={{ animationDelay: "0.2s" }}>
               <span className="relative flex w-2 h-2">
                 <span className="absolute inline-flex w-full h-full rounded-full animate-pulse-ring" style={{ backgroundColor: "#22d3ee" }} />
                 <span className="relative inline-flex w-2 h-2 rounded-full" style={{ backgroundColor: "#22d3ee" }} />
               </span>
               {t(COPY.hero.eyebrow)}
-            </motion.p>
+            </p>
 
             <h1 className="font-display font-semibold text-white leading-[0.95] text-[3.1rem] sm:text-[4.5rem] lg:text-[6.4rem] xl:text-[7.2rem] max-w-[14ch]">
               <WordReveal text={t(COPY.hero.title1)} delay={0.3} />
@@ -149,18 +146,11 @@ export function Landing() {
             </h1>
 
             <div className="mt-10 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:items-end">
-              <motion.p
-                className="text-base lg:text-xl leading-relaxed max-w-xl"
-                style={{ color: "rgba(244,247,251,0.78)" }}
-                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0, duration: 0.8, ease: EASE }}
-              >
+              <p className="text-base lg:text-xl leading-relaxed max-w-xl lp-fade-up" style={{ color: "rgba(244,247,251,0.78)", animationDelay: "1s" }}>
                 {t(COPY.hero.lead)}
-              </motion.p>
+              </p>
 
-              <motion.div
-                className="flex flex-wrap items-center gap-3"
-                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15, duration: 0.8, ease: EASE }}
-              >
+              <div className="flex flex-wrap items-center gap-3 lp-fade-up" style={{ animationDelay: "1.15s" }}>
                 <a href={PLATFORM_URL} className="btn-primary !py-4 !px-7 !text-[15px] !rounded-full">
                   {t(COPY.hero.ctaPlatform)} <ArrowRight size={17} />
                 </a>
@@ -168,7 +158,7 @@ export function Landing() {
                   style={{ color: "#f4f7fb", border: "1px solid rgba(244,247,251,0.25)", backdropFilter: "blur(10px)" }}>
                   <Trophy size={16} style={{ color: "#fbbf24" }} /> {t(COPY.hero.ctaAwards)}
                 </a>
-              </motion.div>
+              </div>
             </div>
           </div>
         </HeroSlider>
