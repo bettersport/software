@@ -6,8 +6,8 @@ import {
   ArrowRight, Instagram, Youtube, Linkedin, Menu, X, Trophy,
   Target, Handshake, Landmark, Languages, PlayCircle, Sparkles,
 } from "lucide-react";
-import { Aurora, Reveal, Stagger, StaggerItem } from "@/components/fx";
-import { COPY, VIDEOS, SOCIAL, PARTNERS, PLATFORM_URL, AWARDS_URL, type Lang } from "./content";
+import { Aurora, Reveal, Stagger, StaggerItem, Marquee } from "@/components/fx";
+import { COPY, VIDEOS, SOCIAL, PARTNERS, BRAND_LOGOS, FOOTER_LOGOS, PLATFORM_URL, AWARDS_URL, type Lang } from "./content";
 import { cn } from "@/lib/utils";
 
 const WHAT_ICONS = [Target, Handshake, Landmark];
@@ -147,6 +147,21 @@ export function Landing() {
             </div>
           </motion.div>
         </div>
+      </section>
+
+      {/* ══════════ MARCAS ══════════ */}
+      <section className="relative py-12 lg:py-14" style={{ borderTop: "1px solid rgba(244,247,251,0.06)", borderBottom: "1px solid rgba(244,247,251,0.06)" }}>
+        <div className="max-w-7xl mx-auto px-5 lg:px-8">
+          <p className="eyebrow mb-6 text-center">{t(COPY.hero.brands)}</p>
+        </div>
+        <Marquee speed={55}>
+          {BRAND_LOGOS.map((src) => (
+            <span key={src} className="mx-3 inline-flex items-center justify-center h-16 px-6 rounded-xl flex-shrink-0" style={{ backgroundColor: "#f4f7fb" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" className="h-9 w-auto object-contain" loading="lazy" />
+            </span>
+          ))}
+        </Marquee>
       </section>
 
       {/* ══════════ QUÉ HACEMOS ══════════ */}
@@ -360,6 +375,15 @@ export function Landing() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.svg" alt="BetterSport" className="h-7 w-auto object-contain" style={{ filter: "brightness(0) invert(1)" }} />
             <p className="text-sm mt-3" style={{ color: "#6b7789" }}>{t(COPY.footer.tagline)}</p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {FOOTER_LOGOS.map((src) => (
+              <span key={src} className="inline-flex items-center h-10 px-3 rounded-lg" style={{ backgroundColor: "#f4f7fb" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" className="h-6 w-auto object-contain" loading="lazy" />
+              </span>
+            ))}
           </div>
 
           <div className="flex items-center gap-2">

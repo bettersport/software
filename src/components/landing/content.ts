@@ -23,6 +23,11 @@ export const SOCIAL = {
 export const PLATFORM_URL = "https://app.bettersport.cl";
 export const AWARDS_URL = "/awards";
 
+/** Marcas que han trabajado con Bettersport (logos rescatados del sitio anterior). */
+export const BRAND_LOGOS = Array.from({ length: 16 }, (_, i) => `/brands/marca-${String(i + 1).padStart(2, "0")}.png`);
+/** Logos que iban en el pie del sitio anterior. */
+export const FOOTER_LOGOS = ["/brands/marca-02.png", "/brands/marca-16.png", "/brands/marca-03.png"];
+
 /** Instituciones que respaldan a Bettersport. */
 export const PARTNERS = [
   { name: "Megamedia", short: "MEGA" },
@@ -51,6 +56,7 @@ export const COPY = {
     ctaPlatform: { es: "Conoce nuestra plataforma", en: "Explore our platform" },
     ctaAwards: { es: "Bettersport Awards 2026", en: "Bettersport Awards 2026" },
     partners: { es: "Nos apoyan", en: "Backed by" },
+    brands: { es: "Marcas que han construido su ADN con nosotros", en: "Brands that have built their DNA with us" },
   },
 
   what: {
